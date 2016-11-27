@@ -67,4 +67,28 @@ class AstMappingTests {
                 position(1, 0, 2, 15))
         assertEquals(expectedAst, ast)
     }
+
+    @Test fun transformsVariableNamesToUppercase() {
+        val code = """var a = 1
+                     |var b = a""".trimMargin("|")
+        val expectedPreTransformedAst = SandyFile(listOf(
+                VarDeclarationStatement("a", IntLiteralExpression("1")),
+                VarDeclarationStatement("b", VarReferenceExpression("a"))
+        ))
+        val preTransformedAst = SandyParser.parse(code).root!!.toAst()
+        assertEquals(expectedPreTransformedAst, preTransformedAst)
+
+        val expectedTransformedAst = SandyFile(listOf(
+                VarDeclarationStatement("A", IntLiteralExpression("1")),
+                VarDeclarationStatement("B", VarReferenceExpression("A"))
+        ))
+        val transformedAst = preTransformedAst.transform {
+            when (it) {
+                is VarDeclarationStatement -> VarDeclarationStatement(it.varName.toUpperCase(), it.value)
+                is VarReferenceExpression -> VarReferenceExpression(it.varName.toUpperCase())
+                else -> it
+            }
+        }
+        assertEquals(expectedTransformedAst, transformedAst)
+    }
 }
