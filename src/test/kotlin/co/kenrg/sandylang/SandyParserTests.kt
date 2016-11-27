@@ -19,12 +19,12 @@ class SandyParserTests {
 """SandyFile
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[a]
           Leaf[=]
-          IntLiteralExpression
+          IntLiteral
             Leaf[1]
     Leaf[<EOF>]
 """,
@@ -37,34 +37,34 @@ class SandyParserTests {
                 """SandyFile
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[a]
           Leaf[=]
-          IntLiteralExpression
+          IntLiteral
             Leaf[10]
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[b]
           Leaf[=]
-          IntLiteralExpression
+          IntLiteral
             Leaf[5]
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[c]
           Leaf[=]
           BinaryOperation
-            VarReferenceExpression
+            VarReference
               Leaf[a]
             Leaf[/]
-            VarReferenceExpression
+            VarReference
               Leaf[b]
     Leaf[<EOF>]
 """,
@@ -77,14 +77,14 @@ class SandyParserTests {
                 """SandyFile
   Line
     AssignmentStatement
-      AssignmentStatement
+      Assignment
         Leaf[a]
         Leaf[=]
         BinaryOperation
-          IntLiteralExpression
+          IntLiteral
             Leaf[1]
           Leaf[+]
-          IntLiteralExpression
+          IntLiteral
             Leaf[2]
     Leaf[<EOF>]
 """,
@@ -97,39 +97,39 @@ class SandyParserTests {
                 """SandyFile
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[a]
           Leaf[=]
           ParenExpression
             Leaf[(]
             BinaryOperation
-              IntLiteralExpression
+              IntLiteral
                 Leaf[1]
               Leaf[+]
-              IntLiteralExpression
+              IntLiteral
                 Leaf[2]
             Leaf[)]
   Line
     VarDeclarationStatement
-      VarDeclarationStatement
+      VarDeclaration
         Leaf[var]
-        AssignmentStatement
+        Assignment
           Leaf[b]
           Leaf[=]
           BinaryOperation
             ParenExpression
               Leaf[(]
               BinaryOperation
-                VarReferenceExpression
+                VarReference
                   Leaf[a]
                 Leaf[+]
-                IntLiteralExpression
+                IntLiteral
                   Leaf[1]
               Leaf[)]
             Leaf[+]
-            IntLiteralExpression
+            IntLiteral
               Leaf[1]
     Leaf[<EOF>]
 """,
