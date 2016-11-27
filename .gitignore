@@ -1,0 +1,7 @@
+.idea
+.gradle
+build
+generated-src
+*.iml
+*.ipr
+*.iws
