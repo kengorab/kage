@@ -36,6 +36,15 @@ class SandyLexerTests {
         )
     }
 
+    @Test fun parseMultipleVars() {
+        val code = """var a = 1
+                     |var b = 2""".trimMargin("|")
+        assertEquals(
+                listOf("VAR", "ID", "ASSIGN", "INTLIT", "NEWLINE", "VAR", "ID", "ASSIGN", "INTLIT", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
     @Test fun parseVarDeclarationAssignedASum() {
         assertEquals(
                 listOf("VAR", "ID", "ASSIGN", "INTLIT", "PLUS", "INTLIT", "EOF"),

@@ -16,6 +16,11 @@ fun Node.process(operation: (Node) -> Unit) {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
+fun <T : Node> Node.processNodeType(clazz: Class<T>, fn: (T) -> Unit) {
+    this.process { if (clazz.isInstance(it)) fn(it as T) }
+}
+
 fun Node.transform(fn: (Node) -> Node): Node {
     fn(this)
     val changes = HashMap<String, Any>()

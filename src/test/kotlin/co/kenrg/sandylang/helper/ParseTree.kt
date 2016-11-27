@@ -13,9 +13,10 @@ class ParseTreeLeaf(val text: String) : ParseTreeElement() {
         return "$indentation$this\n"
     }
 
-    override fun toString(): String {
-        return "Leaf[$text]"
-    }
+    override fun toString(): String =
+            if (text == "\n") "Leaf[<NEWLINE>]"
+            else "Leaf[$text]"
+
 }
 
 class ParseTreeNode(val nodeName: String) : ParseTreeElement() {

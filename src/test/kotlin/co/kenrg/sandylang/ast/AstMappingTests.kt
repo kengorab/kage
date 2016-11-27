@@ -1,6 +1,6 @@
 package co.kenrg.sandylang.ast;
 
-import co.kenrg.sandylang.ast.extensions.toAst
+import co.kenrg.sandylang.helper.parseWithoutPosition
 import co.kenrg.sandylang.parser.SandyParser
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -10,7 +10,7 @@ class AstMappingTests {
         val code = """var a = 1 + 2
                      |a = 7 * (2 / 3)"""
                 .trimMargin("|")
-        val ast = SandyParser.parse(code).root!!.toAst()
+        val ast = SandyParser.parseWithoutPosition(code).root
         val expectedAst = SandyFile(listOf(
                 VarDeclarationStatement("a", SumExpression(IntLiteralExpression("1"), IntLiteralExpression("2"))),
                 AssignmentStatement("a", MultiplicationExpression(
@@ -23,7 +23,7 @@ class AstMappingTests {
 
     @Test fun mapCastInt() {
         val code = "a = 7 as Int"
-        val ast = SandyParser.parse(code).root!!.toAst()
+        val ast = SandyParser.parseWithoutPosition(code).root
         val expectedAst = SandyFile(listOf(
                 AssignmentStatement("a", TypeConversionExpression(IntLiteralExpression("7"), IntType()))))
         assertEquals(expectedAst, ast)
@@ -31,7 +31,7 @@ class AstMappingTests {
 
     @Test fun mapCastDecimal() {
         val code = "a = 7 as Decimal"
-        val ast = SandyParser.parse(code).root!!.toAst()
+        val ast = SandyParser.parseWithoutPosition(code).root
         val expectedAst = SandyFile(listOf(
                 AssignmentStatement("a", TypeConversionExpression(IntLiteralExpression("7"), DecimalType()))))
         assertEquals(expectedAst, ast)
@@ -39,7 +39,7 @@ class AstMappingTests {
 
     @Test fun mapPrint() {
         val code = "print(a)"
-        val ast = SandyParser.parse(code).root!!.toAst()
+        val ast = SandyParser.parseWithoutPosition(code).root
         val expectedAst = SandyFile(listOf(PrintStatement(VarReferenceExpression("a"))))
         assertEquals(expectedAst, ast)
     }
@@ -47,7 +47,7 @@ class AstMappingTests {
     @Test fun mapSimpleFileWithPositions() {
         val code = """var a = 1 + 2
                      |a = 7 * (2 / 3)""".trimMargin("|")
-        val ast = SandyParser.parse(code).root!!.toAst(considerPosition = true)
+        val ast = SandyParser.parse(code).root
         val expectedAst = SandyFile(listOf(
                 VarDeclarationStatement("a",
                         SumExpression(
@@ -75,14 +75,14 @@ class AstMappingTests {
                 VarDeclarationStatement("a", IntLiteralExpression("1")),
                 VarDeclarationStatement("b", VarReferenceExpression("a"))
         ))
-        val preTransformedAst = SandyParser.parse(code).root!!.toAst()
+        val preTransformedAst = SandyParser.parseWithoutPosition(code).root
         assertEquals(expectedPreTransformedAst, preTransformedAst)
 
         val expectedTransformedAst = SandyFile(listOf(
                 VarDeclarationStatement("A", IntLiteralExpression("1")),
                 VarDeclarationStatement("B", VarReferenceExpression("A"))
         ))
-        val transformedAst = preTransformedAst.transform {
+        val transformedAst = preTransformedAst?.transform {
             when (it) {
                 is VarDeclarationStatement -> VarDeclarationStatement(it.varName.toUpperCase(), it.value)
                 is VarReferenceExpression -> VarReferenceExpression(it.varName.toUpperCase())

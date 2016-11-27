@@ -16,7 +16,7 @@ class SandyParserTests {
     @Test fun parsesFileSingleVarDeclaration() {
         val parseTreeStr = toParseTree(parseResource("single-var-declaration.sandy")).multiLineString()
         assertEquals(
-"""SandyFile
+                """SandyFile
   Line
     VarDeclarationStatement
       VarDeclaration
@@ -44,6 +44,7 @@ class SandyParserTests {
           Leaf[=]
           IntLiteral
             Leaf[10]
+    Leaf[<NEWLINE>]
   Line
     VarDeclarationStatement
       VarDeclaration
@@ -53,6 +54,7 @@ class SandyParserTests {
           Leaf[=]
           IntLiteral
             Leaf[5]
+    Leaf[<NEWLINE>]
   Line
     VarDeclarationStatement
       VarDeclaration
@@ -111,6 +113,7 @@ class SandyParserTests {
               IntLiteral
                 Leaf[2]
             Leaf[)]
+    Leaf[<NEWLINE>]
   Line
     VarDeclarationStatement
       VarDeclaration
