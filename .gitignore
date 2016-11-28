@@ -2,6 +2,8 @@
 .gradle
 build
 generated-src
+.DS_STORE
+*.class
 *.iml
 *.ipr
 *.iws
