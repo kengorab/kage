@@ -36,6 +36,20 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseVarDeclarationAssignedABoolTrueLiteral() {
+        assertEquals(
+                listOf("VAR", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("var t = true"))
+        )
+    }
+
+    @Test fun parseVarDeclarationAssignedABoolFalseLiteral() {
+        assertEquals(
+                listOf("VAR", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("var t = false"))
+        )
+    }
+
     @Test fun parseMultipleVars() {
         val code = """var a = 1
                      |var b = 2""".trimMargin("|")

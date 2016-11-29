@@ -14,6 +14,9 @@ DECIMAL         : 'Decimal' ;
 // Literals
 INTLIT          : '0'|[1-9][0-9]* ;
 DECLIT          : '0'|[1-9][0-9]* '.' [0-9]+ ;
+BOOLLIT         : 'true'|'false' ;
+//BOOLTRUE        : 'true' ;
+//BOOLFALSE       : 'false' ;
 
 // Operators
 PLUS            : '+' ;
