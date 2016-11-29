@@ -1,7 +1,7 @@
-package co.kenrg.sandylang.ast;
+package co.kenrg.kagelang.ast;
 
-import co.kenrg.sandylang.helper.parseWithoutPosition
-import co.kenrg.sandylang.parser.SandyParser
+import co.kenrg.kagelang.helper.parseWithoutPosition
+import co.kenrg.kagelang.parser.KageParserFacade
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -10,8 +10,8 @@ class AstMappingTests {
         val code = """var a = 1 + 2
                      |a = 7 * (2 / 3)"""
                 .trimMargin("|")
-        val ast = SandyParser.parseWithoutPosition(code).root
-        val expectedAst = SandyFile(listOf(
+        val ast = KageParserFacade.parseWithoutPosition(code).root
+        val expectedAst = KageFile(listOf(
                 VarDeclarationStatement("a", SumExpression(IntLiteralExpression("1"), IntLiteralExpression("2"))),
                 AssignmentStatement("a", MultiplicationExpression(
                         IntLiteralExpression("7"),
@@ -23,32 +23,32 @@ class AstMappingTests {
 
     @Test fun mapCastInt() {
         val code = "a = 7 as Int"
-        val ast = SandyParser.parseWithoutPosition(code).root
-        val expectedAst = SandyFile(listOf(
+        val ast = KageParserFacade.parseWithoutPosition(code).root
+        val expectedAst = KageFile(listOf(
                 AssignmentStatement("a", TypeConversionExpression(IntLiteralExpression("7"), IntType()))))
         assertEquals(expectedAst, ast)
     }
 
     @Test fun mapCastDecimal() {
         val code = "a = 7 as Decimal"
-        val ast = SandyParser.parseWithoutPosition(code).root
-        val expectedAst = SandyFile(listOf(
+        val ast = KageParserFacade.parseWithoutPosition(code).root
+        val expectedAst = KageFile(listOf(
                 AssignmentStatement("a", TypeConversionExpression(IntLiteralExpression("7"), DecimalType()))))
         assertEquals(expectedAst, ast)
     }
 
     @Test fun mapPrint() {
         val code = "print(a)"
-        val ast = SandyParser.parseWithoutPosition(code).root
-        val expectedAst = SandyFile(listOf(PrintStatement(VarReferenceExpression("a"))))
+        val ast = KageParserFacade.parseWithoutPosition(code).root
+        val expectedAst = KageFile(listOf(PrintStatement(VarReferenceExpression("a"))))
         assertEquals(expectedAst, ast)
     }
 
     @Test fun mapSimpleFileWithPositions() {
         val code = """var a = 1 + 2
                      |a = 7 * (2 / 3)""".trimMargin("|")
-        val ast = SandyParser.parse(code).root
-        val expectedAst = SandyFile(listOf(
+        val ast = KageParserFacade.parse(code).root
+        val expectedAst = KageFile(listOf(
                 VarDeclarationStatement("a",
                         SumExpression(
                                 IntLiteralExpression("1", position(1, 8, 1, 9)),
@@ -71,14 +71,14 @@ class AstMappingTests {
     @Test fun transformsVariableNamesToUppercase() {
         val code = """var a = 1
                      |var b = a""".trimMargin("|")
-        val expectedPreTransformedAst = SandyFile(listOf(
+        val expectedPreTransformedAst = KageFile(listOf(
                 VarDeclarationStatement("a", IntLiteralExpression("1")),
                 VarDeclarationStatement("b", VarReferenceExpression("a"))
         ))
-        val preTransformedAst = SandyParser.parseWithoutPosition(code).root
+        val preTransformedAst = KageParserFacade.parseWithoutPosition(code).root
         assertEquals(expectedPreTransformedAst, preTransformedAst)
 
-        val expectedTransformedAst = SandyFile(listOf(
+        val expectedTransformedAst = KageFile(listOf(
                 VarDeclarationStatement("A", IntLiteralExpression("1")),
                 VarDeclarationStatement("B", VarReferenceExpression("A"))
         ))

@@ -1,4 +1,4 @@
-lexer grammar SandyLexer;
+lexer grammar KageLexer;
 
 // Whitespace
 NEWLINE         : '\r\n' | '\r' | '\n' ;

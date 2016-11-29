@@ -1,8 +1,8 @@
-parser grammar SandyParser;
+parser grammar KageParser;
 
-options { tokenVocab=SandyLexer; }
+options { tokenVocab=KageLexer; }
 
-sandyFile : lines=line+ ;
+kageFile : lines=line+ ;
 
 line : statement (NEWLINE | EOF) ;
 

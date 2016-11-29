@@ -1,4 +1,4 @@
-package co.kenrg.sandylang.helper
+package co.kenrg.kagelang.helper
 
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.TerminalNode

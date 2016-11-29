@@ -1,12 +1,12 @@
-package co.kenrg.sandylang.parser
+package co.kenrg.kagelang.parser
 
-import co.kenrg.sandylang.SandyLexer
-import co.kenrg.sandylang.SandyParser
-import co.kenrg.sandylang.ast.Error
-import co.kenrg.sandylang.ast.Point
-import co.kenrg.sandylang.ast.SandyFile
-import co.kenrg.sandylang.ast.extensions.toAst
-import co.kenrg.sandylang.ast.validate
+import co.kenrg.kagelang.KageLexer
+import co.kenrg.kagelang.KageParser
+import co.kenrg.kagelang.ast.Error
+import co.kenrg.kagelang.ast.KageFile
+import co.kenrg.kagelang.ast.Point
+import co.kenrg.kagelang.ast.extensions.toAst
+import co.kenrg.kagelang.ast.validate
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
@@ -17,18 +17,18 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 
-data class SandyAntlrParsingResult(val root: SandyParser.SandyFileContext?, val errors: List<Error>) {
+data class KageAntlrParsingResult(val root: KageParser.KageFileContext?, val errors: List<Error>) {
     fun isCorrect() = errors.isEmpty() && root != null
 }
 
 fun String.toStream(charset: Charset = Charsets.UTF_8) = ByteArrayInputStream(toByteArray(charset))
 
-private object SandyAntlrParserFacade {
-    fun parse(code: String): SandyAntlrParsingResult = parse(code.toStream())
+private object KageAntlrParserFacade {
+    fun parse(code: String): KageAntlrParsingResult = parse(code.toStream())
 
-    fun parse(file: File): SandyAntlrParsingResult = parse(FileInputStream(file))
+    fun parse(file: File): KageAntlrParsingResult = parse(FileInputStream(file))
 
-    fun parse(inputStream: InputStream): SandyAntlrParsingResult {
+    fun parse(inputStream: InputStream): KageAntlrParsingResult {
         val lexicalAndSyntacticErrors = LinkedList<Error>()
         val errorListener = object : ANTLRErrorListener {
             override fun reportAmbiguity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Boolean, p5: BitSet?, p6: ATNConfigSet?) {
@@ -48,29 +48,29 @@ private object SandyAntlrParserFacade {
             }
         }
 
-        val lexer = SandyLexer(ANTLRInputStream(inputStream))
+        val lexer = KageLexer(ANTLRInputStream(inputStream))
         lexer.removeErrorListeners()
         lexer.addErrorListener(errorListener)
-        val parser = SandyParser(CommonTokenStream(lexer))
+        val parser = KageParser(CommonTokenStream(lexer))
         parser.removeErrorListeners()
         parser.addErrorListener(errorListener)
-        val root = parser.sandyFile()
+        val root = parser.kageFile()
 
-        return SandyAntlrParsingResult(root, lexicalAndSyntacticErrors)
+        return KageAntlrParsingResult(root, lexicalAndSyntacticErrors)
     }
 }
 
-data class ParsingResult(val root: SandyFile?, val errors: List<Error>) {
+data class ParsingResult(val root: KageFile?, val errors: List<Error>) {
     fun isCorrect() = errors.isEmpty() && root != null
 }
 
-object SandyParser {
+object KageParserFacade {
     fun parse(code: String): ParsingResult = parse(code.toStream())
 
     fun parse(file: File): ParsingResult = parse(FileInputStream(file))
 
     fun parse(inputStream: InputStream, considerPosition: Boolean = true): ParsingResult {
-        val antlrParsingResult = SandyAntlrParserFacade.parse(inputStream)
+        val antlrParsingResult = KageAntlrParserFacade.parse(inputStream)
         val lexicalAndSyntacticErrors = antlrParsingResult.errors
         val antlrRoot = antlrParsingResult.root
         val astRoot = antlrRoot?.toAst(considerPosition = considerPosition)

@@ -1,4 +1,4 @@
-package co.kenrg.sandylang.ast
+package co.kenrg.kagelang.ast
 
 data class Point(val line: Int, val column: Int)
 data class Position(val start: Point, val end: Point)
@@ -10,7 +10,7 @@ interface Node {
     val position: Position?
 }
 
-data class SandyFile(val statements: List<Statement>, override val position: Position? = null) : Node
+data class KageFile(val statements: List<Statement>, override val position: Position? = null) : Node
 
 interface Statement : Node
 interface Expression : Node

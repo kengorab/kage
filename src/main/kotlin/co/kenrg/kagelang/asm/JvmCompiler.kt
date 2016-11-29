@@ -1,27 +1,27 @@
-package co.kenrg.sandylang.asm
+package co.kenrg.kagelang.asm
 
-import co.kenrg.sandylang.ast.*
+import co.kenrg.kagelang.ast.*
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
 import jdk.internal.org.objectweb.asm.Opcodes.*
 import java.util.*
 
-interface SandyJvmType {
+interface KageJvmType {
     val jvmDescription: String
 }
 
-data class Var(val type: SandyJvmType, val index: Int)
+data class Var(val type: KageJvmType, val index: Int)
 
-object IntJvmType : SandyJvmType {
+object IntJvmType : KageJvmType {
     override val jvmDescription: String get() = "I"
 }
 
-object DecimalJvmType : SandyJvmType {
+object DecimalJvmType : KageJvmType {
     override val jvmDescription: String get() = "D"
 }
 
-fun Type.toJvmType(): SandyJvmType = when (this) {
+fun Type.toJvmType(): KageJvmType = when (this) {
     is IntType -> IntJvmType
     is DecimalType -> DecimalJvmType
     else -> throw UnsupportedOperationException("Unrecognized type: ${this}")
@@ -29,7 +29,7 @@ fun Type.toJvmType(): SandyJvmType = when (this) {
 
 val validBinaryExpressionTypes = listOf(IntJvmType, DecimalJvmType)
 
-fun getExpressionType(expr: Expression, vars: Map<String, Var>): SandyJvmType = when (expr) {
+fun getExpressionType(expr: Expression, vars: Map<String, Var>): KageJvmType = when (expr) {
     is IntLiteralExpression -> IntJvmType
     is DecimalLiteralExpression -> DecimalJvmType
     is VarReferenceExpression -> vars[expr.varName]!!.type  // By this point, we've validated that the var should exist
@@ -52,7 +52,7 @@ fun getExpressionType(expr: Expression, vars: Map<String, Var>): SandyJvmType = 
     else -> throw UnsupportedOperationException("Cannot get type for ${expr.javaClass.canonicalName}")
 }
 
-fun pushExpressionAs(methodWriter: MethodVisitor, expr: Expression, vars: Map<String, Var>, desiredType: SandyJvmType) {
+fun pushExpressionAs(methodWriter: MethodVisitor, expr: Expression, vars: Map<String, Var>, desiredType: KageJvmType) {
     pushExpression(methodWriter, expr, vars)
     val currentType = getExpressionType(expr, vars)
     if (currentType != desiredType) {
@@ -122,7 +122,7 @@ fun pushExpression(methodWriter: MethodVisitor, expr: Expression, vars: Map<Stri
 }
 
 object JvmCompiler {
-    fun compileClass(root: SandyFile, className: String): ByteArray {
+    fun compileClass(root: KageFile, className: String): ByteArray {
         val classWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
         classWriter.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
 

@@ -1,13 +1,13 @@
-package co.kenrg.sandylang.ast
+package co.kenrg.kagelang.ast
 
-import co.kenrg.sandylang.parser.SandyParser
+import co.kenrg.kagelang.parser.KageParserFacade
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class AstValidationTests {
 
     @Test fun duplicateVar() {
-        val errors = SandyParser.parse(
+        val errors = KageParserFacade.parse(
                 """var a = 1
                   |var a = 2""".trimMargin("|")
         ).errors
@@ -19,12 +19,12 @@ class AstValidationTests {
     }
 
     @Test fun nonexistentVarReference() {
-        val errors = SandyParser.parse("var a = b + 2").errors
+        val errors = KageParserFacade.parse("var a = b + 2").errors
         assertEquals(listOf(Error("There is no variable named 'b'", Point(1, 8))), errors)
     }
 
     @Test fun varReferenceBeforeDeclaration() {
-        val errors = SandyParser.parse(
+        val errors = KageParserFacade.parse(
                 """var a = b + 2
                   |var b = 2""".trimMargin("|")
         ).errors
@@ -32,12 +32,12 @@ class AstValidationTests {
     }
 
     @Test fun nonexistentVarAssignment() {
-        val errors = SandyParser.parse("a = 3").errors
+        val errors = KageParserFacade.parse("a = 3").errors
         assertEquals(listOf(Error("There is no variable named 'a'", Point(1, 0))), errors)
     }
 
     @Test fun varAssignmentBeforeDeclaration() {
-        val errors = SandyParser.parse(
+        val errors = KageParserFacade.parse(
                 """a = 1
                   |var a =2""".trimMargin("|")
         ).errors

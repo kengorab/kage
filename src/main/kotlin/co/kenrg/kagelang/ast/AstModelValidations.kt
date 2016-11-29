@@ -1,4 +1,4 @@
-package co.kenrg.sandylang.ast
+package co.kenrg.kagelang.ast
 
 import java.util.*
 
@@ -7,7 +7,7 @@ data class Error(val error: String, val position: Point?)
 fun Node.isBefore(other: Node): Boolean = position?.start?.isBefore(other.position!!.start) ?: false
 fun Point.isBefore(other: Point): Boolean = line < other.line || (line == other.line && column < other.column)
 
-fun SandyFile.validate(): List<Error> {
+fun KageFile.validate(): List<Error> {
     val errors = LinkedList<Error>()
 
     // Check for duplicate variables

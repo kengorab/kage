@@ -1,7 +1,7 @@
-package co.kenrg.sandylang
+package co.kenrg.kagelang
 
-import co.kenrg.sandylang.asm.JvmCompiler
-import co.kenrg.sandylang.ast.validate
+import co.kenrg.kagelang.asm.JvmCompiler
+import co.kenrg.kagelang.ast.validate
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -22,7 +22,7 @@ fun main(args: Array<String>) {
         return
     }
 
-    val parsingResult = co.kenrg.sandylang.parser.SandyParser.parse(code)
+    val parsingResult = co.kenrg.kagelang.parser.KageParserFacade.parse(code)
     if (!parsingResult.isCorrect()) {
         println("Errors:")
         parsingResult.errors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }

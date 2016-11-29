@@ -1,4 +1,4 @@
-package co.kenrg.sandylang
+package co.kenrg.kagelang
 
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.junit.Test
@@ -6,16 +6,16 @@ import java.io.StringReader
 import java.util.*
 import kotlin.test.assertEquals
 
-class SandyLexerTests {
-    fun lexerForCode(code: String) = SandyLexer(ANTLRInputStream(StringReader(code)))
+class KageLexerTests {
+    fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
-    fun tokens(lexer: SandyLexer): List<String> {
+    fun tokens(lexer: KageLexer): List<String> {
         val tokens = LinkedList<String>()
         do {
             val t = lexer.nextToken()
             when (t.type) {
                 -1 -> tokens.add("EOF")
-                else -> if (t.type != SandyLexer.WS) tokens.add(lexer.ruleNames[t.type - 1])
+                else -> if (t.type != KageLexer.WS) tokens.add(lexer.ruleNames[t.type - 1])
             }
         } while (t.type != -1)
 
