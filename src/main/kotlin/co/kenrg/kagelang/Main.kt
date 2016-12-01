@@ -8,8 +8,6 @@ import java.io.FileOutputStream
 import java.io.InputStream
 
 fun main(args: Array<String>) {
-//    println(File(args[0]).absolutePath)
-//    return
     val code: InputStream? = when (args.size) {
         0 -> System.`in`
         1 -> FileInputStream(File(args[0]))

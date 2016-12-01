@@ -1,0 +1,5 @@
+var t = true
+var f = false
+
+print(t)
+print(f)

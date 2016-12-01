@@ -59,6 +59,17 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseMultipleNewlines() {
+        val code = """var a = 1
+                     |
+                     |print(a)
+                     |""".trimMargin("|")
+        assertEquals(
+                listOf("VAR", "ID", "ASSIGN", "INTLIT", "NEWLINE", "NEWLINE", "PRINT", "LPAREN", "ID", "RPAREN", "NEWLINE", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
     @Test fun parseVarDeclarationAssignedASum() {
         assertEquals(
                 listOf("VAR", "ID", "ASSIGN", "INTLIT", "PLUS", "INTLIT", "EOF"),

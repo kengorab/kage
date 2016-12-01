@@ -21,6 +21,11 @@ object DecimalJvmType : KageJvmType {
     override val jvmDescription: String get() = "D"
 }
 
+object BoolJvmType : KageJvmType {
+    override val jvmDescription: String get() = "Z"
+}
+
+// TODO - Remove this; we don't need type casting with `as`
 fun Type.toJvmType(): KageJvmType = when (this) {
     is IntType -> IntJvmType
     is DecimalType -> DecimalJvmType
@@ -32,6 +37,7 @@ val validBinaryExpressionTypes = listOf(IntJvmType, DecimalJvmType)
 fun getExpressionType(expr: Expression, vars: Map<String, Var>): KageJvmType = when (expr) {
     is IntLiteralExpression -> IntJvmType
     is DecimalLiteralExpression -> DecimalJvmType
+    is BoolLiteralExpression -> BoolJvmType
     is VarReferenceExpression -> vars[expr.varName]!!.type  // By this point, we've validated that the var should exist
     is TypeConversionExpression -> expr.targetType.toJvmType()
     is UnaryMinusExpression -> getExpressionType(expr, vars)
@@ -70,6 +76,7 @@ fun pushExpression(methodWriter: MethodVisitor, expr: Expression, vars: Map<Stri
     when (expr) {
         is IntLiteralExpression -> methodWriter.visitLdcInsn(Integer.parseInt(expr.value))
         is DecimalLiteralExpression -> methodWriter.visitLdcInsn(java.lang.Double.parseDouble(expr.value))
+        is BoolLiteralExpression -> methodWriter.visitLdcInsn(java.lang.Boolean.parseBoolean(expr.value))
         is SumExpression -> {
             pushExpressionAs(methodWriter, expr.left, vars, getExpressionType(expr, vars))
             pushExpressionAs(methodWriter, expr.right, vars, getExpressionType(expr, vars))
@@ -111,6 +118,7 @@ fun pushExpression(methodWriter: MethodVisitor, expr: Expression, vars: Map<Stri
             when (type) {
                 is IntJvmType -> methodWriter.visitVarInsn(ILOAD, vars[expr.varName]!!.index)
                 is DecimalJvmType -> methodWriter.visitVarInsn(DLOAD, vars[expr.varName]!!.index)
+                is BoolJvmType -> methodWriter.visitVarInsn(ILOAD, vars[expr.varName]!!.index)
                 else -> throw UnsupportedOperationException("Loading ${expr.javaClass.canonicalName}")
             }
         }
@@ -149,6 +157,7 @@ object JvmCompiler {
                     when (type) {
                         is IntJvmType -> mainMethodWriter.visitVarInsn(ISTORE, vars[stmt.varName]!!.index)
                         is DecimalJvmType -> mainMethodWriter.visitVarInsn(DSTORE, vars[stmt.varName]!!.index)
+                        is BoolJvmType -> mainMethodWriter.visitVarInsn(ISTORE, vars[stmt.varName]!!.index)
                         else -> throw UnsupportedOperationException("Cannot store variable ${stmt.varName} of type $type")
                     }
                 }

@@ -17,7 +17,7 @@ interface Expression : Node
 interface Type : Node
 
 // Types
-
+// TODO - Remove these; we don't want to handle casting using `as`
 data class IntType(override val position: Position? = null) : Type
 data class DecimalType(override val position: Position? = null) : Type
 
@@ -36,8 +36,11 @@ data class DivisionExpression(override val left: Expression, override val right:
 data class UnaryMinusExpression(val value: Expression, override val position: Position? = null) : Expression
 data class VarReferenceExpression(val varName: String, override val position: Position? = null) : Expression
 data class TypeConversionExpression(val value: Expression, val targetType: Type, override val position: Position? = null) : Expression
+
+// Expressions: Literals
 data class IntLiteralExpression(val value: String, override val position: Position? = null) : Expression
 data class DecimalLiteralExpression(val value: String, override val position: Position? = null) : Expression
+data class BoolLiteralExpression(val value: String, override val position: Position? = null) : Expression
 
 // Statements
 

@@ -4,7 +4,7 @@ options { tokenVocab=KageLexer; }
 
 kageFile : lines=line+ ;
 
-line : statement (NEWLINE | EOF) ;
+line : statement (NEWLINE+ | EOF) ;
 
 statement : varDeclaration  #varDeclarationStatement
           | assignment      #assignmentStatement
