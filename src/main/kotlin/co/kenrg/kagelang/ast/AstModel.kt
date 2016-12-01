@@ -35,7 +35,6 @@ data class DivisionExpression(override val left: Expression, override val right:
 
 data class UnaryMinusExpression(val value: Expression, override val position: Position? = null) : Expression
 data class VarReferenceExpression(val varName: String, override val position: Position? = null) : Expression
-data class TypeConversionExpression(val value: Expression, val targetType: Type, override val position: Position? = null) : Expression
 
 // Expressions: Literals
 data class IntLiteralExpression(val value: String, override val position: Position? = null) : Expression

@@ -25,13 +25,6 @@ object BoolJvmType : KageJvmType {
     override val jvmDescription: String get() = "Z"
 }
 
-// TODO - Remove this; we don't need type casting with `as`
-fun Type.toJvmType(): KageJvmType = when (this) {
-    is IntType -> IntJvmType
-    is DecimalType -> DecimalJvmType
-    else -> throw UnsupportedOperationException("Unrecognized type: ${this}")
-}
-
 val validBinaryExpressionTypes = listOf(IntJvmType, DecimalJvmType)
 
 fun getExpressionType(expr: Expression, vars: Map<String, Var>): KageJvmType = when (expr) {
@@ -39,7 +32,6 @@ fun getExpressionType(expr: Expression, vars: Map<String, Var>): KageJvmType = w
     is DecimalLiteralExpression -> DecimalJvmType
     is BoolLiteralExpression -> BoolJvmType
     is VarReferenceExpression -> vars[expr.varName]!!.type  // By this point, we've validated that the var should exist
-    is TypeConversionExpression -> expr.targetType.toJvmType()
     is UnaryMinusExpression -> getExpressionType(expr, vars)
     is BinaryExpression -> {
         val leftType = getExpressionType(expr.left, vars)
@@ -121,9 +113,6 @@ fun pushExpression(methodWriter: MethodVisitor, expr: Expression, vars: Map<Stri
                 is BoolJvmType -> methodWriter.visitVarInsn(ILOAD, vars[expr.varName]!!.index)
                 else -> throw UnsupportedOperationException("Loading ${expr.javaClass.canonicalName}")
             }
-        }
-        is TypeConversionExpression -> {
-            pushExpressionAs(methodWriter, expr, vars, expr.targetType.toJvmType())
         }
         else -> throw UnsupportedOperationException(expr.javaClass.canonicalName)
     }

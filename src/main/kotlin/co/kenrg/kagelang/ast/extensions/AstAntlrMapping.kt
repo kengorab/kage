@@ -46,16 +46,6 @@ fun KageParser.BinaryOperationContext.toAst(considerPosition: Boolean = false): 
     }
 }
 
-// TODO - Remove this; we don't need type casting with `as`
-fun KageParser.TypeContext.toAst(considerPosition: Boolean = false): Type {
-    val position = this.getPosition(considerPosition)
-    return when (this) {
-        is KageParser.IntegerContext -> IntType(position)
-        is KageParser.DecimalContext -> DecimalType(position)
-        else -> throw UnsupportedOperationException(this.javaClass.canonicalName)
-    }
-}
-
 fun KageParser.ExpressionContext.toAst(considerPosition: Boolean = false): Expression {
     val position = this.getPosition(considerPosition)
     return when (this) {
@@ -63,7 +53,6 @@ fun KageParser.ExpressionContext.toAst(considerPosition: Boolean = false): Expre
         is KageParser.ParenExpressionContext -> this.expression().toAst(considerPosition)
         is KageParser.MinusExpressionContext -> UnaryMinusExpression(this.expression().toAst(considerPosition), position)
         is KageParser.VarReferenceContext -> VarReferenceExpression(this.ID().text, position)
-        is KageParser.TypeConversionContext -> TypeConversionExpression(this.value.toAst(considerPosition), this.targetType.toAst(considerPosition), position)
         is KageParser.IntLiteralContext -> IntLiteralExpression(this.INTLIT().text, position)
         is KageParser.DecLiteralContext -> DecimalLiteralExpression(this.DECLIT().text, position)
         is KageParser.BoolLiteralContext -> BoolLiteralExpression(this.BOOLLIT().text, position)
