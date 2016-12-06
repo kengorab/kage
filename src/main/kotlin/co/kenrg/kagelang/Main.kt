@@ -2,6 +2,7 @@ package co.kenrg.kagelang
 
 import co.kenrg.kagelang.asm.JvmCompiler
 import co.kenrg.kagelang.ast.validate
+import co.kenrg.kagelang.typechecker.ParseTreeTypeChecker
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -32,6 +33,13 @@ fun main(args: Array<String>) {
     if (!errors.isEmpty()) {
         println("Errors:")
         errors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }
+        return
+    }
+
+    val (vars, typeErrors) = ParseTreeTypeChecker.typeCheck(root)
+    if (typeErrors != null) {
+        println("Type Errors:")
+        typeErrors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }
         return
     }
 

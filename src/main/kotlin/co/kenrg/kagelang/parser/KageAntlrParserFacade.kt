@@ -2,11 +2,11 @@ package co.kenrg.kagelang.parser
 
 import co.kenrg.kagelang.KageLexer
 import co.kenrg.kagelang.KageParser
-import co.kenrg.kagelang.ast.Error
 import co.kenrg.kagelang.ast.KageFile
 import co.kenrg.kagelang.ast.Point
 import co.kenrg.kagelang.ast.extensions.toAst
 import co.kenrg.kagelang.ast.validate
+import co.kenrg.kagelang.model.Error
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA

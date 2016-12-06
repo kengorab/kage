@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.ast
 
 import co.kenrg.kagelang.parser.KageParserFacade
+import co.kenrg.kagelang.model.Error
 import org.junit.Test
 import kotlin.test.assertEquals
 

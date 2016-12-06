@@ -1,8 +1,7 @@
 package co.kenrg.kagelang.ast
 
+import co.kenrg.kagelang.model.Error
 import java.util.*
-
-data class Error(val error: String, val position: Point?)
 
 fun Node.isBefore(other: Node): Boolean = position?.start?.isBefore(other.position!!.start) ?: false
 fun Point.isBefore(other: Point): Boolean = line < other.line || (line == other.line && column < other.column)

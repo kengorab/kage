@@ -90,4 +90,18 @@ class KageLexerTests {
                 tokens(lexerForCode("1 + (a * 3) - 5.12"))
         )
     }
+
+    @Test fun parseBooleanOr() {
+        assertEquals(
+                listOf("BOOLLIT", "PIPES", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("true || false"))
+        )
+    }
+
+    @Test fun parseBooleanAnd() {
+        assertEquals(
+                listOf("BOOLLIT", "AMPS", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("true && false"))
+        )
+    }
 }

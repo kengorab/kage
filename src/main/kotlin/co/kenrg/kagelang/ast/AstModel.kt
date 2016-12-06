@@ -14,12 +14,6 @@ data class KageFile(val statements: List<Statement>, override val position: Posi
 
 interface Statement : Node
 interface Expression : Node
-interface Type : Node
-
-// Types
-// TODO - Remove these; we don't want to handle casting using `as`
-data class IntType(override val position: Position? = null) : Type
-data class DecimalType(override val position: Position? = null) : Type
 
 // Expressions
 
@@ -33,11 +27,15 @@ data class SubtractionExpression(override val left: Expression, override val rig
 data class MultiplicationExpression(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression
 data class DivisionExpression(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression
 
+data class BooleanOrExpression(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression
+data class BooleanAndExpression(override val left: Expression, override val right: Expression, override val position: Position? = null) : BinaryExpression
+
 data class UnaryMinusExpression(val value: Expression, override val position: Position? = null) : Expression
 data class VarReferenceExpression(val varName: String, override val position: Position? = null) : Expression
 
 // Expressions: Literals
 data class IntLiteralExpression(val value: String, override val position: Position? = null) : Expression
+
 data class DecimalLiteralExpression(val value: String, override val position: Position? = null) : Expression
 data class BoolLiteralExpression(val value: String, override val position: Position? = null) : Expression
 

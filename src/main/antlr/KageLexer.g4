@@ -21,6 +21,10 @@ DIVISION        : '/' ;
 ASSIGN          : '=' ;
 LPAREN          : '(' ;
 RPAREN          : ')' ;
+PIPE            : '|' ;
+PIPES           : '||' ;
+AMP             : '&' ;
+AMPS            : '&&' ;
 
 // Identifiers
 ID              : [_]*[a-z][A-Za-z0-9_]* ;
