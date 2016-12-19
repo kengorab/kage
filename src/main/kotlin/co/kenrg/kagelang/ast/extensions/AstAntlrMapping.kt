@@ -49,9 +49,9 @@ fun KageParser.BinaryOperationContext.toAst(considerPosition: Boolean = false): 
 fun KageParser.ExpressionContext.toAst(considerPosition: Boolean = false): Expression {
     val position = this.getPosition(considerPosition)
     return when (this) {
+        is KageParser.UnaryOperationContext -> UnaryMinusExpression(this.expression().toAst(considerPosition), position)
         is KageParser.BinaryOperationContext -> this.toAst(considerPosition)
         is KageParser.ParenExpressionContext -> this.expression().toAst(considerPosition)
-        is KageParser.MinusExpressionContext -> UnaryMinusExpression(this.expression().toAst(considerPosition), position)
         is KageParser.VarReferenceContext -> VarReferenceExpression(this.ID().text, position)
         is KageParser.IntLiteralContext -> IntLiteralExpression(this.INTLIT().text, position)
         is KageParser.DecLiteralContext -> DecimalLiteralExpression(this.DECLIT().text, position)

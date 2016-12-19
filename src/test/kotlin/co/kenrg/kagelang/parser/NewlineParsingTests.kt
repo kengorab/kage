@@ -2,8 +2,8 @@ package co.kenrg.kagelang.parser
 
 import co.kenrg.kagelang.helper.parseCode
 import co.kenrg.kagelang.helper.toParseTree
-import org.junit.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class NewlineParsingTests {
     @Test fun parsesCodeTerminatedWithNewline() {

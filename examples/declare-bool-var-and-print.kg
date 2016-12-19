@@ -1,5 +1,5 @@
-var t = true
-var f = false
+val t = true
+val f = false
 
 print(t)
 print(f)

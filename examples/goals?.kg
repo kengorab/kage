@@ -1,0 +1,35 @@
+type Person = {
+  name : String
+  age : Int
+}
+
+fun agePlusN(p: Person, i: Int) =
+  let
+    age: Int = Person.age(p)
+  in
+    age + i
+
+val meg = {
+  name 'Meg'
+  age 24
+}
+
+val numbersList = [ 1 2 3 ]
+val numbersSet = #{ 1 2 3 1 }
+
+#Main
+fun startUp(args: String[]): Unit =
+  let
+    val meghan: Person = Person.clone(meg, { name: 'Meghan' })
+    val meghanCaps = Person.update(meghan, {
+      name: (oldName: String) ->
+        let
+          caps = String.toUpperCase(oldName)
+        in
+          caps ++ "!"
+    })
+  in
+    if numbersList == numbersSet
+      println agePlusN(meghan, 2)
+    else
+      println Person.name(meghanCaps)

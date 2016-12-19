@@ -1,10 +1,10 @@
 package co.kenrg.kagelang
 
 import org.antlr.v4.runtime.ANTLRInputStream
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.util.*
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class KageLexerTests {
     fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))

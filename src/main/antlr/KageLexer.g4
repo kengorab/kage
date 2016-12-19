@@ -21,6 +21,7 @@ DIVISION        : '/' ;
 ASSIGN          : '=' ;
 LPAREN          : '(' ;
 RPAREN          : ')' ;
+BANG            : '!' ;
 PIPE            : '|' ;
 PIPES           : '||' ;
 AMP             : '&' ;

@@ -21,7 +21,7 @@ expression : left=expression operator=(DIVISION|ASTERISK) right=expression  #bin
            | left=expression operator=(PIPES|AMPS) right=expression         #binaryOperation
            | LPAREN expression RPAREN                                       #parenExpression
            | ID                                                             #varReference
-           | MINUS expression                                               #minusExpression
+           | operator=(MINUS|BANG) expression                               #unaryOperation
            | INTLIT                                                         #intLiteral
            | DECLIT                                                         #decLiteral
            | BOOLLIT                                                        #boolLiteral ;

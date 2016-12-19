@@ -1,9 +1,9 @@
-package co.kenrg.kagelang.ast;
+package co.kenrg.kagelang.ast
 
 import co.kenrg.kagelang.helper.parseWithoutPosition
 import co.kenrg.kagelang.parser.KageParserFacade
-import org.junit.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertEquals
 
 class AstMappingTests {
     @Test fun mapSimpleFile() {

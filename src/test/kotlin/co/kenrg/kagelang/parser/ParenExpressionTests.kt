@@ -3,8 +3,8 @@ package co.kenrg.kagelang.parser
 import co.kenrg.kagelang.KageParser
 import co.kenrg.kagelang.helper.parseCode
 import co.kenrg.kagelang.helper.toParseTree
-import org.junit.Test
-import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 class ParenExpressionTests {
     // TODO - Tests must use vars, but we're only interested in the paren operation. Remove when top-level expressions supported.
