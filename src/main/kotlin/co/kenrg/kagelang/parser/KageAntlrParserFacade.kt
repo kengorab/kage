@@ -10,8 +10,6 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
 import java.io.ByteArrayInputStream
-import java.io.File
-import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -61,8 +59,6 @@ data class ParsingResult(val root: KGFile, val errors: List<Error>) {
 
 object KageParserFacade {
     fun parse(code: String): ParsingResult = parse(code.toStream())
-
-    fun parse(file: File): ParsingResult = parse(FileInputStream(file))
 
     fun parse(inputStream: InputStream, considerPosition: Boolean = true): ParsingResult {
         val antlrParsingResult = KageAntlrParserFacade.parse(inputStream)
