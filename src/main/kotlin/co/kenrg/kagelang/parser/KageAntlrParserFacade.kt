@@ -2,11 +2,10 @@ package co.kenrg.kagelang.parser
 
 import co.kenrg.kagelang.KageLexer
 import co.kenrg.kagelang.KageParser
-import co.kenrg.kagelang.ast.KageFile
-import co.kenrg.kagelang.ast.Point
-import co.kenrg.kagelang.ast.extensions.toAst
-import co.kenrg.kagelang.ast.validate
 import co.kenrg.kagelang.model.Error
+import co.kenrg.kagelang.model.Point
+import co.kenrg.kagelang.tree.KGFile
+import co.kenrg.kagelang.tree.TreeMaker
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
@@ -24,10 +23,6 @@ data class KageAntlrParsingResult(val root: KageParser.KageFileContext?, val err
 fun String.toStream(charset: Charset = Charsets.UTF_8) = ByteArrayInputStream(toByteArray(charset))
 
 private object KageAntlrParserFacade {
-    fun parse(code: String): KageAntlrParsingResult = parse(code.toStream())
-
-    fun parse(file: File): KageAntlrParsingResult = parse(FileInputStream(file))
-
     fun parse(inputStream: InputStream): KageAntlrParsingResult {
         val lexicalAndSyntacticErrors = LinkedList<Error>()
         val errorListener = object : ANTLRErrorListener {
@@ -60,8 +55,8 @@ private object KageAntlrParserFacade {
     }
 }
 
-data class ParsingResult(val root: KageFile?, val errors: List<Error>) {
-    fun isCorrect() = errors.isEmpty() && root != null
+data class ParsingResult(val root: KGFile, val errors: List<Error>) {
+    fun isCorrect() = errors.isEmpty()
 }
 
 object KageParserFacade {
@@ -73,8 +68,8 @@ object KageParserFacade {
         val antlrParsingResult = KageAntlrParserFacade.parse(inputStream)
         val lexicalAndSyntacticErrors = antlrParsingResult.errors
         val antlrRoot = antlrParsingResult.root
-        val astRoot = antlrRoot?.toAst(considerPosition = considerPosition)
-        val semanticErrors = astRoot?.validate() ?: emptyList()
-        return ParsingResult(astRoot, lexicalAndSyntacticErrors + semanticErrors)
+                ?: throw IllegalStateException("Null antlr root found during parsing; cannot proceed.")
+        val kageFile = TreeMaker(considerPosition).toKageFile(antlrRoot)
+        return ParsingResult(kageFile, lexicalAndSyntacticErrors)
     }
 }

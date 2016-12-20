@@ -1,8 +1,8 @@
 package co.kenrg.kagelang
 
-import co.kenrg.kagelang.asm.JvmCompiler
-import co.kenrg.kagelang.ast.validate
-import co.kenrg.kagelang.typechecker.ParseTreeTypeChecker
+import co.kenrg.kagelang.codegen.CodeGenVisitor
+import co.kenrg.kagelang.parser.KageParserFacade
+import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -21,29 +21,29 @@ fun main(args: Array<String>) {
         return
     }
 
-    val parsingResult = co.kenrg.kagelang.parser.KageParserFacade.parse(code)
+    val parsingResult = KageParserFacade.parse(code)
     if (!parsingResult.isCorrect()) {
         println("Errors:")
-        parsingResult.errors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }
+        parsingResult.errors.forEach {
+            println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}")
+        }
         return
     }
 
-    val root = parsingResult.root!!
-    val errors = root.validate()
-    if (!errors.isEmpty()) {
+    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
+    parsingResult.root.accept(typeCheckAttribVisitor, mapOf())
+    if (!typeCheckAttribVisitor.isValid()) {
         println("Errors:")
-        errors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }
+        typeCheckAttribVisitor.typeErrors.forEach {
+            println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}")
+        }
         return
     }
 
-    val (vars, typeErrors) = ParseTreeTypeChecker.typeCheck(root)
-    if (typeErrors != null) {
-        println("Type Errors:")
-        typeErrors.forEach { println(" * (${it.position!!.line}, ${it.position.column}): ${it.error}") }
-        return
-    }
+    val codeGenVisitor = CodeGenVisitor(className = "MyClass")
+    parsingResult.root.accept(codeGenVisitor, mapOf())
 
-    val bytes = JvmCompiler.compileClass(root, "MyClass")
+    val bytes = codeGenVisitor.resultBytes()
     val fos = FileOutputStream("MyClass.class")
     fos.write(bytes)
     fos.close()

@@ -34,10 +34,10 @@ dependencies {
     compile "org.antlr:antlr4-runtime:4.5.1"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile 'org.apache.commons:commons-lang3:3.5'
 
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
-    testCompile 'org.apache.commons:commons-lang3:3.5'
     testCompile 'commons-io:commons-io:2.5'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.0.0-M3'
     testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.0.0-M3'

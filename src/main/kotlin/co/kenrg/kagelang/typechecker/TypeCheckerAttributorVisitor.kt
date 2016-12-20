@@ -1,6 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.model.Error2
+import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
@@ -22,11 +22,11 @@ import java.util.*
  * @see Visitor
  */
 class TypeCheckerAttributorVisitor(
-        val errorHandler: VisitorErrorHandler<Error2>? = null
-) : Visitor<Map<String, KGTypeTag>>, VisitorErrorHandler<Error2> {
+        val errorHandler: VisitorErrorHandler<Error>? = null
+) : Visitor<Map<String, KGTypeTag>>, VisitorErrorHandler<Error> {
 
-    val typeErrors = LinkedList<Error2>()
-    override fun handleError(error: Error2) {
+    val typeErrors = LinkedList<Error>()
+    override fun handleError(error: Error) {
         typeErrors.add(error)
         errorHandler?.handleError(error)
     }
@@ -62,13 +62,13 @@ class TypeCheckerAttributorVisitor(
                 if (exprType == KGTypeTag.INT || exprType == KGTypeTag.DEC) {
                     ownType = exprType
                 } else {
-                    handleError(Error2(error = "Numeric type expected for arithmetic negation", position = unary.position.start))
+                    handleError(Error(error = "Numeric type expected for arithmetic negation", position = unary.position.start))
                 }
             is Tree.Kind.BooleanNegation ->
                 if (exprType == KGTypeTag.BOOL) {
                     ownType = exprType
                 } else {
-                    handleError(Error2(error = "Boolean type expected for boolean negation", position = unary.position.start))
+                    handleError(Error(error = "Boolean type expected for boolean negation", position = unary.position.start))
                 }
         }
         unary.type = ownType
@@ -86,15 +86,15 @@ class TypeCheckerAttributorVisitor(
                 if (leftType == KGTypeTag.BOOL && rightType == KGTypeTag.BOOL) {
                     ownType = KGTypeTag.BOOL
                 } else {
-                    handleError(Error2(error = "Booleans expected", position = binary.position.start))
+                    handleError(Error(error = "Booleans expected", position = binary.position.start))
                 }
             is Tree.Kind.Plus,
             is Tree.Kind.Minus,
             is Tree.Kind.Multiply ->
                 if (!KGTypeTag.numericTypes.contains(leftType)) {
-                    handleError(Error2(error = "Numeric type expected for left expression", position = binary.position.start))
+                    handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
                 } else if (!KGTypeTag.numericTypes.contains(rightType)) {
-                    handleError(Error2(error = "Numeric type expected for right expression", position = binary.position.start))
+                    handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
                 } else if (leftType == KGTypeTag.INT && rightType == KGTypeTag.INT) {
                     ownType = KGTypeTag.INT
                 } else if (leftType == KGTypeTag.DEC && rightType == KGTypeTag.DEC) {
@@ -104,9 +104,9 @@ class TypeCheckerAttributorVisitor(
                 }
             is Tree.Kind.Divide ->
                 if (!KGTypeTag.numericTypes.contains(leftType)) {
-                    handleError(Error2(error = "Numeric type expected for left expression", position = binary.position.start))
+                    handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
                 } else if (!KGTypeTag.numericTypes.contains(rightType)) {
-                    handleError(Error2(error = "Numeric type expected for right expression", position = binary.position.start))
+                    handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
                 } else {
                     ownType = KGTypeTag.DEC
                 }

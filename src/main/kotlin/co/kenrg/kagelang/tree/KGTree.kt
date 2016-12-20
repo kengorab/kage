@@ -6,18 +6,10 @@ import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
+import org.apache.commons.lang3.builder.EqualsBuilder
+import org.apache.commons.lang3.builder.HashCodeBuilder
 
 abstract class KGTree : Tree {
-    //    interface Visitor<in D, out R> {
-//        // Expression visitors
-//        fun visitLiteral(literal: KGLiteral, data: D): R
-//
-//        fun visitBinary(binary: KGBinary, data: D): R
-//        fun visitParenthesized(parenthesized: KGParenthesized, data: D): R
-//
-//        // Statement visitors
-//        fun visitPrint(print: KGPrint, data: D): R
-//    }
     interface Visitor<in D> {
         // Expression visitors
         fun visitLiteral(literal: KGLiteral, data: D)
@@ -37,6 +29,9 @@ abstract class KGTree : Tree {
     abstract fun <D> accept(visitor: Visitor<D>, data: D)
     abstract fun withType(type: KGTypeTag): KGTree
     abstract fun withPosition(pos: Position): KGTree
+
+    override fun equals(other: Any?) = EqualsBuilder.reflectionEquals(this, other)
+    override fun hashCode() = HashCodeBuilder.reflectionHashCode(this)
 
     /*
         Expressions
