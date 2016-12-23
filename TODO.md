@@ -9,11 +9,17 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - ~~Enforce .kg file extension~~
 - ~~Top-level val declaration~~
   - ~~AST validations: Verify no duplicate top-level bindings~~ (Happens during Typechecking)
+- Add tests for TreeMaker (with and without positioning)
+  - With positioning
+  - ~~Without positioning~~
+- Arrays
+  - Int arrays
+  - Bool arrays
+  - Dec arrays 
 - Make error messages for binary expressions more explicit
     (Currently it does not identify which branch has error)
 - When attributing types, if node has error give it a type of ERROR and don't continue checking
     (This avoids an error being pointed out at each parent expression)
-- Add tests for TreeMaker (with and without positioning)
 - Top-level function declaration
 - If-expression
 - Function invocation
