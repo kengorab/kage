@@ -15,7 +15,7 @@ class UnaryTypeCheckerTests {
         @Test fun typechecksArithmeticNegation_givenInt_passes() {
             val negatedInt = KGUnary("-", KGLiteral(KGTypeTag.INT, 1))
             val result = TypeChecker.typeCheck(negatedInt)
-            assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it) }
+            assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
         }
 
         @Test fun typechecksArithmeticNegation_givenInt_unaryExprTypeIsInt() {
@@ -27,7 +27,7 @@ class UnaryTypeCheckerTests {
         @Test fun typechecksArithmeticNegation_givenDec_passes() {
             val negatedInt = KGUnary("-", KGLiteral(KGTypeTag.DEC, 1.34))
             val result = TypeChecker.typeCheck(negatedInt)
-            assertSucceedsAnd(result) { assertEquals(KGTypeTag.DEC, it) }
+            assertSucceedsAnd(result) { assertEquals(KGTypeTag.DEC, it.type) }
         }
 
         @Test fun typechecksArithmeticNegation_givenDec_unaryExprTypeIsDec() {
@@ -39,7 +39,7 @@ class UnaryTypeCheckerTests {
         @Test fun typecheckArithmeticNegation_parenthesizedNumericExpression_passes() {
             val negatedParens = KGUnary("-", KGParenthesized(KGBinary(KGLiteral(KGTypeTag.INT, 1), "+", KGLiteral(KGTypeTag.INT, 2))))
             val result = TypeChecker.typeCheck(negatedParens)
-            assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it) }
+            assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
         }
 
         @Test fun typecheckArithmeticNegation_parenthesizedNumericExpression_unaryExprTypeIsParenType() {
@@ -61,7 +61,7 @@ class UnaryTypeCheckerTests {
         @Test fun typechecksBooleanNegation_givenBool_passes() {
             val negatedTrue = KGUnary("!", KGLiteral(KGTypeTag.BOOL, true))
             val result = TypeChecker.typeCheck(negatedTrue)
-            assertSucceedsAnd(result) { assertEquals(KGTypeTag.BOOL, it) }
+            assertSucceedsAnd(result) { assertEquals(KGTypeTag.BOOL, it.type) }
         }
 
         @Test fun typechecksBooleanNegation_givenBool_unaryExprTypeIsBool() {

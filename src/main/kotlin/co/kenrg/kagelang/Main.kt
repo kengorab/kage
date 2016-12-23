@@ -4,7 +4,9 @@ import co.kenrg.kagelang.codegen.CodeGenVisitor
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.parser.KageParserFacade
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
+import org.apache.commons.collections4.map.LinkedMap
 import java.io.*
+import java.util.*
 
 private fun printErrors(lines: List<String>, errs: List<Error>) {
     System.err.println("Found ${errs.size} errors:\n")
@@ -52,14 +54,14 @@ fun main(args: Array<String>) {
     }
 
     val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
-    parsingResult.root.accept(typeCheckAttribVisitor, mapOf())
+    parsingResult.root.accept(typeCheckAttribVisitor, HashMap())
     if (!typeCheckAttribVisitor.isValid()) {
         printErrors(lines, typeCheckAttribVisitor.typeErrors)
         System.exit(1)
     }
 
     val codeGenVisitor = CodeGenVisitor(className = "MyClass")
-    parsingResult.root.accept(codeGenVisitor, mapOf())
+    parsingResult.root.accept(codeGenVisitor, LinkedMap())
 
     val bytes = codeGenVisitor.resultBytes()
     val fos = FileOutputStream("MyClass.class")

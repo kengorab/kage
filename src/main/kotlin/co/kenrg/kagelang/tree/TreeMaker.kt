@@ -20,6 +20,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
         val statementTree = when (statement) {
             is KageParser.PrintStatementContext ->
                 KGTree.KGPrint(expr = toTree(statement.print().expression()))
+            is KageParser.ValDeclarationStatementContext ->
+                KGTree.KGValDeclaration(
+                        identifier = statement.valDeclaration().assignment().ID().text,
+                        expression = toTree(statement.valDeclaration().assignment().expression())
+                )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }
 

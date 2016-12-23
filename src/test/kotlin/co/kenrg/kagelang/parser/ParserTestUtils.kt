@@ -1,8 +1,17 @@
-package co.kenrg.kagelang.helper
+package co.kenrg.kagelang.parser
 
+import co.kenrg.kagelang.KageLexer
+import co.kenrg.kagelang.KageParser
+import org.antlr.v4.runtime.ANTLRInputStream
+import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.TerminalNode
+import java.io.StringReader
 import java.util.*
+
+fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
+fun parseCode(code: String): KageParser.KageFileContext =
+        KageParser(CommonTokenStream(lexerForCode(code))).kageFile()
 
 abstract class ParseTreeElement {
     abstract fun multiLineString(indentation: String = ""): String

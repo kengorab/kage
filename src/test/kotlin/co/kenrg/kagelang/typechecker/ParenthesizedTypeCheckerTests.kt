@@ -9,13 +9,13 @@ class ParenthesizedTypeCheckerTests {
     @Test fun typechecksLiteralInParen_returnsTypeOfLiteral() {
         val parenthesizedLiteral = KGParenthesized(KGLiteral(INT, 1))
         val result = TypeChecker.typeCheck(parenthesizedLiteral)
-        assertSucceedsAnd(result) { assertEquals(INT, it) }
+        assertSucceedsAnd(result) { assertEquals(INT, it.type) }
     }
 
     @Test fun typechecksBinaryInParen_returnsTypeOfBinary() {
         val parenthesizedBinary = KGParenthesized(KGBinary(KGLiteral(INT, 1), "+", KGLiteral(INT, 2)))
         val result = TypeChecker.typeCheck(parenthesizedBinary)
-        assertSucceedsAnd(result) { assertEquals(INT, it) }
+        assertSucceedsAnd(result) { assertEquals(INT, it.type) }
     }
 
     @Test fun typechecksLiteralInParen_parenExpressionTypeIsLiteralType() {

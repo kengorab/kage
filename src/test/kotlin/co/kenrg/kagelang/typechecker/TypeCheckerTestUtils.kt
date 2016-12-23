@@ -6,9 +6,9 @@ import co.kenrg.kagelang.tree.types.KGTypeTag.*
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.fail
 
-fun assertSucceedsAnd(result: TypeCheckingResult, fn: (KGTypeTag) -> Unit) {
+fun assertSucceedsAnd(result: TypeCheckingResult, fn: (TypeCheckingResult.Success) -> Unit) {
     when (result) {
-        is TypeCheckingResult.Success -> fn(result.type)
+        is TypeCheckingResult.Success -> fn(result)
         is TypeCheckingResult.Failure -> fail("Typechecking should have passed, failed with errors: ${result.errors}")
     }
 }

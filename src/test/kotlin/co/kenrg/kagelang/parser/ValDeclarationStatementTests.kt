@@ -1,21 +1,19 @@
 package co.kenrg.kagelang.parser
 
-import co.kenrg.kagelang.helper.parseCode
-import co.kenrg.kagelang.helper.toParseTree
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class VarDeclarationExpressionTests {
+class ValDeclarationStatementTests {
 
-    @Test fun parsesSingleVarDeclarationAssignment_Int() {
-        val code = "var a = 1"
+    @Test fun parsesSingleValDeclarationAssignment_Int() {
+        val code = "val a = 1"
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -26,15 +24,15 @@ class VarDeclarationExpressionTests {
                 parseTreeStr)
     }
 
-    @Test fun parsesSingleVarDeclarationAssignment_Decimal() {
-        val code = "var a = 1.114"
+    @Test fun parsesSingleValDeclarationAssignment_Decimal() {
+        val code = "val a = 1.114"
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -45,15 +43,15 @@ class VarDeclarationExpressionTests {
                 parseTreeStr)
     }
 
-    @Test fun parsesSingleVarDeclarationAssignment_Bool() {
-        val code = "var a = true"
+    @Test fun parsesSingleValDeclarationAssignment_Bool() {
+        val code = "val a = true"
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -64,15 +62,15 @@ class VarDeclarationExpressionTests {
                 parseTreeStr)
     }
 
-    @Test fun parsesSingleVarDeclarationAssignment_BinaryOperation() {
-        val code = "var a = 1 + 2"
+    @Test fun parsesSingleValDeclarationAssignment_BinaryOperation() {
+        val code = "val a = 1 + 2"
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -87,16 +85,16 @@ class VarDeclarationExpressionTests {
                 parseTreeStr)
     }
 
-    @Test fun parsesMultipleVarDeclarations() {
-        val code = """var a = 10
-                     |var b = 5""".trimMargin("|")
+    @Test fun parsesMultipleValDeclarations() {
+        val code = """val a = 10
+                     |val b = 5""".trimMargin("|")
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -104,9 +102,9 @@ class VarDeclarationExpressionTests {
                   |            Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[b]
                   |          Leaf[=]

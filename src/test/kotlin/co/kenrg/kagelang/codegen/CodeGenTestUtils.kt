@@ -1,9 +1,11 @@
 package co.kenrg.kagelang.codegen
 
+import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
 import co.kenrg.kagelang.tree.types.KGTypeTag.*
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
+import org.apache.commons.collections4.map.LinkedMap
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
@@ -14,6 +16,7 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.*
 import java.util.stream.Collectors.joining
 
 val tempClassesPathName = "build/test-temp-classes"
@@ -36,14 +39,25 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
 
             val treeWrappedInPrint = KGTree.KGPrint(expr = tree)
 
-            treeWrappedInPrint.accept(typeCheckAttribVisitor, mapOf())
-            treeWrappedInPrint.accept(codeGenVisitor, mapOf())
+            treeWrappedInPrint.accept(typeCheckAttribVisitor, HashMap())
+            treeWrappedInPrint.accept(codeGenVisitor, LinkedMap())
 
             writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes()) { output ->
                 assertEquals(expected, output)
             }
         }
     }
+}
+
+fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
+    val randomClassName = RandomStringUtils.randomAlphabetic(16)
+    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
+    val codeGenVisitor = CodeGenVisitor(className = randomClassName)
+
+    file.accept(typeCheckAttribVisitor, HashMap())
+    file.accept(codeGenVisitor, LinkedMap())
+
+    writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes(), fn)
 }
 
 fun writeAndExecClassFileAndThen(className: String, bytes: ByteArray?, fn: (String) -> Unit) {

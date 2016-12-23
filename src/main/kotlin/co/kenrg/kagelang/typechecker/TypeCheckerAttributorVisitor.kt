@@ -19,11 +19,14 @@ import java.util.*
  * set, as will all of its subtrees. If the typechecking was unsuccessful, this
  * class's `typeErrors` list will be nonempty.
  *
- * @see Visitor
+ * In each of the visitor methods, the `data` parameter contains the bindings
+ * currently visible in scope.
+ *
+ * @see KGTree.Visitor
  */
 class TypeCheckerAttributorVisitor(
         val errorHandler: VisitorErrorHandler<Error>? = null
-) : Visitor<Map<String, KGTypeTag>>, VisitorErrorHandler<Error> {
+) : Visitor<HashMap<String, Binding>>, VisitorErrorHandler<Error> {
 
     val typeErrors = LinkedList<Error>()
     override fun handleError(error: Error) {
@@ -35,25 +38,25 @@ class TypeCheckerAttributorVisitor(
 
     var result: KGTypeTag = KGTypeTag.UNSET
 
-    fun attribExpr(tree: KGTree, data: Map<String, KGTypeTag>): KGTypeTag {
+    fun attribExpr(tree: KGTree, data: HashMap<String, Binding>): KGTypeTag {
         tree.accept(this, data)
         return result
     }
 
     // Expression visitors
 
-    override fun visitLiteral(literal: KGTree.KGLiteral, data: Map<String, KGTypeTag>) {
+    override fun visitLiteral(literal: KGTree.KGLiteral, data: HashMap<String, Binding>) {
         literal.type = literal.typeTag
         result = literal.type
     }
 
-    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: Map<String, KGTypeTag>) {
+    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: HashMap<String, Binding>) {
         val ownType = attribExpr(parenthesized.expr, data)
         parenthesized.type = ownType
         result = ownType
     }
 
-    override fun visitUnary(unary: KGTree.KGUnary, data: Map<String, KGTypeTag>) {
+    override fun visitUnary(unary: KGTree.KGUnary, data: HashMap<String, Binding>) {
         val exprType = attribExpr(unary.expr, data)
 
         var ownType = unary.type
@@ -75,7 +78,7 @@ class TypeCheckerAttributorVisitor(
         result = ownType
     }
 
-    override fun visitBinary(binary: KGTree.KGBinary, data: Map<String, KGTypeTag>) {
+    override fun visitBinary(binary: KGTree.KGBinary, data: HashMap<String, Binding>) {
         val leftType = attribExpr(binary.left, data)
         val rightType = attribExpr(binary.right, data)
 
@@ -118,11 +121,37 @@ class TypeCheckerAttributorVisitor(
         result = ownType
     }
 
+    override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: HashMap<String, Binding>) {
+        val binding = data[bindingReference.binding]
+        if (binding == null) {
+            handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
+        } else {
+            if (binding.expression.type == KGTypeTag.UNSET) {
+                throw IllegalStateException("Binding expression's type is UNSET, somehow...")
+            }
+
+            bindingReference.type = binding.expression.type
+            result = binding.expression.type
+        }
+    }
+
     // Statement visitors
 
-    override fun visitPrint(print: KGTree.KGPrint, data: Map<String, KGTypeTag>) {
+    override fun visitPrint(print: KGTree.KGPrint, data: HashMap<String, Binding>) {
         // Typecheck the internal expression; type of print statement will always be Unit
         attribExpr(print.expr, data)
+        result = KGTypeTag.UNIT
+    }
+
+    override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: HashMap<String, Binding>) {
+        attribExpr(valDecl.expression, data)
+
+        if (data.containsKey(valDecl.identifier)) {
+            handleError(Error("Duplicate binding: val \"${valDecl.identifier}\" already defined in this context", valDecl.position.start))
+        } else {
+            data.put(valDecl.identifier, Binding(valDecl.identifier, valDecl.expression))
+        }
+
         result = KGTypeTag.UNIT
     }
 }

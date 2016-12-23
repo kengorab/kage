@@ -17,7 +17,7 @@ class LiteralTypeCheckerTests {
                     dynamicTest("Literal of type $litType should typecheck to type $litType") {
                         val literal = randomKGLiteralOfType(litType)
                         val result = TypeChecker.typeCheck(literal)
-                        assertSucceedsAnd(result) { assertEquals(litType, it) }
+                        assertSucceedsAnd(result) { assertEquals(litType, it.type) }
                     },
                     dynamicTest("Literal of type $litType be attributed with type $litType") {
                         val literal = randomKGLiteralOfType(litType)

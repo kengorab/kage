@@ -2,10 +2,7 @@ package co.kenrg.kagelang.tree.iface.base
 
 import co.kenrg.kagelang.model.Position
 import co.kenrg.kagelang.tree.KGFile
-import co.kenrg.kagelang.tree.iface.BinaryTree
-import co.kenrg.kagelang.tree.iface.LiteralTree
-import co.kenrg.kagelang.tree.iface.PrintTree
-import co.kenrg.kagelang.tree.iface.UnaryTree
+import co.kenrg.kagelang.tree.iface.*
 import co.kenrg.kagelang.tree.types.KGTypeTag
 
 interface Tree {
@@ -27,12 +24,16 @@ interface Tree {
         object ConditionalAnd : Kind<BinaryTree>(BinaryTree::class.java)
         object ConditionalOr : Kind<BinaryTree>(BinaryTree::class.java)
 
+        // Binding Kinds
+        object BindingReference : Kind<BindingReferenceTree>(BindingReferenceTree::class.java)
+
         // Unary Operation Kinds
         object ArithmeticNegation : Kind<UnaryTree>(UnaryTree::class.java)
         object BooleanNegation : Kind<UnaryTree>(UnaryTree::class.java)
 
         // Statement Kinds
         object Print : Kind<PrintTree>(PrintTree::class.java)
+        object ValDeclaration : Kind<ValDeclarationTree>(ValDeclarationTree::class.java)
     }
 
     fun kind(): Kind<*>
