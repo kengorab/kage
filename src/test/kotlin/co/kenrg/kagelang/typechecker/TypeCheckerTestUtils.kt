@@ -23,7 +23,7 @@ fun assertFails(result: TypeCheckingResult) {
 fun randomKGLiteralOfType(type: KGTypeTag): KGLiteral {
     return when (type) {
         INT -> KGLiteral(INT, RandomUtils.nextInt())
-        DEC -> KGLiteral(DEC, RandomUtils.nextFloat())
+        DEC -> KGLiteral(DEC, RandomUtils.nextDouble(0.0, 1000000.0))
         BOOL -> KGLiteral(BOOL, RandomUtils.nextBoolean())
         else -> throw UnsupportedOperationException("Supplied type $type is not a literal type")
     }

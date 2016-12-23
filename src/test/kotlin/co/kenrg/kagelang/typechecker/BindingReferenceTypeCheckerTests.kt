@@ -23,11 +23,11 @@ class BindingReferenceTypeCheckerTests {
         return listOf(
                 Case("1", intLiteral(1), KGTypeTag.INT),
                 Case("1.12", decLiteral(1.12), KGTypeTag.DEC),
-                Case("true", trueLiteral, KGTypeTag.BOOL),
+                Case("true", trueLiteral(), KGTypeTag.BOOL),
 
                 Case("1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), KGTypeTag.INT),
                 Case("1.4 - 3.1", KGBinary(decLiteral(1.4), "-", decLiteral(3.1)), KGTypeTag.DEC),
-                Case("true || false", KGBinary(trueLiteral, "||", falseLiteral), KGTypeTag.BOOL)
+                Case("true || false", KGBinary(trueLiteral(), "||", falseLiteral()), KGTypeTag.BOOL)
 
         ).map { testCase ->
             val (repr, innerExpr, exprType) = testCase

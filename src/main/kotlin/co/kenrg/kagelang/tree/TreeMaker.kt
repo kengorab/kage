@@ -55,6 +55,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGLiteral(KGTypeTag.BOOL, expression.BOOLLIT().text.toBoolean())
             is KageParser.ParenExpressionContext ->
                 KGTree.KGParenthesized(expr = toTree(expression.expression()))
+            is KageParser.BindingReferenceContext ->
+                KGTree.KGBindingReference(expression.ID().text)
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 

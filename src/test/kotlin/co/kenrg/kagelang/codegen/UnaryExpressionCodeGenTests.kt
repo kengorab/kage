@@ -30,12 +30,12 @@ class UnaryExpressionCodeGenTests : BaseTest() {
         @TestFactory
         fun testBooleanNegation(): List<DynamicTest> {
             val cases = listOf(
-                    Case("!true", KGUnary("!", trueLiteral), "false"),
-                    Case("!false", KGUnary("!", falseLiteral), "true"),
-                    Case("!(true && false)", KGUnary("!", KGParenthesized(KGBinary(trueLiteral, "&&", falseLiteral))), "true"),
-                    Case("!(!true || true)", KGUnary("!", KGParenthesized(KGBinary(KGUnary("!", falseLiteral), "||", trueLiteral))), "false"),
-                    Case("!!true", KGUnary("!", KGUnary("!", trueLiteral)), "true"),
-                    Case("!!!false", KGUnary("!", KGUnary("!", trueLiteral)), "true")
+                    Case("!true", KGUnary("!", trueLiteral()), "false"),
+                    Case("!false", KGUnary("!", falseLiteral()), "true"),
+                    Case("!(true && false)", KGUnary("!", KGParenthesized(KGBinary(trueLiteral(), "&&", falseLiteral()))), "true"),
+                    Case("!(!true || true)", KGUnary("!", KGParenthesized(KGBinary(KGUnary("!", falseLiteral()), "||", trueLiteral()))), "false"),
+                    Case("!!true", KGUnary("!", KGUnary("!", trueLiteral())), "true"),
+                    Case("!!!false", KGUnary("!", KGUnary("!", trueLiteral())), "true")
             )
             return generateTestsToCompileAndExecuteCases(cases)
         }

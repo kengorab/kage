@@ -24,8 +24,8 @@ val tempClassesPath: Path = Paths.get(tempClassesPathName)
 
 data class Case(val stringRepr: String, val tree: KGTree.KGExpression, val expected: String)
 
-val trueLiteral = KGLiteral(BOOL, true)
-val falseLiteral = KGLiteral(BOOL, false)
+fun trueLiteral() = KGLiteral(BOOL, true)
+fun falseLiteral() = KGLiteral(BOOL, false)
 fun intLiteral(int: Int): KGLiteral = KGLiteral(INT, int)
 fun decLiteral(dec: Double): KGLiteral = KGLiteral(DEC, dec)
 

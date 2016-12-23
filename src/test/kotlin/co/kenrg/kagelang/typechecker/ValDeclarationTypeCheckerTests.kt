@@ -21,10 +21,10 @@ class ValDeclarationTypeCheckerTests {
     val cases = listOf(
             Case("val a = 1", KGValDeclaration("a", intLiteral(1)), KGTypeTag.INT),
             Case("val a = 1.123", KGValDeclaration("a", decLiteral(1.123)), KGTypeTag.DEC),
-            Case("val a = true", KGValDeclaration("a", trueLiteral), KGTypeTag.BOOL),
+            Case("val a = true", KGValDeclaration("a", trueLiteral()), KGTypeTag.BOOL),
             Case("val a = 1 + 2", KGValDeclaration("a", KGBinary(intLiteral(1), "+", intLiteral(2))), KGTypeTag.INT),
             Case("val a = 1.2 - 4.2", KGValDeclaration("a", KGBinary(decLiteral(1.2), "-", decLiteral(4.2))), KGTypeTag.DEC),
-            Case("val a = true || false", KGValDeclaration("a", KGBinary(trueLiteral, "||", falseLiteral)), KGTypeTag.BOOL)
+            Case("val a = true || false", KGValDeclaration("a", KGBinary(trueLiteral(), "||", falseLiteral())), KGTypeTag.BOOL)
     )
 
     @TestFactory
@@ -73,7 +73,7 @@ class ValDeclarationTypeCheckerTests {
         val bindings = HashMap<String, Binding>()
         bindings.put("a", Binding("a", intLiteral(1).withType(KGTypeTag.INT)))
 
-        val valDecl = KGValDeclaration("a", trueLiteral)
+        val valDecl = KGValDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, bindings)
 
         assertFails(result)

@@ -20,7 +20,7 @@ data class KageAntlrParsingResult(val root: KageParser.KageFileContext?, val err
 
 fun String.toStream(charset: Charset = Charsets.UTF_8) = ByteArrayInputStream(toByteArray(charset))
 
-private object KageAntlrParserFacade {
+object KageAntlrParserFacade {
     fun parse(inputStream: InputStream): KageAntlrParsingResult {
         val lexicalAndSyntacticErrors = LinkedList<Error>()
         val errorListener = object : ANTLRErrorListener {

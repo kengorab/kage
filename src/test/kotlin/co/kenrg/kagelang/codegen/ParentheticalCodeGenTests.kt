@@ -14,7 +14,7 @@ class ParentheticalCodeGenTests : BaseTest() {
     @DisplayName("Testing boolean and arithmetic binary operations within parentheses")
     fun testParenthesizedBinaryExpressions(): List<DynamicTest> {
         val cases = listOf(
-                Case("(true || false) && true", KGBinary(KGParenthesized(KGBinary(trueLiteral, "||", falseLiteral)), "&&", trueLiteral), "true"),
+                Case("(true || false) && true", KGBinary(KGParenthesized(KGBinary(trueLiteral(), "||", falseLiteral())), "&&", trueLiteral()), "true"),
                 Case("(1 + (3 * 2)) - 1", KGBinary(KGParenthesized(KGBinary(intLiteral(1), "+", KGParenthesized(KGBinary(intLiteral(3), "*", intLiteral(2))))), "-", intLiteral(1)), "6"),
                 Case("2 * (3) / 2.0", KGBinary(KGBinary(intLiteral(2), "*", KGParenthesized(intLiteral(3))), "/", decLiteral(2.0)), "3.0")
         )

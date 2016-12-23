@@ -24,11 +24,11 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
         return listOf(
                 Case("val a = 1", intLiteral(1), "1"),
                 Case("val a = 3.14", decLiteral(3.14), "3.14"),
-                Case("val a = true", trueLiteral, "true"),
+                Case("val a = true", trueLiteral(), "true"),
 
                 Case("val a = 1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), "4"),
                 Case("val a = 1.4 - 3.0", KGBinary(decLiteral(1.4), "-", decLiteral(3.0)), "-1.6"),
-                Case("val a = true || false", KGBinary(trueLiteral, "||", falseLiteral), "true")
+                Case("val a = true || false", KGBinary(trueLiteral(), "||", falseLiteral()), "true")
         ).map { testCase ->
             val (repr, expr, expected) = testCase
 
@@ -59,9 +59,9 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
                 Case("val a = 1.2, val b = 2", decLiteral(1.2), intLiteral(2), "+", "3.2"),
                 Case("val a = 1.2, val b = 2.0", decLiteral(1.2), decLiteral(2.0), "+", "3.2"),
 
-                Case("val a = true, val b = false", trueLiteral, falseLiteral, "&&", "false"),
-                Case("val a = true, val b = false", trueLiteral, falseLiteral, "||", "true"),
-                Case("val a = true, val b = false || a", trueLiteral, KGBinary(falseLiteral, "||", KGBindingReference("a")), "||", "true")
+                Case("val a = true, val b = false", trueLiteral(), falseLiteral(), "&&", "false"),
+                Case("val a = true, val b = false", trueLiteral(), falseLiteral(), "||", "true"),
+                Case("val a = true, val b = false || a", trueLiteral(), KGBinary(falseLiteral(), "||", KGBindingReference("a")), "||", "true")
         ).map { testCase ->
             val (repr, exprA, exprB, op, expectedOutput) = testCase
 
