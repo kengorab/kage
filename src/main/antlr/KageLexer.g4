@@ -20,13 +20,15 @@ MINUS           : '-' ;
 ASTERISK        : '*' ;
 DIVISION        : '/' ;
 ASSIGN          : '=' ;
-LPAREN          : '(' ;
-RPAREN          : ')' ;
 BANG            : '!' ;
 PIPE            : '|' ;
 PIPES           : '||' ;
 AMP             : '&' ;
 AMPS            : '&&' ;
+
+// Tokens
+LPAREN          : '(' ;
+RPAREN          : ')' ;
 
 // Identifiers
 ID              : [_]*[a-z][A-Za-z0-9_]* ;
