@@ -12,6 +12,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - Add tests for TreeMaker (with and without positioning)
   - With positioning
   - ~~Without positioning~~
+- ~~String Literals~~
 - Arrays
   - Int arrays
   - Bool arrays
@@ -23,7 +24,6 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - Top-level function declaration
 - If-expression
 - Function invocation
-- String type
 - Custom types (other than primitives Int, Dec, Bool, and String)
 - Compiler command-line arguments
   - input file
