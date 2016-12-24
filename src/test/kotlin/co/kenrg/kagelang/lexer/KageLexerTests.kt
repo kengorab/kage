@@ -8,20 +8,6 @@ import java.io.StringReader
 import java.util.*
 
 class KageLexerTests {
-    fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
-
-    fun tokens(lexer: KageLexer): List<String> {
-        val tokens = LinkedList<String>()
-        do {
-            val t = lexer.nextToken()
-            when (t.type) {
-                -1 -> tokens.add("EOF")
-                else -> if (t.type != KageLexer.WS) tokens.add(lexer.ruleNames[t.type - 1])
-            }
-        } while (t.type != -1)
-
-        return tokens
-    }
 
     @Test fun parseValDeclarationAssignedAnIntegerLiteral() {
         assertEquals(
@@ -48,6 +34,13 @@ class KageLexerTests {
         assertEquals(
                 listOf("VAL", "Identifier", "ASSIGN", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("val t = false"))
+        )
+    }
+
+    @Test fun parseValDeclarationAssignedAStringLiteral() {
+        assertEquals(
+                listOf("VAL", "Identifier", "ASSIGN", "StringLiteral", "EOF"),
+                tokens(lexerForCode("val s = \"Hello World!\""))
         )
     }
 
@@ -112,5 +105,39 @@ class KageLexerTests {
                 listOf("BooleanLiteral", "AMPS", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("true && false"))
         )
+    }
+
+    @Test fun parseStringLiteralSingleCharSingleQuotes() {
+        assertEquals(
+                listOf("StringLiteral", "EOF"),
+                tokens(lexerForCode("\"h\""))
+        )
+    }
+
+    @Test fun parseStringLiteralSingleQuotes() {
+        assertEquals(
+                listOf("StringLiteral", "EOF"),
+                tokens(lexerForCode("\"hello world\""))
+        )
+    }
+
+    private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
+
+    private fun tokens(lexer: KageLexer): List<String> {
+        val tokens = LinkedList<String>()
+        do {
+            val t = lexer.nextToken()
+            when (t.type) {
+                -1 -> tokens.add("EOF")
+                else -> if (t.type != KageLexer.WS) {
+                    // Use vocabulary to get symbolic name.
+                    // Using lexer.ruleNames includes fragments, which mess up the indexing.
+                    val tokenName = lexer.vocabulary.getSymbolicName(t.type)
+                    tokens.add(tokenName)
+                }
+            }
+        } while (t.type != -1)
+
+        return tokens
     }
 }
