@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class NewlineParsingTests {
+
     @Test fun parsesCodeTerminatedWithNewline() {
         val code = """val a = 10
                      |""".trimMargin("|")
@@ -14,11 +15,10 @@ class NewlineParsingTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[10]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -36,11 +36,10 @@ class NewlineParsingTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[10]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |    Leaf[<NEWLINE>]
                   |    Leaf[<NEWLINE>]
@@ -48,11 +47,10 @@ class NewlineParsingTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[b]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[5]
+                  |        Leaf[b]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[5]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)

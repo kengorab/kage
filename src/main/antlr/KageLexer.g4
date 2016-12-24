@@ -1,17 +1,31 @@
 lexer grammar KageLexer;
 
-// Whitespace
-NEWLINE         : '\r\n' | '\r' | '\n' ;
-WS              : [\t ]+ -> skip ;
-
 // Keywords
 VAL             : 'val' ;
 PRINT           : 'print' ;
 
-// Literals
-INTLIT          : '0'|[1-9][0-9]* ;
-DECLIT          : '0'|[1-9][0-9]* '.' [0-9]+ ;
-BOOLLIT         : 'true'|'false' ;
+// Integer literals
+IntLiteral
+    : '0'|[1-9][0-9]*
+    ;
+
+// Decimal literals
+DecimalLiteral
+    : '0'|[1-9][0-9]* '.' [0-9]+
+    ;
+
+// Boolean literals
+BooleanLiteral
+    : 'true'
+    | 'false'
+    ;
+
+// Identifiers
+Identifier      : [_]*[a-z][A-Za-z0-9_]* ;
+
+// Separator
+LPAREN          : '(' ;
+RPAREN          : ')' ;
 
 // Operators
 PLUS            : '+' ;
@@ -25,9 +39,7 @@ PIPES           : '||' ;
 AMP             : '&' ;
 AMPS            : '&&' ;
 
-// Tokens
-LPAREN          : '(' ;
-RPAREN          : ')' ;
+// Whitespace
+NEWLINE         : '\r\n' | '\r' | '\n' ;
+WS              : [\t ]+ -> skip ;
 
-// Identifiers
-ID              : [_]*[a-z][A-Za-z0-9_]* ;

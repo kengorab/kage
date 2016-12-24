@@ -14,11 +14,10 @@ class ValDeclarationStatementTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[1]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[1]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -33,11 +32,10 @@ class ValDeclarationStatementTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          DecLiteral
-                  |            Leaf[1.114]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        DecLiteral
+                  |          Leaf[1.114]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -52,11 +50,10 @@ class ValDeclarationStatementTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          BoolLiteral
-                  |            Leaf[true]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        BoolLiteral
+                  |          Leaf[true]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -71,15 +68,14 @@ class ValDeclarationStatementTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          BinaryOperation
-                  |            IntLiteral
-                  |              Leaf[1]
-                  |            Leaf[+]
-                  |            IntLiteral
-                  |              Leaf[2]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        BinaryOperation
+                  |          IntLiteral
+                  |            Leaf[1]
+                  |          Leaf[+]
+                  |          IntLiteral
+                  |            Leaf[2]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -95,21 +91,19 @@ class ValDeclarationStatementTests {
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[a]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[10]
+                  |        Leaf[a]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |  Line
                   |    ValDeclarationStatement
                   |      ValDeclaration
                   |        Leaf[val]
-                  |        Assignment
-                  |          Leaf[b]
-                  |          Leaf[=]
-                  |          IntLiteral
-                  |            Leaf[5]
+                  |        Leaf[b]
+                  |        Leaf[=]
+                  |        IntLiteral
+                  |          Leaf[5]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)

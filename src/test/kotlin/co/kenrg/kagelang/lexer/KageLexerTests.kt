@@ -25,28 +25,28 @@ class KageLexerTests {
 
     @Test fun parseValDeclarationAssignedAnIntegerLiteral() {
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "INTLIT", "EOF"),
+                listOf("VAL", "Identifier", "ASSIGN", "IntLiteral", "EOF"),
                 tokens(lexerForCode("val a = 1"))
         )
     }
 
     @Test fun parseValDeclarationAssignedADecimalLiteral() {
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "DECLIT", "EOF"),
+                listOf("VAL", "Identifier", "ASSIGN", "DecimalLiteral", "EOF"),
                 tokens(lexerForCode("val a = 1.23"))
         )
     }
 
     @Test fun parseValDeclarationAssignedABoolTrueLiteral() {
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                listOf("VAL", "Identifier", "ASSIGN", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("val t = true"))
         )
     }
 
     @Test fun parseValDeclarationAssignedABoolFalseLiteral() {
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                listOf("VAL", "Identifier", "ASSIGN", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("val t = false"))
         )
     }
@@ -55,7 +55,10 @@ class KageLexerTests {
         val code = """val a = 1
                      |val b = 2""".trimMargin("|")
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "INTLIT", "NEWLINE", "VAL", "ID", "ASSIGN", "INTLIT", "EOF"),
+                listOf(
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral", "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral", "EOF"
+                ),
                 tokens(lexerForCode(code))
         )
     }
@@ -66,42 +69,47 @@ class KageLexerTests {
                      |print(a)
                      |""".trimMargin("|")
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "INTLIT", "NEWLINE", "NEWLINE", "PRINT", "LPAREN", "ID", "RPAREN", "NEWLINE", "EOF"),
+                listOf(
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral", "NEWLINE",
+                        "NEWLINE",
+                        "PRINT", "LPAREN", "Identifier", "RPAREN", "NEWLINE",
+                        "EOF"
+                ),
                 tokens(lexerForCode(code))
         )
     }
 
     @Test fun parseValDeclarationAssignedASum() {
         assertEquals(
-                listOf("VAL", "ID", "ASSIGN", "INTLIT", "PLUS", "INTLIT", "EOF"),
+                listOf("VAL", "Identifier", "ASSIGN", "IntLiteral", "PLUS", "IntLiteral", "EOF"),
                 tokens(lexerForCode("val a = 1 + 2"))
         )
     }
 
     @Test fun parseMathematicalExpression() {
         assertEquals(
-                listOf("INTLIT", "PLUS", "ID", "ASTERISK", "INTLIT", "DIVISION", "INTLIT", "MINUS", "INTLIT", "EOF"),
+                listOf("IntLiteral", "PLUS", "Identifier", "ASTERISK", "IntLiteral", "DIVISION", "IntLiteral", "MINUS", "IntLiteral", "EOF"),
                 tokens(lexerForCode("1 + a * 3 / 4 - 5"))
         )
     }
 
     @Test fun parseMathematicalExpressionWithParenthesis() {
         assertEquals(
-                listOf("INTLIT", "PLUS", "LPAREN", "ID", "ASTERISK", "INTLIT", "RPAREN", "MINUS", "DECLIT", "EOF"),
+                listOf("IntLiteral", "PLUS", "LPAREN", "Identifier", "ASTERISK", "IntLiteral", "RPAREN", "MINUS", "DecimalLiteral", "EOF"),
                 tokens(lexerForCode("1 + (a * 3) - 5.12"))
         )
     }
 
     @Test fun parseBooleanOr() {
         assertEquals(
-                listOf("BOOLLIT", "PIPES", "BOOLLIT", "EOF"),
+                listOf("BooleanLiteral", "PIPES", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("true || false"))
         )
     }
 
     @Test fun parseBooleanAnd() {
         assertEquals(
-                listOf("BOOLLIT", "AMPS", "BOOLLIT", "EOF"),
+                listOf("BooleanLiteral", "AMPS", "BooleanLiteral", "EOF"),
                 tokens(lexerForCode("true && false"))
         )
     }

@@ -8,7 +8,7 @@ class BinaryOperationExpressionTests {
     // TODO - Tests must use vals, but we're only interested in the binary operation. Remove when top-level expressions supported.
     fun firstBinaryOperation(kageFile: KageParser.KageFileContext): KageParser.BinaryOperationContext =
             (kageFile.line(0).statement() as KageParser.ValDeclarationStatementContext)
-                    .valDeclaration().assignment().expression() as KageParser.BinaryOperationContext
+                    .valDeclaration().expression() as KageParser.BinaryOperationContext
 
     @Test fun parsesBinaryOperation_IntAddition() {
         val code = "val a = 1 + 2"

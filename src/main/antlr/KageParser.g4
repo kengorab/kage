@@ -2,26 +2,35 @@ parser grammar KageParser;
 
 options { tokenVocab=KageLexer; }
 
-kageFile : lines=line+ ;
+kageFile
+    : lines=line+ ;
 
-line : statement (NEWLINE+ | EOF) ;
+line
+    : statement (NEWLINE+ | EOF) ;
 
-statement : valDeclaration  #valDeclarationStatement
-          | assignment      #assignmentStatement
-          | print           #printStatement ;
 
-print : PRINT LPAREN expression RPAREN ;
+// Statements
 
-valDeclaration : VAL assignment ;
+statement
+    : valDeclaration  #valDeclarationStatement
+    | print           #printStatement ;
 
-assignment : ID ASSIGN expression ;
+valDeclaration
+    : 'val' Identifier '=' expression ;
 
-expression : left=expression operator=(DIVISION|ASTERISK) right=expression  #binaryOperation
-           | left=expression operator=(PLUS|MINUS) right=expression         #binaryOperation
-           | operator=(MINUS|BANG) expression                               #unaryOperation
-           | left=expression operator=(PIPES|AMPS) right=expression         #binaryOperation
-           | LPAREN expression RPAREN                                       #parenExpression
-           | ID                                                             #bindingReference
-           | INTLIT                                                         #intLiteral
-           | DECLIT                                                         #decLiteral
-           | BOOLLIT                                                        #boolLiteral ;
+print
+    : 'print' '(' expression ')' ;
+
+
+// Expressions
+
+expression
+    : '(' expression ')'                                             #parenExpression
+    | operator=('-'|'!') expression                                  #unaryOperation
+    | left=expression operator=('/'|'*') right=expression            #binaryOperation
+    | left=expression operator=('+'|'-') right=expression            #binaryOperation
+    | left=expression operator=('||'|'&&') right=expression          #binaryOperation
+    | Identifier                                                     #bindingReference
+    | IntLiteral                                                     #intLiteral
+    | DecimalLiteral                                                 #decLiteral
+    | BooleanLiteral                                                 #boolLiteral ;

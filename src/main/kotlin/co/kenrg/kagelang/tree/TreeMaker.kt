@@ -22,8 +22,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGPrint(expr = toTree(statement.print().expression()))
             is KageParser.ValDeclarationStatementContext ->
                 KGTree.KGValDeclaration(
-                        identifier = statement.valDeclaration().assignment().ID().text,
-                        expression = toTree(statement.valDeclaration().assignment().expression())
+                        identifier = statement.valDeclaration().Identifier().text,
+                        expression = toTree(statement.valDeclaration().expression())
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }
@@ -48,15 +48,15 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         right = toTree(expression.right)
                 )
             is KageParser.IntLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.INT, expression.INTLIT().text.toInt())
+                KGTree.KGLiteral(KGTypeTag.INT, expression.IntLiteral().text.toInt())
             is KageParser.DecLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.DEC, expression.DECLIT().text.toDouble())
+                KGTree.KGLiteral(KGTypeTag.DEC, expression.DecimalLiteral().text.toDouble())
             is KageParser.BoolLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.BOOL, expression.BOOLLIT().text.toBoolean())
+                KGTree.KGLiteral(KGTypeTag.BOOL, expression.BooleanLiteral().text.toBoolean())
             is KageParser.ParenExpressionContext ->
                 KGTree.KGParenthesized(expr = toTree(expression.expression()))
             is KageParser.BindingReferenceContext ->
-                KGTree.KGBindingReference(expression.ID().text)
+                KGTree.KGBindingReference(expression.Identifier().text)
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 
