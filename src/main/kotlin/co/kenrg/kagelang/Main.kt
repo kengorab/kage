@@ -26,7 +26,10 @@ private fun printErrors(lines: List<String>, errs: List<Error>) {
 
 fun main(args: Array<String>) {
     val code: InputStream? = when (args.size) {
-        0 -> System.`in`
+        0 -> {
+            System.err.println("No file provided!")
+            return System.exit(1)
+        }
         1 -> {
             val file = File(args[0])
             if (file.extension != "kg") {
