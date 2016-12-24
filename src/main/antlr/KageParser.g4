@@ -6,14 +6,11 @@ kageFile : lines=line+ ;
 
 line : statement (NEWLINE+ | EOF) ;
 
-statement : varDeclaration  #varDeclarationStatement
-          | valDeclaration  #valDeclarationStatement
+statement : valDeclaration  #valDeclarationStatement
           | assignment      #assignmentStatement
           | print           #printStatement ;
 
 print : PRINT LPAREN expression RPAREN ;
-
-varDeclaration : VAR assignment ;
 
 valDeclaration : VAL assignment ;
 

@@ -5,15 +5,15 @@ import org.junit.jupiter.api.Test
 
 class NewlineParsingTests {
     @Test fun parsesCodeTerminatedWithNewline() {
-        val code = """var a = 10
+        val code = """val a = 10
                      |""".trimMargin("|")
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -25,17 +25,17 @@ class NewlineParsingTests {
     }
 
     @Test fun parsesStatementsSeparatedByManyNewlines() {
-        val code = """var a = 10
+        val code = """val a = 10
                      |
                      |
-                     |var b = 5""".trimMargin("|")
+                     |val b = 5""".trimMargin("|")
         val parseTreeStr = toParseTree(parseCode(code)).multiLineString()
         assertEquals(
                 """KageFile
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[a]
                   |          Leaf[=]
@@ -45,9 +45,9 @@ class NewlineParsingTests {
                   |    Leaf[<NEWLINE>]
                   |    Leaf[<NEWLINE>]
                   |  Line
-                  |    VarDeclarationStatement
-                  |      VarDeclaration
-                  |        Leaf[var]
+                  |    ValDeclarationStatement
+                  |      ValDeclaration
+                  |        Leaf[val]
                   |        Assignment
                   |          Leaf[b]
                   |          Leaf[=]

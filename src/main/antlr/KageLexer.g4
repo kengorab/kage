@@ -5,8 +5,7 @@ NEWLINE         : '\r\n' | '\r' | '\n' ;
 WS              : [\t ]+ -> skip ;
 
 // Keywords
-VAR             : 'var' ;   // Replace var with val, encouraging immutability
-VAL             : 'val' ;   // I may come back, remove val and (the eventual `fn` and just have haskell-style decls)
+VAL             : 'val' ;
 PRINT           : 'print' ;
 
 // Literals

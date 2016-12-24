@@ -5,13 +5,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class BinaryOperationExpressionTests {
-    // TODO - Tests must use vars, but we're only interested in the binary operation. Remove when top-level expressions supported.
+    // TODO - Tests must use vals, but we're only interested in the binary operation. Remove when top-level expressions supported.
     fun firstBinaryOperation(kageFile: KageParser.KageFileContext): KageParser.BinaryOperationContext =
-            (kageFile.line(0).statement() as KageParser.VarDeclarationStatementContext)
-                    .varDeclaration().assignment().expression() as KageParser.BinaryOperationContext
+            (kageFile.line(0).statement() as KageParser.ValDeclarationStatementContext)
+                    .valDeclaration().assignment().expression() as KageParser.BinaryOperationContext
 
     @Test fun parsesBinaryOperation_IntAddition() {
-        val code = "var a = 1 + 2"
+        val code = "val a = 1 + 2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -26,7 +26,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_DecimalAddition() {
-        val code = "var a = 1.1 + 2.2"
+        val code = "val a = 1.1 + 2.2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -41,7 +41,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_IntSubtraction() {
-        val code = "var a = 1 - 2"
+        val code = "val a = 1 - 2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -56,7 +56,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_DecimalSubtraction() {
-        val code = "var a = 1.1 - 2.2"
+        val code = "val a = 1.1 - 2.2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -71,7 +71,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_IntMultiplication() {
-        val code = "var a = 1 * 2"
+        val code = "val a = 1 * 2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -86,7 +86,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_DecimalMultiplication() {
-        val code = "var a = 1.1 * 2.2"
+        val code = "val a = 1.1 * 2.2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -101,7 +101,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_IntDivision() {
-        val code = "var a = 1 / 2"
+        val code = "val a = 1 / 2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -116,7 +116,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_DecimalDivision() {
-        val code = "var a = 1.1 / 2.2"
+        val code = "val a = 1.1 / 2.2"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -131,7 +131,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_BooleanOr() {
-        val code = "var a = true || false"
+        val code = "val a = true || false"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(
@@ -146,7 +146,7 @@ class BinaryOperationExpressionTests {
     }
 
     @Test fun parsesBinaryOperation_BooleanAnd() {
-        val code = "var a = true && false"
+        val code = "val a = true && false"
         val binaryOperation = firstBinaryOperation(parseCode(code))
         val parseTreeStr = toParseTree(binaryOperation).multiLineString()
         assertEquals(

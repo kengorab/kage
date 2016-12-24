@@ -1,10 +1,11 @@
-package co.kenrg.kagelang
+package co.kenrg.kagelang.lexer
 
+import co.kenrg.kagelang.KageLexer
 import org.antlr.v4.runtime.ANTLRInputStream
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.StringReader
 import java.util.*
-import org.junit.jupiter.api.Assertions.assertEquals
 
 class KageLexerTests {
     fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
@@ -22,58 +23,58 @@ class KageLexerTests {
         return tokens
     }
 
-    @Test fun parseVarDeclarationAssignedAnIntegerLiteral() {
+    @Test fun parseValDeclarationAssignedAnIntegerLiteral() {
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "INTLIT", "EOF"),
-                tokens(lexerForCode("var a = 1"))
+                listOf("VAL", "ID", "ASSIGN", "INTLIT", "EOF"),
+                tokens(lexerForCode("val a = 1"))
         )
     }
 
-    @Test fun parseVarDeclarationAssignedADecimalLiteral() {
+    @Test fun parseValDeclarationAssignedADecimalLiteral() {
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "DECLIT", "EOF"),
-                tokens(lexerForCode("var a = 1.23"))
+                listOf("VAL", "ID", "ASSIGN", "DECLIT", "EOF"),
+                tokens(lexerForCode("val a = 1.23"))
         )
     }
 
-    @Test fun parseVarDeclarationAssignedABoolTrueLiteral() {
+    @Test fun parseValDeclarationAssignedABoolTrueLiteral() {
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "BOOLLIT", "EOF"),
-                tokens(lexerForCode("var t = true"))
+                listOf("VAL", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("val t = true"))
         )
     }
 
-    @Test fun parseVarDeclarationAssignedABoolFalseLiteral() {
+    @Test fun parseValDeclarationAssignedABoolFalseLiteral() {
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "BOOLLIT", "EOF"),
-                tokens(lexerForCode("var t = false"))
+                listOf("VAL", "ID", "ASSIGN", "BOOLLIT", "EOF"),
+                tokens(lexerForCode("val t = false"))
         )
     }
 
-    @Test fun parseMultipleVars() {
-        val code = """var a = 1
-                     |var b = 2""".trimMargin("|")
+    @Test fun parseMultipleVals() {
+        val code = """val a = 1
+                     |val b = 2""".trimMargin("|")
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "INTLIT", "NEWLINE", "VAR", "ID", "ASSIGN", "INTLIT", "EOF"),
+                listOf("VAL", "ID", "ASSIGN", "INTLIT", "NEWLINE", "VAL", "ID", "ASSIGN", "INTLIT", "EOF"),
                 tokens(lexerForCode(code))
         )
     }
 
     @Test fun parseMultipleNewlines() {
-        val code = """var a = 1
+        val code = """val a = 1
                      |
                      |print(a)
                      |""".trimMargin("|")
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "INTLIT", "NEWLINE", "NEWLINE", "PRINT", "LPAREN", "ID", "RPAREN", "NEWLINE", "EOF"),
+                listOf("VAL", "ID", "ASSIGN", "INTLIT", "NEWLINE", "NEWLINE", "PRINT", "LPAREN", "ID", "RPAREN", "NEWLINE", "EOF"),
                 tokens(lexerForCode(code))
         )
     }
 
-    @Test fun parseVarDeclarationAssignedASum() {
+    @Test fun parseValDeclarationAssignedASum() {
         assertEquals(
-                listOf("VAR", "ID", "ASSIGN", "INTLIT", "PLUS", "INTLIT", "EOF"),
-                tokens(lexerForCode("var a = 1 + 2"))
+                listOf("VAL", "ID", "ASSIGN", "INTLIT", "PLUS", "INTLIT", "EOF"),
+                tokens(lexerForCode("val a = 1 + 2"))
         )
     }
 
