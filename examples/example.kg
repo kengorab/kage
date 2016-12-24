@@ -1,2 +1,5 @@
-print(-(1 + 2))
-print(true && !(false || true))
+val s = "Hello world!"
+print(s)
+print("\n")
+print("\n")
+print("\tTabbed in!")

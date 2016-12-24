@@ -54,7 +54,14 @@ class TreeMaker(val considerPosition: Boolean = true) {
             is KageParser.BoolLiteralContext ->
                 KGTree.KGLiteral(KGTypeTag.BOOL, expression.BooleanLiteral().text.toBoolean())
             is KageParser.StringLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.STRING, expression.StringLiteral().text.trimStart('\"').trimEnd('\"'))
+                KGTree.KGLiteral(
+                        KGTypeTag.STRING,
+                        expression.StringLiteral().text
+                                .trimStart('\"')
+                                .trimEnd('\"')
+                                .replace("\\b", "\b").replace("\\t", "\t")
+                                .replace("\\r", "\r").replace("\\n", "\n")
+                )
             is KageParser.ParenExpressionContext ->
                 KGTree.KGParenthesized(expr = toTree(expression.expression()))
             is KageParser.BindingReferenceContext ->

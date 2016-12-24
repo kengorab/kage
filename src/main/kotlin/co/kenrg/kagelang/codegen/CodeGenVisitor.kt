@@ -68,7 +68,7 @@ class CodeGenVisitor(
             KGTypeTag.INT -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Integer)
             KGTypeTag.DEC -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Double)
             KGTypeTag.BOOL -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
-            KGTypeTag.STRING -> throw UnsupportedOperationException("String not yet implemented")
+            KGTypeTag.STRING -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.String)
             else -> throw UnsupportedOperationException("Literal $literal is not a literal")
         }
     }
@@ -217,6 +217,7 @@ class CodeGenVisitor(
             KGTypeTag.INT -> mainMethodWriter.visitVarInsn(ILOAD, binding.index)
             KGTypeTag.DEC -> mainMethodWriter.visitVarInsn(DLOAD, binding.index)
             KGTypeTag.BOOL -> mainMethodWriter.visitVarInsn(ILOAD, binding.index)
+            KGTypeTag.STRING -> mainMethodWriter.visitVarInsn(ALOAD, binding.index)
             else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
         }
     }
@@ -231,6 +232,7 @@ class CodeGenVisitor(
         KGTypeTag.INT -> "I"
         KGTypeTag.DEC -> "D"
         KGTypeTag.BOOL -> "Z"
+        KGTypeTag.STRING -> "Ljava/lang/String;"
         else -> throw IllegalStateException("JVM descriptor for type $type not yet implemented")
     }
 
@@ -273,6 +275,7 @@ class CodeGenVisitor(
             KGTypeTag.INT -> mainMethodWriter.visitVarInsn(ISTORE, bindingIndex)
             KGTypeTag.DEC -> mainMethodWriter.visitVarInsn(DSTORE, bindingIndex)
             KGTypeTag.BOOL -> mainMethodWriter.visitVarInsn(ISTORE, bindingIndex)
+            KGTypeTag.STRING -> mainMethodWriter.visitVarInsn(ASTORE, bindingIndex)
             else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
         }
     }

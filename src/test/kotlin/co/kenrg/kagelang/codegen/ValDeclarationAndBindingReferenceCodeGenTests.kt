@@ -25,6 +25,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
                 Case("val a = 1", intLiteral(1), "1"),
                 Case("val a = 3.14", decLiteral(3.14), "3.14"),
                 Case("val a = true", trueLiteral(), "true"),
+                Case("val a = \"hello world!\"", stringLiteral("hello world"), "hello world"),
 
                 Case("val a = 1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), "4"),
                 Case("val a = 1.4 - 3.0", KGBinary(decLiteral(1.4), "-", decLiteral(3.0)), "-1.6"),

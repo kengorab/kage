@@ -38,7 +38,7 @@ StringCharacter
 
 fragment
 EscapeSequence
-    : '\\' [btnfr"\\]
+    : '\\' [btnr"\\]
     ;
 
 // Identifiers
