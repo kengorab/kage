@@ -1,9 +1,6 @@
 package co.kenrg.kagelang.tree
 
-import co.kenrg.kagelang.codegen.decLiteral
-import co.kenrg.kagelang.codegen.falseLiteral
-import co.kenrg.kagelang.codegen.intLiteral
-import co.kenrg.kagelang.codegen.trueLiteral
+import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.parser.KageAntlrParserFacade
 import co.kenrg.kagelang.parser.toStream
 import co.kenrg.kagelang.tree.KGTree.*
@@ -32,7 +29,8 @@ class TreeMakerTests {
                     Case("print(1)", KGPrint(intLiteral(1))),
                     Case("print(3.14)", KGPrint(decLiteral(3.14))),
                     Case("print(true)", KGPrint(trueLiteral())),
-                    Case("print(false)", KGPrint(falseLiteral()))
+                    Case("print(false)", KGPrint(falseLiteral())),
+                    Case("print(\"hello world\")", KGPrint(stringLiteral("hello world")))
             ).map { testCase ->
                 val (repr, expr) = testCase
 
@@ -56,7 +54,8 @@ class TreeMakerTests {
                     Case("val a = 1", KGValDeclaration("a", intLiteral(1))),
                     Case("val b = 3.14", KGValDeclaration("b", decLiteral(3.14))),
                     Case("val c = true", KGValDeclaration("c", trueLiteral())),
-                    Case("val d = false", KGValDeclaration("d", falseLiteral()))
+                    Case("val d = false", KGValDeclaration("d", falseLiteral())),
+                    Case("val e = \"hello world\"", KGValDeclaration("e", stringLiteral("hello world")))
             ).map { testCase ->
                 val (repr, expr) = testCase
 

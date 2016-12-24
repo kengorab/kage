@@ -53,6 +53,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGLiteral(KGTypeTag.DEC, expression.DecimalLiteral().text.toDouble())
             is KageParser.BoolLiteralContext ->
                 KGTree.KGLiteral(KGTypeTag.BOOL, expression.BooleanLiteral().text.toBoolean())
+            is KageParser.StringLiteralContext ->
+                KGTree.KGLiteral(KGTypeTag.STRING, expression.StringLiteral().text.trimStart('\"').trimEnd('\"'))
             is KageParser.ParenExpressionContext ->
                 KGTree.KGParenthesized(expr = toTree(expression.expression()))
             is KageParser.BindingReferenceContext ->

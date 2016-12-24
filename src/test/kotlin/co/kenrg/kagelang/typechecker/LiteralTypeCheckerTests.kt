@@ -12,7 +12,7 @@ class LiteralTypeCheckerTests {
     @TestFactory
     @DisplayName("Literals should be evaluated to their intrinsic type")
     fun typecheckLiterals(): List<DynamicTest> {
-        return listOf(INT, DEC, BOOL).flatMap { litType ->
+        return listOf(INT, DEC, BOOL, STRING).flatMap { litType ->
             listOf(
                     dynamicTest("Literal of type $litType should typecheck to type $litType") {
                         val literal = randomKGLiteralOfType(litType)

@@ -107,17 +107,24 @@ class KageLexerTests {
         )
     }
 
-    @Test fun parseStringLiteralSingleCharSingleQuotes() {
+    @Test fun parseStringLiteralSingleChar() {
         assertEquals(
                 listOf("StringLiteral", "EOF"),
                 tokens(lexerForCode("\"h\""))
         )
     }
 
-    @Test fun parseStringLiteralSingleQuotes() {
+    @Test fun parseStringLiteral() {
         assertEquals(
                 listOf("StringLiteral", "EOF"),
                 tokens(lexerForCode("\"hello world\""))
+        )
+    }
+
+    @Test fun parseStringLiteral_stringEncodesBinaryExpression() {
+        assertEquals(
+                listOf("StringLiteral", "EOF"),
+                tokens(lexerForCode("\"1 + 2\""))
         )
     }
 

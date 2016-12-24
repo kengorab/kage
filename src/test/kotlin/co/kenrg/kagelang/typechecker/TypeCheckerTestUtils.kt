@@ -3,6 +3,7 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import co.kenrg.kagelang.tree.types.KGTypeTag.*
+import org.apache.commons.lang3.RandomStringUtils
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.fail
 
@@ -25,6 +26,7 @@ fun randomKGLiteralOfType(type: KGTypeTag): KGLiteral {
         INT -> KGLiteral(INT, RandomUtils.nextInt())
         DEC -> KGLiteral(DEC, RandomUtils.nextDouble(0.0, 1000000.0))
         BOOL -> KGLiteral(BOOL, RandomUtils.nextBoolean())
+        STRING -> KGLiteral(STRING, RandomStringUtils.random(64))
         else -> throw UnsupportedOperationException("Supplied type $type is not a literal type")
     }
 }

@@ -15,6 +15,7 @@ interface Tree {
         object IntLiteral : Kind<LiteralTree>(LiteralTree::class.java)
         object DecLiteral : Kind<LiteralTree>(LiteralTree::class.java)
         object BoolLiteral : Kind<LiteralTree>(LiteralTree::class.java)
+        object StringLiteral : Kind<LiteralTree>(LiteralTree::class.java)
 
         // Binary Operation Kinds
         object Plus : Kind<BinaryTree>(BinaryTree::class.java)

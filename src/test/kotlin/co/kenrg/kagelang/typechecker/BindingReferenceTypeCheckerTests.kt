@@ -1,9 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.codegen.decLiteral
-import co.kenrg.kagelang.codegen.falseLiteral
-import co.kenrg.kagelang.codegen.intLiteral
-import co.kenrg.kagelang.codegen.trueLiteral
+import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGBindingReference
@@ -24,6 +21,7 @@ class BindingReferenceTypeCheckerTests {
                 Case("1", intLiteral(1), KGTypeTag.INT),
                 Case("1.12", decLiteral(1.12), KGTypeTag.DEC),
                 Case("true", trueLiteral(), KGTypeTag.BOOL),
+                Case("\"hello world\"", stringLiteral("hello world"), KGTypeTag.STRING),
 
                 Case("1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), KGTypeTag.INT),
                 Case("1.4 - 3.1", KGBinary(decLiteral(1.4), "-", decLiteral(3.1)), KGTypeTag.DEC),

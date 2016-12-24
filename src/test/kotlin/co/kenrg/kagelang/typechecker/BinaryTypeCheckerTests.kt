@@ -89,14 +89,18 @@ class BinaryTypeCheckerTests {
         }
 
         @TestFactory
-        @DisplayName("(+, -, *, /) should not typecheck if either input is BOOL")
+        @DisplayName("(+, -, *, /) should not typecheck if either input is non-numeric (BOOL, STRING)")
         fun testNumericBinaryOps_withBoolInputs_failsTypecheck(): List<DynamicTest> {
             data class Case(val left: KGTypeTag, val right: KGTypeTag)
 
             return listOf(
                     Case(left = INT, right = BOOL), Case(left = DEC, right = BOOL),
                     Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC),
-                    Case(left = BOOL, right = BOOL)
+                    Case(left = BOOL, right = BOOL),
+
+                    Case(left = INT, right = STRING), Case(left = DEC, right = STRING),
+                    Case(left = STRING, right = INT), Case(left = STRING, right = DEC),
+                    Case(left = STRING, right = STRING)
             ).flatMap { testCase ->
                 val (left, right) = testCase
                 listOf("+", "-", "*", "/").map { operation ->
@@ -149,9 +153,10 @@ class BinaryTypeCheckerTests {
         data class Case(val left: KGTypeTag, val right: KGTypeTag)
 
         return listOf(
-                Case(left = INT, right = INT), Case(left = INT, right = DEC), Case(left = INT, right = BOOL),
-                Case(left = DEC, right = INT), Case(left = DEC, right = DEC), Case(left = DEC, right = BOOL),
-                Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC)
+                Case(left = INT, right = INT), Case(left = INT, right = DEC), Case(left = INT, right = BOOL), Case(left = INT, right = STRING),
+                Case(left = DEC, right = INT), Case(left = DEC, right = DEC), Case(left = DEC, right = BOOL), Case(left = DEC, right = STRING),
+                Case(left = STRING, right = INT), Case(left = STRING, right = DEC), Case(left = STRING, right = BOOL), Case(left = STRING, right = STRING),
+                Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC), Case(left = BOOL, right = STRING)
         ).flatMap { testCase ->
             val (left, right) = testCase
             listOf("&&", "||").map { operation ->

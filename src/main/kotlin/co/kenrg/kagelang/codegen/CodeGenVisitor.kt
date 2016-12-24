@@ -68,6 +68,7 @@ class CodeGenVisitor(
             KGTypeTag.INT -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Integer)
             KGTypeTag.DEC -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Double)
             KGTypeTag.BOOL -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
+            KGTypeTag.STRING -> throw UnsupportedOperationException("String not yet implemented")
             else -> throw UnsupportedOperationException("Literal $literal is not a literal")
         }
     }

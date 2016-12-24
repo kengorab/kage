@@ -1,9 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.codegen.decLiteral
-import co.kenrg.kagelang.codegen.falseLiteral
-import co.kenrg.kagelang.codegen.intLiteral
-import co.kenrg.kagelang.codegen.trueLiteral
+import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGTypeTag
@@ -22,6 +19,7 @@ class ValDeclarationTypeCheckerTests {
             Case("val a = 1", KGValDeclaration("a", intLiteral(1)), KGTypeTag.INT),
             Case("val a = 1.123", KGValDeclaration("a", decLiteral(1.123)), KGTypeTag.DEC),
             Case("val a = true", KGValDeclaration("a", trueLiteral()), KGTypeTag.BOOL),
+            Case("val a = \"hello world\"", KGValDeclaration("a", stringLiteral("hello world")), KGTypeTag.STRING),
             Case("val a = 1 + 2", KGValDeclaration("a", KGBinary(intLiteral(1), "+", intLiteral(2))), KGTypeTag.INT),
             Case("val a = 1.2 - 4.2", KGValDeclaration("a", KGBinary(decLiteral(1.2), "-", decLiteral(4.2))), KGTypeTag.DEC),
             Case("val a = true || false", KGValDeclaration("a", KGBinary(trueLiteral(), "||", falseLiteral())), KGTypeTag.BOOL)

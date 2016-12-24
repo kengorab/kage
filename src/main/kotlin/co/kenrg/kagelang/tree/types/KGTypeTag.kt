@@ -8,6 +8,7 @@ enum class KGTypeTag {
     INT,
     DEC,
     BOOL,
+    STRING,
 
     UNIT,
     UNSET;
@@ -17,6 +18,7 @@ enum class KGTypeTag {
             KGTypeTag.INT -> Tree.Kind.IntLiteral
             KGTypeTag.DEC -> Tree.Kind.DecLiteral
             KGTypeTag.BOOL -> Tree.Kind.BoolLiteral
+            KGTypeTag.STRING -> Tree.Kind.StringLiteral
             else -> throw UnsupportedOperationException("$this is not a literal, and has no literal kind")
         }
     }

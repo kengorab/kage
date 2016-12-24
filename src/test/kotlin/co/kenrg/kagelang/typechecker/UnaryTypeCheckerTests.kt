@@ -12,6 +12,7 @@ class UnaryTypeCheckerTests {
     @Nested
     @DisplayName("Arithmetic negation unary operation (-)")
     inner class ArithmeticNegation() {
+
         @Test fun typechecksArithmeticNegation_givenInt_passes() {
             val negatedInt = KGUnary("-", KGLiteral(KGTypeTag.INT, 1))
             val result = TypeChecker.typeCheck(negatedInt)
@@ -53,11 +54,18 @@ class UnaryTypeCheckerTests {
             val result = TypeChecker.typeCheck(negatedInt)
             assertFails(result)
         }
+
+        @Test fun typecheckArithmeticNegation_givenString_fails() {
+            val negatedInt = KGUnary("-", KGLiteral(KGTypeTag.STRING, "hello world"))
+            val result = TypeChecker.typeCheck(negatedInt)
+            assertFails(result)
+        }
     }
 
     @Nested
     @DisplayName("Boolean negation unary operation (!)")
     inner class BooleanNegation() {
+
         @Test fun typechecksBooleanNegation_givenBool_passes() {
             val negatedTrue = KGUnary("!", KGLiteral(KGTypeTag.BOOL, true))
             val result = TypeChecker.typeCheck(negatedTrue)
@@ -78,6 +86,12 @@ class UnaryTypeCheckerTests {
 
         @Test fun typecheckBooleanNegation_givenDec_fails() {
             val negatedDec = KGUnary("!", KGLiteral(KGTypeTag.DEC, 1.3))
+            val result = TypeChecker.typeCheck(negatedDec)
+            assertFails(result)
+        }
+
+        @Test fun typecheckBooleanNegation_givenString_fails() {
+            val negatedDec = KGUnary("!", KGLiteral(KGTypeTag.STRING, "hello world"))
             val result = TypeChecker.typeCheck(negatedDec)
             assertFails(result)
         }
