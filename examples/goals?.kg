@@ -9,7 +9,7 @@ fun agePlusN(p: Person, i: Int) =
   in
     age + i
 
-val meg = {
+val meg = Person {
   name 'Meg'
   age 24
 }

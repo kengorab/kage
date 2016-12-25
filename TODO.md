@@ -12,7 +12,10 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - Add tests for TreeMaker (with and without positioning)
   - With positioning
   - ~~Without positioning~~
-- ~~String Literals~~
+- String Literals
+  - ~~Declaration and referencing~~
+  - Concatenation of Strings (++)
+  - Concatenation of Strings and non-Strings
 - Arrays
   - Int arrays
   - Bool arrays

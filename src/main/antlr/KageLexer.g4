@@ -70,6 +70,7 @@ RPAREN          : ')' ;
 
 // Operators
 PLUS            : '+' ;
+CONCAT          : '++' ;
 MINUS           : '-' ;
 ASTERISK        : '*' ;
 DIVISION        : '/' ;

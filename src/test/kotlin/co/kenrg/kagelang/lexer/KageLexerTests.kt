@@ -128,6 +128,20 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseConcatenationOfTwoStrings() {
+        assertEquals(
+                listOf("StringLiteral", "CONCAT", "StringLiteral", "EOF"),
+                tokens(lexerForCode("\"Hello\" ++ \"World\""))
+        )
+    }
+
+    @Test fun parseConcatenationOfManyStrings() {
+        assertEquals(
+                listOf("StringLiteral", "CONCAT", "StringLiteral", "CONCAT", "StringLiteral", "CONCAT", "StringLiteral", "EOF"),
+                tokens(lexerForCode("\"Concat\" ++ \"many\" ++ \"strings\" ++ \"together\""))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
