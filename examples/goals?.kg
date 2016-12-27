@@ -3,7 +3,7 @@ type Person = {
   age : Int
 }
 
-fun agePlusN(p: Person, i: Int) =
+fn agePlusN(p: Person, i: Int): Int =
   let
     age: Int = Person.age(p)
   in
@@ -18,7 +18,7 @@ val numbersList = [ 1 2 3 ]
 val numbersSet = #{ 1 2 3 1 }
 
 #Main
-fun startUp(args: String[]): Unit =
+fn startUp(args: String[]): Unit =
   let
     val meghan: Person = Person.clone(meg, { name: 'Meghan' })
     val meghanCaps = Person.update(meghan, {
