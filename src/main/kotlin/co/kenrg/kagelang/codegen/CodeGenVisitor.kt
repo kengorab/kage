@@ -8,7 +8,6 @@ import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
 import jdk.internal.org.objectweb.asm.Opcodes.*
 import org.apache.commons.collections4.map.LinkedMap
-import java.util.*
 
 /**
  * An implementor of the Visitor interface, this visits each node in the tree
@@ -26,8 +25,6 @@ class CodeGenVisitor(
         className: String = "MyClass"
 ) : KGTree.Visitor<LinkedMap<String, CodeGenBinding>> {
 
-    val modeQueue = Stack<CodeGenMode>()
-
     val cw: ClassWriter
     val mainMethodWriter: MethodVisitor
     val mainMethodStart: Label
@@ -42,8 +39,6 @@ class CodeGenVisitor(
         mainMethodStart = Label()
         mainMethodEnd = Label()
         mainMethodWriter.visitLabel(mainMethodStart)
-
-        modeQueue.push(CodeGenMode.NORMAL)
     }
 
     /**
@@ -156,46 +151,31 @@ class CodeGenVisitor(
         }
     }
 
+    fun appendStrings(tree: KGTree, data: LinkedMap<String, CodeGenBinding>) {
+        // Recurse down through the tree and allow it to be handled by this visitor, shortcutting if the tree is a
+        // String concatenation, because we don't want to create duplicate StringBuilders.
+        if (tree is KGTree.KGBinary && tree.kind() is Tree.Kind.Concatenation) {
+            appendStrings(tree.left, data)
+            appendStrings(tree.right, data)
+            return
+        }
+
+        tree.accept(this, data)
+        val treeType = jvmTypeDescriptorForType(tree.type)
+        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($treeType)Ljava/lang/StringBuilder;", false)
+    }
+
     fun pushStringConcatenation(binary: KGTree.KGBinary, mainMethodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
-        val prevMode = modeQueue.peek()
-        if (prevMode == CodeGenMode.NORMAL) {
-            // Create a StringBuilder on top of Stack, but only if we're coming from a non-string-concatenation context
-            mainMethodWriter.visitTypeInsn(NEW, "java/lang/StringBuilder")
-            mainMethodWriter.visitInsn(DUP)
-            mainMethodWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false)
-        }
+        // Create and initialize a StringBuilder, leaving a reference on TOS.
+        mainMethodWriter.visitTypeInsn(NEW, "java/lang/StringBuilder")
+        mainMethodWriter.visitInsn(DUP)
+        mainMethodWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false)
 
-        // Enter into STRING_CONCAT mode
-        modeQueue.push(CodeGenMode.STRING_CONCAT)
+        // Traverse the tree, appending to the StringBuilder.
+        appendStrings(binary, data)
 
-        binary.left.accept(this, data)
-        if (binary.left.type != KGTypeTag.STRING) {
-            throw UnsupportedOperationException("Cannot concatenate unless it's a String")
-        }
-//        val leftType = jvmTypeDescriptorForType(binary.left.type)
-        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false)
-
-        binary.right.accept(this, data)
-        if (binary.right.type != KGTypeTag.STRING) {
-            throw UnsupportedOperationException("Cannot concatenate unless it's a String")
-        }
-//        val rightType = jvmTypeDescriptorForType(binary.right.type)
-
-        // At this point, the result of the right-side of the binary tree is on top of the stack.
-        // Since string concatenation is left-associative, if the expression we're handling right now is a nested
-        // string concatenation, the result on top of the stack will be handled in the previous layer, and we should not
-        // append the result.
-        if (prevMode != CodeGenMode.STRING_CONCAT) {
-            mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(Ljava/lang/String;)Ljava/lang/StringBuilder;", false)
-        }
-
-        modeQueue.pop()
-        if (modeQueue.peek() == CodeGenMode.NORMAL) {
-            // If we're at the top-level string concatenation statement (there are no other nested string concatenations
-            // left to perform) obtain the result of the concatenations and place it onto top of the stack. Otherwise,
-            // leave the StringBuilder ref on top for the next concatenation.
-            mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
-        }
+        // After the concatenation traversal is complete, build the String and place on TOS.
+        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
     }
 
     override fun visitBinary(binary: KGTree.KGBinary, data: LinkedMap<String, CodeGenBinding>) {

@@ -74,5 +74,37 @@ class ConcatenationCodeGenTests : BaseTest() {
             assertEquals("hello world!", output)
         }
     }
+
+    @Test fun testConcatenatingStringWithOtherType() {
+        val file = KGFile(
+                statements = listOf(
+                        KGValDeclaration("trueVal", trueLiteral()),
+                        KGValDeclaration("string", KGBinary(KGBinary(stringLiteral("Hello, "), "++", KGBindingReference("trueVal")), "++", stringLiteral("!"))),
+                        KGPrint(KGBindingReference("string"))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("Hello, true!", output)
+        }
+    }
+
+    @Test fun testConcatenatingStringWithOtherTypes() {
+        val file = KGFile(
+                statements = listOf(
+                        KGValDeclaration("true", trueLiteral()),
+                        KGValDeclaration("three", intLiteral(3)),
+                        KGValDeclaration("pi", KGBinary(intLiteral(3), "+", decLiteral(0.14))),
+                        KGValDeclaration("string", KGBinary(KGBinary(KGBinary(KGBinary(stringLiteral("Hello, "), "++", KGBindingReference("three")), "++", stringLiteral(" ")), "++", KGBindingReference("pi")), "++", KGBindingReference("true"))),
+                        KGPrint(KGBindingReference("string"))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("Hello, 3 3.14true", output)
+        }
+    }
 }
 

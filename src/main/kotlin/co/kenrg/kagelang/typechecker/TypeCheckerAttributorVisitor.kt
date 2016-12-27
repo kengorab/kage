@@ -114,13 +114,13 @@ class TypeCheckerAttributorVisitor(
                     ownType = KGTypeTag.DEC
                 }
             is Tree.Kind.Concatenation ->
-                if (leftType != KGTypeTag.STRING) {
-                    handleError(Error(error = "String type expected for left expression", position = binary.position.start))
-                } else if (rightType != KGTypeTag.STRING) {
-                    handleError(Error(error = "String type expected for right expression", position = binary.position.start))
-                } else {
+//                if (leftType != KGTypeTag.STRING) {
+//                    handleError(Error(error = "String type expected for left expression", position = binary.position.start))
+//                } else if (rightType != KGTypeTag.STRING) {
+//                    handleError(Error(error = "String type expected for right expression", position = binary.position.start))
+//                } else {
                     ownType = KGTypeTag.STRING
-                }
+//                }
             else ->
                 throw UnsupportedOperationException("${binary.kind().javaClass.canonicalName} is not a BinaryTree")
         }

@@ -182,12 +182,15 @@ class BinaryTypeCheckerTests {
     inner class ListlikeBinaryOperationsTests {
 
         @TestFactory
-        @DisplayName("(++) of two Strings should be String")
+        @DisplayName("(++) with Strings should be String")
         fun testConcatenationOfStrings(): List<DynamicTest> {
             data class Case(val left: KGTypeTag, val right: KGTypeTag, val expected: KGTypeTag)
 
             return listOf(
-                    Case(left = STRING, right = STRING, expected = STRING)
+                    Case(left = STRING, right = STRING, expected = STRING),
+                    Case(left = INT, right = STRING, expected = STRING), Case(left = STRING, right = INT, expected = STRING),
+                    Case(left = DEC, right = STRING, expected = STRING), Case(left = STRING, right = DEC, expected = STRING),
+                    Case(left = BOOL, right = STRING, expected = STRING), Case(left = STRING, right = BOOL, expected = STRING)
             ).flatMap { testCase ->
                 val (left, right, expected) = testCase
                 listOf("++").flatMap { operator ->
