@@ -118,55 +118,101 @@ class BinaryTypeCheckerTests {
         }
     }
 
-    @TestFactory
-    @DisplayName("Conditional Binary operations (&&, ||) should return BOOL if given BOOLs")
-    fun testBinaryConditionalOps_withBoolTypes(): List<DynamicTest> {
-        return listOf("&&", "||").flatMap { operation ->
-            listOf(
-                    dynamicTest("BOOL $operation BOOL should yield BOOL") {
-                        val leftExpr = randomKGLiteralOfType(BOOL)
-                        val rightExpr = randomKGLiteralOfType(BOOL)
+    @Nested
+    @DisplayName("Boolean Binary Operations (&&, ||)")
+    inner class BooleanBinaryOperationsTests {
 
-                        val binary = KGBinary(leftExpr, operation, rightExpr)
-                        val result = TypeChecker.typeCheck(binary)
-                        assertSucceedsAnd(result) { assertEquals(BOOL, it.type) }
-                    },
-                    dynamicTest("Binary should have type BOOL, left BOOL and right BOOL") {
-                        val leftExpr = randomKGLiteralOfType(BOOL)
-                        val rightExpr = randomKGLiteralOfType(BOOL)
+        @TestFactory
+        @DisplayName("Conditional Binary operations (&&, ||) should return BOOL if given BOOLs")
+        fun testBinaryConditionalOps_withBoolTypes(): List<DynamicTest> {
+            return listOf("&&", "||").flatMap { operation ->
+                listOf(
+                        dynamicTest("BOOL $operation BOOL should yield BOOL") {
+                            val leftExpr = randomKGLiteralOfType(BOOL)
+                            val rightExpr = randomKGLiteralOfType(BOOL)
 
-                        val binary = KGBinary(leftExpr, operation, rightExpr)
-                        val result = TypeChecker.typeCheck(binary)
-                        assertSucceedsAnd(result) {
-                            assertEquals(BOOL, binary.left.type)
-                            assertEquals(BOOL, binary.right.type)
-                            assertEquals(BOOL, binary.type)
+                            val binary = KGBinary(leftExpr, operation, rightExpr)
+                            val result = TypeChecker.typeCheck(binary)
+                            assertSucceedsAnd(result) { assertEquals(BOOL, it.type) }
+                        },
+                        dynamicTest("Binary should have type BOOL, left BOOL and right BOOL") {
+                            val leftExpr = randomKGLiteralOfType(BOOL)
+                            val rightExpr = randomKGLiteralOfType(BOOL)
+
+                            val binary = KGBinary(leftExpr, operation, rightExpr)
+                            val result = TypeChecker.typeCheck(binary)
+                            assertSucceedsAnd(result) {
+                                assertEquals(BOOL, binary.left.type)
+                                assertEquals(BOOL, binary.right.type)
+                                assertEquals(BOOL, binary.type)
+                            }
                         }
+                )
+            }
+        }
+
+        @TestFactory
+        @DisplayName("Conditional Binary operations (&&, ||) should fail to typecheck if given non-BOOL input")
+        fun testBinaryConditionalOps_nonBoolInputs_failsTypecheck(): List<DynamicTest> {
+            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+
+            return listOf(
+                    Case(left = INT, right = INT), Case(left = INT, right = DEC), Case(left = INT, right = BOOL), Case(left = INT, right = STRING),
+                    Case(left = DEC, right = INT), Case(left = DEC, right = DEC), Case(left = DEC, right = BOOL), Case(left = DEC, right = STRING),
+                    Case(left = STRING, right = INT), Case(left = STRING, right = DEC), Case(left = STRING, right = BOOL), Case(left = STRING, right = STRING),
+                    Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC), Case(left = BOOL, right = STRING)
+            ).flatMap { testCase ->
+                val (left, right) = testCase
+                listOf("&&", "||").map { operation ->
+                    dynamicTest("$left $operation $right should fail to typecheck") {
+                        val leftExpr = randomKGLiteralOfType(left)
+                        val rightExpr = randomKGLiteralOfType(right)
+
+                        val binary = KGBinary(leftExpr, operation, rightExpr)
+                        val result = TypeChecker.typeCheck(binary)
+                        assertFails(result)
                     }
-            )
+                }
+            }
         }
     }
 
-    @TestFactory
-    @DisplayName("Conditional Binary operations (&&, ||) should fail to typecheck if given non-BOOL input")
-    fun testBinaryConditionalOps_nonBoolInputs_failsTypecheck(): List<DynamicTest> {
-        data class Case(val left: KGTypeTag, val right: KGTypeTag)
+    @Nested
+    @DisplayName("List-like Binary Operations (++)")
+    inner class ListlikeBinaryOperationsTests {
 
-        return listOf(
-                Case(left = INT, right = INT), Case(left = INT, right = DEC), Case(left = INT, right = BOOL), Case(left = INT, right = STRING),
-                Case(left = DEC, right = INT), Case(left = DEC, right = DEC), Case(left = DEC, right = BOOL), Case(left = DEC, right = STRING),
-                Case(left = STRING, right = INT), Case(left = STRING, right = DEC), Case(left = STRING, right = BOOL), Case(left = STRING, right = STRING),
-                Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC), Case(left = BOOL, right = STRING)
-        ).flatMap { testCase ->
-            val (left, right) = testCase
-            listOf("&&", "||").map { operation ->
-                dynamicTest("$left $operation $right should fail to typecheck") {
-                    val leftExpr = randomKGLiteralOfType(left)
-                    val rightExpr = randomKGLiteralOfType(right)
+        @TestFactory
+        @DisplayName("(++) of two Strings should be String")
+        fun testConcatenationOfStrings(): List<DynamicTest> {
+            data class Case(val left: KGTypeTag, val right: KGTypeTag, val expected: KGTypeTag)
 
-                    val binary = KGBinary(leftExpr, operation, rightExpr)
-                    val result = TypeChecker.typeCheck(binary)
-                    assertFails(result)
+            return listOf(
+                    Case(left = STRING, right = STRING, expected = STRING)
+            ).flatMap { testCase ->
+                val (left, right, expected) = testCase
+                listOf("++").flatMap { operator ->
+                    listOf(
+                            dynamicTest("$left $operator $right should yield $expected") {
+                                val leftExpr = randomKGLiteralOfType(left)
+                                val rightExpr = randomKGLiteralOfType(right)
+
+                                val binary = KGBinary(leftExpr, operator, rightExpr)
+                                val result = TypeChecker.typeCheck(binary)
+                                assertSucceedsAnd(result) { assertEquals(expected, it.type) }
+                            },
+                            dynamicTest("Binary should have type $expected, left $left and right $right") {
+                                val leftExpr = randomKGLiteralOfType(left)
+                                val rightExpr = randomKGLiteralOfType(right)
+
+                                val binary = KGBinary(leftExpr, operator, rightExpr)
+                                val result = TypeChecker.typeCheck(binary)
+                                assertSucceedsAnd(result) {
+                                    assertEquals(left, binary.left.type)
+                                    assertEquals(right, binary.right.type)
+                                    assertEquals(expected, binary.type)
+                                }
+                            }
+                    )
                 }
             }
         }

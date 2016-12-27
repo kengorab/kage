@@ -84,6 +84,7 @@ abstract class KGTree : Tree {
             "/" -> Tree.Kind.Divide
             "&&" -> Tree.Kind.ConditionalAnd
             "||" -> Tree.Kind.ConditionalOr
+            "++" -> Tree.Kind.Concatenation
             else -> throw UnsupportedOperationException("Operator $operator not yet implemented")
         }
 

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
 /*
@@ -174,6 +175,22 @@ class TreeMakerTests {
                     assertEquals(expected, kageFile)
                 }
             }
+        }
+
+        @Test fun testStringConcatenation() {
+            val kageFile = kageFileFromCode("val a = \"hello \" ++ \"world\"")
+            val expected = kageFileFromStatements(KGValDeclaration("a", KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))))
+            assertEquals(expected, kageFile)
+        }
+
+        @Test fun testMultipleStringConcatenations() {
+            val kageFile = kageFileFromCode("val a = \"hello\" ++ \" \" ++ \"world\"")
+            val expected = kageFileFromStatements(
+                    KGValDeclaration(
+                            "a",
+                            KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
+            )
+            assertEquals(expected, kageFile)
         }
     }
 
