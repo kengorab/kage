@@ -23,7 +23,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
             is KageParser.ValDeclarationStatementContext ->
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
-                        expression = toTree(statement.valDeclaration().expression())
+                        expression = toTree(statement.valDeclaration().expression()),
+                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimStart(':', ' ')?.trimEnd(' ')
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }

@@ -47,6 +47,18 @@ class TreeMakerTests {
     @Nested
     inner class TopLevelValDeclarationStatement() {
 
+        @Test fun testParseValDeclarationWithTypeAnnotation() {
+            val kageFile = kageFileFromCode("val a: Int = 1")
+            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), "Int"))
+            assertEquals(expected, kageFile)
+        }
+
+        @Test fun testParseValDeclarationWithoutTypeAnnotation() {
+            val kageFile = kageFileFromCode("val a = 1")
+            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), null))
+            assertEquals(expected, kageFile)
+        }
+
         @TestFactory
         fun testParseAndTransformValDeclarationsToLiterals(): List<DynamicTest> {
             data class Case(val repr: String, val statement: KGTree.KGStatement)

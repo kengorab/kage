@@ -16,7 +16,7 @@ statement
     | print           #printStatement ;
 
 valDeclaration
-    : 'val' Identifier '=' expression ;
+    : 'val' Identifier typeAnnotation=TypeAnnotation? '=' expression ;
 
 print
     : 'print' '(' expression ')' ;
