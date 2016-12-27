@@ -15,7 +15,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - String Literals
   - ~~Declaration and referencing~~
   - ~~Concatenation of Strings (++)~~
-  - Concatenation of Strings and non-Strings
+  - ~~Concatenation of Strings and non-Strings~~
 - Arrays
   - Int arrays
   - Bool arrays
