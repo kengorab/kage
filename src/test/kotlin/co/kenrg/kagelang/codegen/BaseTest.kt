@@ -7,7 +7,8 @@ import java.nio.file.Files
 
 open class BaseTest {
     companion object {
-        val deleteTempClassesWhenDone = false
+        val deleteTempClassesWhenDone = true
+        val testLogs = false
 
         @BeforeAll
         @JvmStatic
@@ -26,7 +27,7 @@ open class BaseTest {
             // Remove tempclasses dir
             if (deleteTempClassesWhenDone && Files.exists(tempClassesPath)) {
                 FileUtils.cleanDirectory(tempClassesPath.toFile())
-                println("Cleaning directory: $tempClassesPathName")
+                if (testLogs) println("Cleaning directory: $tempClassesPathName")
             }
         }
     }

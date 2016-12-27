@@ -1,5 +1,6 @@
 package co.kenrg.kagelang.codegen
 
+import co.kenrg.kagelang.codegen.BaseTest.Companion.testLogs
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
@@ -67,7 +68,7 @@ fun writeAndExecClassFileAndThen(className: String, bytes: ByteArray?, fn: (Stri
     }
 
     val randomClassPath = "$tempClassesPathName/$className.class"
-    println("Generating class file at $randomClassPath")
+    if (testLogs) println("Generating class file at $randomClassPath")
     val fos = FileOutputStream(randomClassPath)
     fos.write(bytes)
     fos.close()
