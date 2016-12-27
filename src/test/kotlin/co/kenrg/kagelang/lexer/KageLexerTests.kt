@@ -142,6 +142,13 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseTypeAnnotation() {
+        assertEquals(
+                listOf("VAL", "Identifier", "TypeAnnotation", "ASSIGN", "IntLiteral", "EOF"),
+                tokens(lexerForCode("val a: Int = 1"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
