@@ -25,5 +25,14 @@ enum class KGTypeTag {
 
     companion object {
         val numericTypes = listOf(INT, DEC)
+
+        fun fromString(str: String): KGTypeTag =
+                when (str.trimStart(':', ' ').trimEnd(' ')) {
+                    "Int" -> KGTypeTag.INT
+                    "Dec" -> KGTypeTag.DEC
+                    "Bool" -> KGTypeTag.BOOL
+                    "String" -> KGTypeTag.STRING
+                    else -> throw IllegalStateException("No acceptable type found for: $str")
+                }
     }
 }

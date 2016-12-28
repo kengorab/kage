@@ -135,7 +135,7 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitPrint(this, data)
     }
 
-    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: String? = null) : KGStatement(), ValDeclarationTree {
+    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: KGTypeTag? = null) : KGStatement(), ValDeclarationTree {
         override fun expression(): ExpressionTree = expression
         override fun identifier() = identifier
         override fun typeAnnotation() = typeAnnotation

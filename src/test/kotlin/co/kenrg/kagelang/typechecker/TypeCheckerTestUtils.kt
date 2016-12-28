@@ -14,6 +14,10 @@ fun assertSucceedsAnd(result: TypeCheckingResult, fn: (TypeCheckingResult.Succes
     }
 }
 
+fun assertSucceeds(result: TypeCheckingResult) {
+    assertSucceedsAnd(result) {}
+}
+
 fun assertFails(result: TypeCheckingResult) {
     when (result) {
         is TypeCheckingResult.Success -> fail("Typechecking should have failed, passed with type: ${result.type}")

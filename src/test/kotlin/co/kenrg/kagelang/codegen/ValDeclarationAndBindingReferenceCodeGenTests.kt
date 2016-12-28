@@ -2,10 +2,12 @@ package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree.*
+import co.kenrg.kagelang.tree.types.KGTypeTag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import java.util.*
 
@@ -46,6 +48,24 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
                     assertEquals(expected, output)
                 }
             }
+        }
+    }
+
+    // Type annotations should have no factor into codegen, since all of the work is done during typechecking. But,
+    // it's good to have just one test to verify that it doesn't mess anything up unexpectedly.
+    @Test fun testTypeAnnotationsOnValDeclarations() {
+        // val a: Int = 1
+        // print(a)
+        val file = KGFile(
+                statements = listOf(
+                        KGValDeclaration("a", intLiteral(1), KGTypeTag.INT),
+                        KGPrint(KGBindingReference("a"))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("1", output)
         }
     }
 

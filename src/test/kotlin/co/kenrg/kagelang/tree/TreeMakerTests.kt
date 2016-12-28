@@ -49,7 +49,7 @@ class TreeMakerTests {
 
         @Test fun testParseValDeclarationWithTypeAnnotation() {
             val kageFile = kageFileFromCode("val a: Int = 1")
-            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), "Int"))
+            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), KGTypeTag.INT))
             assertEquals(expected, kageFile)
         }
 

@@ -24,7 +24,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
                         expression = toTree(statement.valDeclaration().expression()),
-                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimStart(':', ' ')?.trimEnd(' ')
+                        typeAnnotation =
+                            if (statement.valDeclaration().typeAnnotation?.text != null)
+                                KGTypeTag.fromString(statement.valDeclaration().typeAnnotation.text)
+                            else
+                                null
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }

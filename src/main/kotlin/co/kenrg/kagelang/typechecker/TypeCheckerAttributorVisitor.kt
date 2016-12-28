@@ -114,13 +114,7 @@ class TypeCheckerAttributorVisitor(
                     ownType = KGTypeTag.DEC
                 }
             is Tree.Kind.Concatenation ->
-//                if (leftType != KGTypeTag.STRING) {
-//                    handleError(Error(error = "String type expected for left expression", position = binary.position.start))
-//                } else if (rightType != KGTypeTag.STRING) {
-//                    handleError(Error(error = "String type expected for right expression", position = binary.position.start))
-//                } else {
-                    ownType = KGTypeTag.STRING
-//                }
+                ownType = KGTypeTag.STRING
             else ->
                 throw UnsupportedOperationException("${binary.kind().javaClass.canonicalName} is not a BinaryTree")
         }
@@ -153,6 +147,12 @@ class TypeCheckerAttributorVisitor(
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: HashMap<String, Binding>) {
         attribExpr(valDecl.expression, data)
+
+        if (valDecl.typeAnnotation != null) {
+            if (valDecl.expression.type != valDecl.typeAnnotation) {
+                handleError(Error("Expression not assignable to type ${valDecl.typeAnnotation}", valDecl.position.start))
+            }
+        }
 
         if (data.containsKey(valDecl.identifier)) {
             handleError(Error("Duplicate binding: val \"${valDecl.identifier}\" already defined in this context", valDecl.position.start))
