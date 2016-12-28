@@ -3,6 +3,7 @@ lexer grammar KageLexer;
 // Keywords
 VAL             : 'val' ;
 PRINT           : 'print' ;
+FN              : 'fn' ;
 
 // Integer literals
 IntLiteral

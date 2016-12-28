@@ -149,6 +149,20 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseEmptyFunctionDeclaration() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "EOF"),
+                tokens(lexerForCode("fn add()"))
+        )
+    }
+
+    @Test fun parseFunctionDeclaration_fnBodyIsInt() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
+                tokens(lexerForCode("fn three() = 3"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
