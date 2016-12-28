@@ -3,23 +3,33 @@ parser grammar KageParser;
 options { tokenVocab=KageLexer; }
 
 kageFile
-    : lines=line+ ;
+    : lines=line+
+    ;
 
 line
-    : statement (NEWLINE+ | EOF) ;
+    : statement (NEWLINE+ | EOF)
+    ;
 
 
 // Statements
 
 statement
     : valDeclaration  #valDeclarationStatement
-    | print           #printStatement ;
+    | fnDeclaration   #fnDeclarationStatement
+    | print           #printStatement
+    ;
 
 valDeclaration
-    : 'val' Identifier typeAnnotation=TypeAnnotation? '=' expression ;
+    : 'val' Identifier typeAnnotation=TypeAnnotation? '=' expression
+    ;
+
+fnDeclaration
+    : 'fn' fnName=Identifier '(' ')' '=' body=expression
+    ;
 
 print
-    : 'print' '(' expression ')' ;
+    : 'print' '(' expression ')'
+    ;
 
 
 // Expressions
@@ -35,4 +45,5 @@ expression
     | StringLiteral                                                  #stringLiteral
     | IntLiteral                                                     #intLiteral
     | DecimalLiteral                                                 #decLiteral
-    | BooleanLiteral                                                 #boolLiteral ;
+    | BooleanLiteral                                                 #boolLiteral
+    ;

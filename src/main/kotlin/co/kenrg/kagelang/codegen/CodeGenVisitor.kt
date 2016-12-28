@@ -312,4 +312,8 @@ class CodeGenVisitor(
             else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
         }
     }
+
+    override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: LinkedMap<String, CodeGenBinding>) {
+        throw UnsupportedOperationException("not implemented")
+    }
 }

@@ -58,7 +58,7 @@ class ValDeclarationTypeCheckerTests {
 
     @Test fun typecheckValDeclaration_assignValToBinding_newValHasTypeOfBinding() {
         val bindings = HashMap<String, Binding>()
-        bindings.put("a", Binding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        bindings.put("a", Binding.ValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
 
         val valDeclOfBinding = KGValDeclaration("b", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(valDeclOfBinding, bindings)
@@ -69,7 +69,7 @@ class ValDeclarationTypeCheckerTests {
 
     @Test fun typecheckValDeclaration_duplicateValDeclaration_typecheckingFails() {
         val bindings = HashMap<String, Binding>()
-        bindings.put("a", Binding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        bindings.put("a", Binding.ValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
 
         val valDecl = KGValDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, bindings)

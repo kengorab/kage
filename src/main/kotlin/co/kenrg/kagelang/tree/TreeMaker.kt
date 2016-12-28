@@ -30,6 +30,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                             else
                                 null
                 )
+            is KageParser.FnDeclarationStatementContext ->
+                    KGTree.KGFnDeclaration(
+                            name = statement.fnDeclaration().fnName.text,
+                            expression = toTree(statement.fnDeclaration().body)
+                    )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }
 

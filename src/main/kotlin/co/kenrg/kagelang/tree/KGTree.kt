@@ -13,7 +13,6 @@ abstract class KGTree : Tree {
     interface Visitor<in D> {
         // Expression visitors
         fun visitLiteral(literal: KGLiteral, data: D)
-
         fun visitUnary(unary: KGUnary, data: D)
         fun visitBinary(binary: KGBinary, data: D)
         fun visitParenthesized(parenthesized: KGParenthesized, data: D)
@@ -22,8 +21,8 @@ abstract class KGTree : Tree {
 
         // Statement visitors
         fun visitPrint(print: KGPrint, data: D)
-
         fun visitValDeclaration(valDecl: KGValDeclaration, data: D)
+        fun visitFnDeclaration(fnDecl: KGFnDeclaration, data: D)
     }
 
     interface VisitorErrorHandler<in E> {
@@ -143,5 +142,14 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.ValDeclaration
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitValDeclaration(this, data)
+    }
+
+    class KGFnDeclaration(val name: String, val expression: KGExpression) : KGStatement(), FnDeclarationTree {
+        override fun body() = expression
+        override fun name() = name
+
+        override fun kind() = Tree.Kind.FnDeclaration
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitFnDeclaration(this, data)
     }
 }

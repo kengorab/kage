@@ -123,6 +123,21 @@ class TreeMakerTests {
         }
     }
 
+    @Nested
+    inner class TopLevelFunctionDeclarationStatement() {
+
+        @Test fun testParseFnDeclaration_bodyIsLiteral() {
+            val kageFile = kageFileFromCode("fn returnOne() = 1")
+            val expected = kageFileFromStatements(KGFnDeclaration("returnOne", intLiteral(1)))
+            assertEquals(expected, kageFile)
+        }
+
+        @Test fun testParseFnDeclaration_bodyIsBinaryExpression() {
+            val kageFile = kageFileFromCode("fn returnSum() = 1 + 2")
+            val expected = kageFileFromStatements(KGFnDeclaration("returnSum", KGBinary(intLiteral(1), "+", intLiteral(2))))
+            assertEquals(expected, kageFile)
+        }
+    }
 
     @Nested
     inner class BinaryExpressions() {

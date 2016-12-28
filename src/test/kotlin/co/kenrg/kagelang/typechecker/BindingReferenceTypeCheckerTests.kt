@@ -32,7 +32,7 @@ class BindingReferenceTypeCheckerTests {
 
             dynamicTest("If `val a = $repr` is in context, then the binding reference `a` should have type $exprType") {
                 val bindings = HashMap<String, Binding>()
-                bindings.put("a", Binding("a", innerExpr.withType(exprType)))
+                bindings.put("a", Binding.ValBinding("a", innerExpr.withType(exprType)))
                 // Manually add the type using `withType`; normally this would be done by running the expression through
                 // the TypeCheckerAttributorVisitor, but we want to simulate that here in tests.
 
@@ -47,7 +47,7 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckingBindingReference_inBinaryExpression_binaryExpressionTypeBasedOnBindingType() {
         val bindings = HashMap<String, Binding>()
-        bindings.put("a", Binding("a", decLiteral(1.2).withType(KGTypeTag.DEC)))
+        bindings.put("a", Binding.ValBinding("a", decLiteral(1.2).withType(KGTypeTag.DEC)))
 
         val binaryExprUsingBinding = KGBinary(intLiteral(2), "+", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(binaryExprUsingBinding, bindings)
@@ -66,7 +66,7 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckBindingReference_bindingPresentInContext_bindingExpressionTypeUnset_throwsException() {
         val bindings = HashMap<String, Binding>()
-        bindings.put("a", Binding("a", KGBinary(intLiteral(1), "+", intLiteral(2))))
+        bindings.put("a", Binding.ValBinding("a", KGBinary(intLiteral(1), "+", intLiteral(2))))
         // The KGBinary hasn't been run through the TypeCheckerAttributorVisitor, so its type is UNSET.
 
         val bindingRef = KGBindingReference("a")
