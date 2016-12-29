@@ -18,6 +18,7 @@ abstract class KGTree : Tree {
         fun visitBinary(binary: KGBinary, data: D)
         fun visitParenthesized(parenthesized: KGParenthesized, data: D)
         fun visitBindingReference(bindingReference: KGBindingReference, data: D)
+        fun visitInvocation(invocation: KGInvocation, data: D)
 
 
         // Statement visitors
@@ -107,6 +108,15 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.BindingReference
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitBindingReference(this, data)
+    }
+
+    class KGInvocation(val invokee: KGExpression, val params: List<KGExpression> = listOf()) : KGExpression(), InvocationTree {
+        override fun invokee() = invokee
+        override fun params() = params
+
+        override fun kind() = Tree.Kind.Invocation
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitInvocation(this, data)
     }
 
     /*

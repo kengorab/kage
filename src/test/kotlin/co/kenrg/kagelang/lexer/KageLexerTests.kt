@@ -163,6 +163,13 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseFunctionInvocation_noParams() {
+        assertEquals(
+                listOf("Identifier", "LPAREN", "RPAREN", "EOF"),
+                tokens(lexerForCode("add()"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

@@ -28,6 +28,7 @@ interface Tree {
 
         // Binding Kinds
         object BindingReference : Kind<BindingReferenceTree>(BindingReferenceTree::class.java)
+        object Invocation : Kind<InvocationTree>(InvocationTree::class.java)
 
         // Unary Operation Kinds
         object ArithmeticNegation : Kind<UnaryTree>(UnaryTree::class.java)

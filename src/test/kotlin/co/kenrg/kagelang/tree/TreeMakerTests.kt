@@ -21,7 +21,7 @@ import org.junit.jupiter.api.TestFactory
 class TreeMakerTests {
 
     @Nested
-    inner class PrintStatement() {
+    inner class PrintStatement {
         @TestFactory
         fun testParseAndTransformPrintStatement_literals(): List<DynamicTest> {
             data class Case(val repr: String, val statement: KGTree.KGStatement)
@@ -45,7 +45,7 @@ class TreeMakerTests {
     }
 
     @Nested
-    inner class TopLevelValDeclarationStatement() {
+    inner class TopLevelValDeclarationStatement {
 
         @Test fun testParseValDeclarationWithTypeAnnotation() {
             val kageFile = kageFileFromCode("val a: Int = 1")
@@ -124,7 +124,7 @@ class TreeMakerTests {
     }
 
     @Nested
-    inner class TopLevelFunctionDeclarationStatement() {
+    inner class TopLevelFunctionDeclarationStatement {
 
         @Test fun testParseFnDeclaration_bodyIsLiteral() {
             val kageFile = kageFileFromCode("fn returnOne() = 1")
@@ -140,7 +140,17 @@ class TreeMakerTests {
     }
 
     @Nested
-    inner class BinaryExpressions() {
+    inner class FunctionInvocationExpression {
+
+        @Test fun testParseFunctionInvocation() {
+            val kageFile = kageFileFromCode("print(returnOne())")
+            val expected = kageFileFromStatements(KGPrint(KGInvocation(KGBindingReference("returnOne"))))
+            assertEquals(expected, kageFile)
+        }
+    }
+
+    @Nested
+    inner class BinaryExpressions {
         @TestFactory
         fun testParseAndTransformSimpleArithmeticBinaryExpressions(): List<DynamicTest> {
             data class Case(val repr: String, val expr: KGTree.KGExpression)

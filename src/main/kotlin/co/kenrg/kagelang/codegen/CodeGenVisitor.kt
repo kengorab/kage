@@ -276,6 +276,10 @@ class CodeGenVisitor(
         }
     }
 
+    override fun visitInvocation(invocation: KGTree.KGInvocation, data: LinkedMap<String, CodeGenBinding>) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     /*****************************
      *
      *     Statement Visitors

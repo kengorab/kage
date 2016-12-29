@@ -41,9 +41,11 @@ expression
     | left=expression operator=('+'|'-') right=expression            #binaryOperation
     | left=expression operator=('||'|'&&') right=expression          #binaryOperation
     | left=expression operator='++' right=expression                 #binaryOperation
+    | invokee=expression '(' ')'                                     #invocation
     | Identifier                                                     #bindingReference
     | StringLiteral                                                  #stringLiteral
     | IntLiteral                                                     #intLiteral
     | DecimalLiteral                                                 #decLiteral
     | BooleanLiteral                                                 #boolLiteral
     ;
+

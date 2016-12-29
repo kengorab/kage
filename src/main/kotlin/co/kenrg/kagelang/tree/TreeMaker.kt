@@ -76,6 +76,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGParenthesized(expr = toTree(expression.expression()))
             is KageParser.BindingReferenceContext ->
                 KGTree.KGBindingReference(expression.Identifier().text)
+            is KageParser.InvocationContext ->
+                KGTree.KGInvocation(toTree(expression.invokee))
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 

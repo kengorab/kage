@@ -137,6 +137,29 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
+    override fun visitInvocation(invocation: KGTree.KGInvocation, data: HashMap<String, Binding>) {
+        invocation.invokee.accept(this, data)
+        when (invocation.invokee) {
+            is KGTree.KGBindingReference -> {
+                val target = data[invocation.invokee.binding]
+                if (target == null) {
+                    handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
+                } else {
+                    when (target) {
+                        is Binding.FnBinding -> {
+                            invocation.type = target.signature.returnType
+                            result = target.signature.returnType
+                        }
+                        else ->
+                            handleError(Error("Expression is not invokable", invocation.invokee.position.start))
+                    }
+                }
+            }
+            else ->
+                handleError(Error("Expression is not invokable", invocation.invokee.position.start))
+        }
+    }
+
     // Statement visitors
 
     override fun visitPrint(print: KGTree.KGPrint, data: HashMap<String, Binding>) {
