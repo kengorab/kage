@@ -38,9 +38,9 @@ class CodeGenVisitor(
         cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
 
         val mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
-        mainMethodWriter.visitCode()
         val mainMethodStart = Label()
         val mainMethodEnd = Label()
+        mainMethodWriter.visitCode()
         mainMethodWriter.visitLabel(mainMethodStart)
 
         focusedMethod = FocusedMethod(writer = mainMethodWriter, start = mainMethodStart, end = mainMethodEnd)
@@ -261,12 +261,16 @@ class CodeGenVisitor(
         val binding = data[name]
                 ?: throw IllegalStateException("Binding $name not present in current context")
 
-        when (binding.type) {
-            KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
-            KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
-            KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
-            KGTypeTag.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
-            else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
+        when (binding) {
+            is CodeGenBinding.LocalValBinding ->
+                when (binding.type) {
+                    KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                    KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
+                    KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                    KGTypeTag.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
+                    else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
+                }
+            else -> throw UnsupportedOperationException("Cannot reference binding: $name, $binding")
         }
     }
 
@@ -300,7 +304,12 @@ class CodeGenVisitor(
         return if (data.size == 0) {
             startIndex
         } else {
-            data.size + data[data.lastKey()]!!.size + startIndex
+            val previousLocalVariable = data[data.lastKey()]!!
+            val previousLocalVarSize = when (previousLocalVariable) {
+                is CodeGenBinding.LocalValBinding -> previousLocalVariable.size
+                else -> throw UnsupportedOperationException("Need to come back and fix up local variable resolution...")
+            }
+            data.size + previousLocalVarSize + startIndex
         }
     }
 
@@ -319,7 +328,7 @@ class CodeGenVisitor(
         // and since the main method receives args, the 0th local variable is args. So any additional
         // local variables we declare must account for that. This will change in the future.
         val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 1)
-        data.put(valName, CodeGenBinding(valName, valDeclExpr.type, bindingIndex))
+        data.put(valName, CodeGenBinding.LocalValBinding(valName, valDeclExpr.type, bindingIndex))
 
         methodWriter.visitLocalVariable(valName, typeDesc, null, methodStart, methodEnd, bindingIndex)
         valDeclExpr.accept(this, data)
