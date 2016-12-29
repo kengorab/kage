@@ -6,6 +6,7 @@ import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.typechecker.Signature
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 
@@ -147,6 +148,9 @@ abstract class KGTree : Tree {
     class KGFnDeclaration(val name: String, val expression: KGExpression) : KGStatement(), FnDeclarationTree {
         override fun body() = expression
         override fun name() = name
+
+        // This will be set during Typechecking/Attribution
+        override var signature = Signature.DEFAULT
 
         override fun kind() = Tree.Kind.FnDeclaration
 

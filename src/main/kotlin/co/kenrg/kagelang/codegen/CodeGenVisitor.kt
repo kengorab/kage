@@ -3,6 +3,7 @@ package co.kenrg.kagelang.codegen
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.typechecker.Signature
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -58,8 +59,9 @@ class CodeGenVisitor(
 
         methodWriter.visitLabel(methodEnd)
         methodWriter.visitInsn(RETURN)
-        methodWriter.visitEnd()
         methodWriter.visitMaxs(-1, -1)
+        methodWriter.visitEnd()
+
         cw.visitEnd()
         return cw.toByteArray()
     }
@@ -288,6 +290,10 @@ class CodeGenVisitor(
         else -> throw IllegalStateException("JVM descriptor for type $type not yet implemented")
     }
 
+    private fun jvmTypeDescriptorForSignature(signature: Signature): String {
+        return "()${jvmTypeDescriptorForType(signature.returnType)}"
+    }
+
     override fun visitPrint(print: KGTree.KGPrint, data: LinkedMap<String, CodeGenBinding>) {
         val methodWriter = focusedMethod.writer
 
@@ -307,7 +313,7 @@ class CodeGenVisitor(
             val previousLocalVariable = data[data.lastKey()]!!
             val previousLocalVarSize = when (previousLocalVariable) {
                 is CodeGenBinding.LocalValBinding -> previousLocalVariable.size
-                else -> throw UnsupportedOperationException("Need to come back and fix up local variable resolution...")
+                else -> throw UnsupportedOperationException("Need to come back and fix up local variable resolution...currently cannot declare vals after declaring functions...")
             }
             data.size + previousLocalVarSize + startIndex
         }
@@ -342,6 +348,31 @@ class CodeGenVisitor(
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: LinkedMap<String, CodeGenBinding>) {
-        throw UnsupportedOperationException("not implemented")
+        val prevMethodWriter = focusedMethod
+
+        val signature = jvmTypeDescriptorForSignature(fnDecl.signature)
+        val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, signature, null, null)
+        val fnStart = Label()
+        val fnEnd = Label()
+        fnWriter.visitCode()
+        fnWriter.visitLabel(fnStart)
+
+        focusedMethod = FocusedMethod(writer = fnWriter, start = fnStart, end = fnEnd)
+
+        fnDecl.expression.accept(this, data)
+        when (fnDecl.signature.returnType) {
+            KGTypeTag.INT -> fnWriter.visitInsn(IRETURN)
+            KGTypeTag.DEC -> fnWriter.visitInsn(DRETURN)
+            KGTypeTag.BOOL -> fnWriter.visitInsn(IRETURN)
+            KGTypeTag.STRING -> fnWriter.visitInsn(ARETURN)
+            else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
+        }
+        fnWriter.visitMaxs(-1, -1)
+        fnWriter.visitEnd()
+
+        data.put(fnDecl.name, CodeGenBinding.FunctionBinding(fnDecl.name, fnDecl.signature))
+
+        fnWriter.visitLabel(fnEnd)
+        focusedMethod = prevMethodWriter
     }
 }

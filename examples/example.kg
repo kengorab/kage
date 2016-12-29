@@ -1,5 +1,4 @@
-val s = "Hello world!"
-print(s)
-print("\n")
-print("\n")
-print("\tTabbed in!")
+val a = "a"
+print(a)
+
+fn one() = 1

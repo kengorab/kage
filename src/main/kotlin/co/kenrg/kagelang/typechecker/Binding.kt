@@ -5,7 +5,11 @@ import co.kenrg.kagelang.tree.types.KGTypeTag
 
 //data class Binding(val identifier: String, val expression: KGTree.KGExpression)
 
-data class Signature(val params: List<KGTypeTag> = listOf(), val returnType: KGTypeTag)
+data class Signature(val params: List<KGTypeTag> = listOf(), val returnType: KGTypeTag) {
+    companion object {
+        val DEFAULT = Signature(params = listOf(), returnType = KGTypeTag.UNIT)
+    }
+}
 
 sealed class Binding(val identifier: String, val expression: KGTree.KGExpression) {
     class ValBinding(identifier: String, expression: KGTree.KGExpression) : Binding(identifier, expression)

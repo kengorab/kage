@@ -170,6 +170,7 @@ class TypeCheckerAttributorVisitor(
             handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))
         } else {
             val fnSignature = Signature(params = listOf(), returnType = fnDecl.expression.type)
+            fnDecl.signature = fnSignature
             data.put(fnDecl.name, Binding.FnBinding(fnDecl.name, fnDecl.expression, fnSignature))
         }
 
