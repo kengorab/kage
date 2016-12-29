@@ -24,21 +24,26 @@ import org.apache.commons.collections4.map.LinkedMap
 class CodeGenVisitor(
         className: String = "MyClass"
 ) : KGTree.Visitor<LinkedMap<String, CodeGenBinding>> {
+    data class FocusedMethod(val writer: MethodVisitor, val start: Label, val end: Label)
 
-    val cw: ClassWriter
-    val mainMethodWriter: MethodVisitor
-    val mainMethodStart: Label
-    val mainMethodEnd: Label
+    val cw: ClassWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
+
+    // This reference will be updated to reflect the current method being written. By default,
+    // it is the main method of the class, as seen in the `init` block below. When defining
+    // top-level functions, this will be updated to hold the writer and other info for that
+    // function. It is imperative that this be set back to the main method's context afterwards.
+    var focusedMethod: FocusedMethod
 
     init {
-        cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
         cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
 
-        mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
+        val mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
         mainMethodWriter.visitCode()
-        mainMethodStart = Label()
-        mainMethodEnd = Label()
+        val mainMethodStart = Label()
+        val mainMethodEnd = Label()
         mainMethodWriter.visitLabel(mainMethodStart)
+
+        focusedMethod = FocusedMethod(writer = mainMethodWriter, start = mainMethodStart, end = mainMethodEnd)
     }
 
     /**
@@ -49,10 +54,12 @@ class CodeGenVisitor(
      * @see KGTree.Visitor
      */
     fun resultBytes(): ByteArray? {
-        mainMethodWriter.visitLabel(mainMethodEnd)
-        mainMethodWriter.visitInsn(RETURN)
-        mainMethodWriter.visitEnd()
-        mainMethodWriter.visitMaxs(-1, -1)
+        val (methodWriter, methodStart, methodEnd) = focusedMethod
+
+        methodWriter.visitLabel(methodEnd)
+        methodWriter.visitInsn(RETURN)
+        methodWriter.visitEnd()
+        methodWriter.visitMaxs(-1, -1)
         cw.visitEnd()
         return cw.toByteArray()
     }
@@ -64,16 +71,20 @@ class CodeGenVisitor(
      *****************************/
 
     override fun visitLiteral(literal: KGTree.KGLiteral, data: LinkedMap<String, CodeGenBinding>) {
+        val methodWriter = focusedMethod.writer
+
         when (literal.typeTag) {
-            KGTypeTag.INT -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Integer)
-            KGTypeTag.DEC -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Double)
-            KGTypeTag.BOOL -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
-            KGTypeTag.STRING -> mainMethodWriter.visitLdcInsn(literal.value as java.lang.String)
+            KGTypeTag.INT -> methodWriter.visitLdcInsn(literal.value as java.lang.Integer)
+            KGTypeTag.DEC -> methodWriter.visitLdcInsn(literal.value as java.lang.Double)
+            KGTypeTag.BOOL -> methodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
+            KGTypeTag.STRING -> methodWriter.visitLdcInsn(literal.value as java.lang.String)
             else -> throw UnsupportedOperationException("Literal $literal is not a literal")
         }
     }
 
     override fun visitUnary(unary: KGTree.KGUnary, data: LinkedMap<String, CodeGenBinding>) {
+        val methodWriter = focusedMethod.writer
+
         if (unary.type == KGTypeTag.UNSET) {
             throw IllegalStateException("Cannot run codegen on Unary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
         }
@@ -82,8 +93,8 @@ class CodeGenVisitor(
             is Tree.Kind.ArithmeticNegation -> {
                 unary.expr.accept(this, data)
                 when (unary.expr.type) {
-                    KGTypeTag.INT -> mainMethodWriter.visitInsn(INEG)
-                    KGTypeTag.DEC -> mainMethodWriter.visitInsn(DNEG)
+                    KGTypeTag.INT -> methodWriter.visitInsn(INEG)
+                    KGTypeTag.DEC -> methodWriter.visitInsn(DNEG)
                     else -> throw IllegalStateException("Cannot run codegen on arithmetic negation which is not numeric")
                 }
             }
@@ -92,145 +103,147 @@ class CodeGenVisitor(
                 val negationFalseLbl = Label()
 
                 unary.expr.accept(this, data)
-                mainMethodWriter.visitJumpInsn(IFNE, negationFalseLbl)
-                mainMethodWriter.visitInsn(ICONST_1)
-                mainMethodWriter.visitJumpInsn(GOTO, negationEndLbl)
+                methodWriter.visitJumpInsn(IFNE, negationFalseLbl)
+                methodWriter.visitInsn(ICONST_1)
+                methodWriter.visitJumpInsn(GOTO, negationEndLbl)
 
-                mainMethodWriter.visitLabel(negationFalseLbl)
-                mainMethodWriter.visitInsn(ICONST_0)
+                methodWriter.visitLabel(negationFalseLbl)
+                methodWriter.visitInsn(ICONST_0)
 
-                mainMethodWriter.visitLabel(negationEndLbl)
+                methodWriter.visitLabel(negationEndLbl)
             }
         }
     }
 
-    fun pushCondAnd(left: KGTree, right: KGTree, mainMethodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
+    fun pushCondAnd(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
         val condEndLbl = Label()
         val condFalseLbl = Label()
         left.accept(this, data)
-        mainMethodWriter.visitJumpInsn(IFEQ, condFalseLbl)
+        methodWriter.visitJumpInsn(IFEQ, condFalseLbl)
         right.accept(this, data)
-        mainMethodWriter.visitJumpInsn(IFEQ, condFalseLbl)
-        mainMethodWriter.visitInsn(ICONST_1)
-        mainMethodWriter.visitJumpInsn(GOTO, condEndLbl)
+        methodWriter.visitJumpInsn(IFEQ, condFalseLbl)
+        methodWriter.visitInsn(ICONST_1)
+        methodWriter.visitJumpInsn(GOTO, condEndLbl)
 
-        mainMethodWriter.visitLabel(condFalseLbl)
-        mainMethodWriter.visitInsn(ICONST_0)
+        methodWriter.visitLabel(condFalseLbl)
+        methodWriter.visitInsn(ICONST_0)
 
-        mainMethodWriter.visitLabel(condEndLbl)
+        methodWriter.visitLabel(condEndLbl)
     }
 
-    fun pushCondOr(left: KGTree, right: KGTree, mainMethodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
+    fun pushCondOr(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
         val condEndLbl = Label()
         val condTrueLbl = Label()
         val condFalseLbl = Label()
         left.accept(this, data)
-        mainMethodWriter.visitJumpInsn(IFNE, condTrueLbl)
+        methodWriter.visitJumpInsn(IFNE, condTrueLbl)
         right.accept(this, data)
-        mainMethodWriter.visitJumpInsn(IFEQ, condFalseLbl)
+        methodWriter.visitJumpInsn(IFEQ, condFalseLbl)
 
-        mainMethodWriter.visitLabel(condTrueLbl)
-        mainMethodWriter.visitInsn(ICONST_1)
-        mainMethodWriter.visitJumpInsn(GOTO, condEndLbl)
+        methodWriter.visitLabel(condTrueLbl)
+        methodWriter.visitInsn(ICONST_1)
+        methodWriter.visitJumpInsn(GOTO, condEndLbl)
 
-        mainMethodWriter.visitLabel(condFalseLbl)
-        mainMethodWriter.visitInsn(ICONST_0)
+        methodWriter.visitLabel(condFalseLbl)
+        methodWriter.visitInsn(ICONST_0)
 
-        mainMethodWriter.visitLabel(condEndLbl)
+        methodWriter.visitLabel(condEndLbl)
     }
 
-    fun pushArithmeticalOperands(binary: KGTree.KGBinary, mainMethodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
+    fun pushArithmeticalOperands(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
         binary.left.accept(this, data)
         if (binary.left.type == KGTypeTag.INT && binary.type == KGTypeTag.DEC) {
-            mainMethodWriter.visitInsn(I2D)
+            methodWriter.visitInsn(I2D)
         }
 
         binary.right.accept(this, data)
         if (binary.right.type == KGTypeTag.INT && binary.type == KGTypeTag.DEC) {
-            mainMethodWriter.visitInsn(I2D)
+            methodWriter.visitInsn(I2D)
         }
     }
 
-    fun appendStrings(tree: KGTree, data: LinkedMap<String, CodeGenBinding>) {
+    fun appendStrings(tree: KGTree, methodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
         // Recurse down through the tree and allow it to be handled by this visitor, shortcutting if the tree is a
         // String concatenation, because we don't want to create duplicate StringBuilders.
         if (tree is KGTree.KGBinary && tree.kind() is Tree.Kind.Concatenation) {
-            appendStrings(tree.left, data)
-            appendStrings(tree.right, data)
+            appendStrings(tree.left, methodWriter, data)
+            appendStrings(tree.right, methodWriter, data)
             return
         }
 
         tree.accept(this, data)
         val treeType = jvmTypeDescriptorForType(tree.type)
-        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($treeType)Ljava/lang/StringBuilder;", false)
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($treeType)Ljava/lang/StringBuilder;", false)
     }
 
-    fun pushStringConcatenation(binary: KGTree.KGBinary, mainMethodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
+    fun pushStringConcatenation(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: LinkedMap<String, CodeGenBinding>) {
         // Create and initialize a StringBuilder, leaving a reference on TOS.
-        mainMethodWriter.visitTypeInsn(NEW, "java/lang/StringBuilder")
-        mainMethodWriter.visitInsn(DUP)
-        mainMethodWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false)
+        methodWriter.visitTypeInsn(NEW, "java/lang/StringBuilder")
+        methodWriter.visitInsn(DUP)
+        methodWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/StringBuilder", "<init>", "()V", false)
 
         // Traverse the tree, appending to the StringBuilder.
-        appendStrings(binary, data)
+        appendStrings(binary, methodWriter, data)
 
         // After the concatenation traversal is complete, build the String and place on TOS.
-        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
     }
 
     override fun visitBinary(binary: KGTree.KGBinary, data: LinkedMap<String, CodeGenBinding>) {
+        val methodWriter = focusedMethod.writer
+
         if (binary.type == KGTypeTag.UNSET) {
             throw IllegalStateException("Cannot run codegen on Binary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
         }
 
         when (binary.kind()) {
             is Tree.Kind.Plus -> {
-                pushArithmeticalOperands(binary, mainMethodWriter, data)
+                pushArithmeticalOperands(binary, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> mainMethodWriter.visitInsn(IADD)
-                    KGTypeTag.DEC -> mainMethodWriter.visitInsn(DADD)
+                    KGTypeTag.INT -> methodWriter.visitInsn(IADD)
+                    KGTypeTag.DEC -> methodWriter.visitInsn(DADD)
                     else -> throw IllegalStateException("Binary's kind is Plus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Minus -> {
-                pushArithmeticalOperands(binary, mainMethodWriter, data)
+                pushArithmeticalOperands(binary, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> mainMethodWriter.visitInsn(ISUB)
-                    KGTypeTag.DEC -> mainMethodWriter.visitInsn(DSUB)
+                    KGTypeTag.INT -> methodWriter.visitInsn(ISUB)
+                    KGTypeTag.DEC -> methodWriter.visitInsn(DSUB)
                     else -> throw IllegalStateException("Binary's kind is Minus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Multiply -> {
-                pushArithmeticalOperands(binary, mainMethodWriter, data)
+                pushArithmeticalOperands(binary, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> mainMethodWriter.visitInsn(IMUL)
-                    KGTypeTag.DEC -> mainMethodWriter.visitInsn(DMUL)
+                    KGTypeTag.INT -> methodWriter.visitInsn(IMUL)
+                    KGTypeTag.DEC -> methodWriter.visitInsn(DMUL)
                     else -> throw IllegalStateException("Binary's kind is Multiply, but type is non-numeric")
                 }
             }
             is Tree.Kind.Divide -> {
-                pushArithmeticalOperands(binary, mainMethodWriter, data)
+                pushArithmeticalOperands(binary, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> mainMethodWriter.visitInsn(IDIV)
-                    KGTypeTag.DEC -> mainMethodWriter.visitInsn(DDIV)
+                    KGTypeTag.INT -> methodWriter.visitInsn(IDIV)
+                    KGTypeTag.DEC -> methodWriter.visitInsn(DDIV)
                     else -> throw IllegalStateException("Binary's kind is Divide, but type is non-numeric")
                 }
             }
             is Tree.Kind.ConditionalAnd -> {
                 when (binary.type) {
-                    KGTypeTag.BOOL -> pushCondAnd(binary.left, binary.right, mainMethodWriter, data)
+                    KGTypeTag.BOOL -> pushCondAnd(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalAnd, but type is non-boolean")
                 }
             }
             is Tree.Kind.ConditionalOr -> {
                 when (binary.type) {
-                    KGTypeTag.BOOL -> pushCondOr(binary.left, binary.right, mainMethodWriter, data)
+                    KGTypeTag.BOOL -> pushCondOr(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalOr, but type is non-boolean")
                 }
             }
             is Tree.Kind.Concatenation -> {
                 when (binary.type) {
-                    KGTypeTag.STRING -> pushStringConcatenation(binary, mainMethodWriter, data)
+                    KGTypeTag.STRING -> pushStringConcatenation(binary, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is Concatenation, but type is non-String")
                 }
             }
@@ -242,15 +255,17 @@ class CodeGenVisitor(
     }
 
     override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: LinkedMap<String, CodeGenBinding>) {
+        val methodWriter = focusedMethod.writer
+
         val name = bindingReference.binding
         val binding = data[name]
                 ?: throw IllegalStateException("Binding $name not present in current context")
 
         when (binding.type) {
-            KGTypeTag.INT -> mainMethodWriter.visitVarInsn(ILOAD, binding.index)
-            KGTypeTag.DEC -> mainMethodWriter.visitVarInsn(DLOAD, binding.index)
-            KGTypeTag.BOOL -> mainMethodWriter.visitVarInsn(ILOAD, binding.index)
-            KGTypeTag.STRING -> mainMethodWriter.visitVarInsn(ALOAD, binding.index)
+            KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
+            KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
+            KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
+            KGTypeTag.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
             else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
         }
     }
@@ -270,13 +285,15 @@ class CodeGenVisitor(
     }
 
     override fun visitPrint(print: KGTree.KGPrint, data: LinkedMap<String, CodeGenBinding>) {
-        mainMethodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
+        val methodWriter = focusedMethod.writer
+
+        methodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
         print.expr.accept(this, data)
 
         val type = jvmTypeDescriptorForType(print.expr.type)
         val printlnSignature = "($type)V"
 
-        mainMethodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", printlnSignature, false)
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", printlnSignature, false)
     }
 
     private fun getIndexForNextLocalVariable(data: LinkedMap<String, CodeGenBinding>, startIndex: Int = 0): Int {
@@ -288,6 +305,8 @@ class CodeGenVisitor(
     }
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: LinkedMap<String, CodeGenBinding>) {
+        val (methodWriter, methodStart, methodEnd) = focusedMethod
+
         val valName = valDecl.identifier
         if (data.containsKey(valName)) {
             throw IllegalStateException("Cannot declare duplicate binding $valName")
@@ -299,16 +318,16 @@ class CodeGenVisitor(
         // Everything we're doing RIGHT NOW is wrapped in the main method of the generated class,
         // and since the main method receives args, the 0th local variable is args. So any additional
         // local variables we declare must account for that. This will change in the future.
-        val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 1) //data.size + 1
+        val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 1)
         data.put(valName, CodeGenBinding(valName, valDeclExpr.type, bindingIndex))
 
-        mainMethodWriter.visitLocalVariable(valName, typeDesc, null, mainMethodStart, mainMethodEnd, bindingIndex)
+        methodWriter.visitLocalVariable(valName, typeDesc, null, methodStart, methodEnd, bindingIndex)
         valDeclExpr.accept(this, data)
         when (valDeclExpr.type) {
-            KGTypeTag.INT -> mainMethodWriter.visitVarInsn(ISTORE, bindingIndex)
-            KGTypeTag.DEC -> mainMethodWriter.visitVarInsn(DSTORE, bindingIndex)
-            KGTypeTag.BOOL -> mainMethodWriter.visitVarInsn(ISTORE, bindingIndex)
-            KGTypeTag.STRING -> mainMethodWriter.visitVarInsn(ASTORE, bindingIndex)
+            KGTypeTag.INT -> methodWriter.visitVarInsn(ISTORE, bindingIndex)
+            KGTypeTag.DEC -> methodWriter.visitVarInsn(DSTORE, bindingIndex)
+            KGTypeTag.BOOL -> methodWriter.visitVarInsn(ISTORE, bindingIndex)
+            KGTypeTag.STRING -> methodWriter.visitVarInsn(ASTORE, bindingIndex)
             else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
         }
     }
