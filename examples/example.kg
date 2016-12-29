@@ -1,4 +1,4 @@
-val a = "a"
-print(a)
+fn t() = true
+fn f() = false
 
-fn one() = 1
+print(t() && f())

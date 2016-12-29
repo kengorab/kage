@@ -82,7 +82,9 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
 
                 Case("val a = true, val b = false", trueLiteral(), falseLiteral(), "&&", "false"),
                 Case("val a = true, val b = false", trueLiteral(), falseLiteral(), "||", "true"),
-                Case("val a = true, val b = false || a", trueLiteral(), KGBinary(falseLiteral(), "||", KGBindingReference("a")), "||", "true")
+                Case("val a = true, val b = false || a", trueLiteral(), KGBinary(falseLiteral(), "||", KGBindingReference("a")), "||", "true"),
+
+                Case("val a = \"Hello \", val b = \"World!\"", stringLiteral("Hello "), stringLiteral("World!"), "++", "Hello World!")
         ).map { testCase ->
             val (repr, exprA, exprB, op, expectedOutput) = testCase
 

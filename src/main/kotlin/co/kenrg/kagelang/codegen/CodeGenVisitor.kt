@@ -23,7 +23,7 @@ import org.apache.commons.collections4.map.LinkedMap
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class CodeGenVisitor(
-        className: String = "MyClass"
+        val className: String = "MyClass"
 ) : KGTree.Visitor<LinkedMap<String, CodeGenBinding>> {
     data class FocusedMethod(val writer: MethodVisitor, val start: Label, val end: Label)
 
@@ -277,7 +277,25 @@ class CodeGenVisitor(
     }
 
     override fun visitInvocation(invocation: KGTree.KGInvocation, data: LinkedMap<String, CodeGenBinding>) {
-        throw UnsupportedOperationException("not implemented")
+        when (invocation.invokee) {
+            is KGTree.KGBindingReference -> {
+                val target = data[invocation.invokee.binding]
+                if (target == null) {
+                    throw IllegalStateException("Binding with name ${invocation.invokee.binding} not visible in current context")
+                } else {
+                    when (target) {
+                        is CodeGenBinding.FunctionBinding -> {
+                            val signature = jvmTypeDescriptorForSignature(target.signature)
+                            focusedMethod.writer.visitMethodInsn(INVOKESTATIC, className, target.name, signature, false)
+                        }
+                        else ->
+                            throw IllegalStateException("Expression is not invokable")
+                    }
+                }
+            }
+            else ->
+                throw IllegalStateException("Expression is not invokable")
+        }
     }
 
     /*****************************

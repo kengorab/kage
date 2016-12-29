@@ -147,6 +147,16 @@ class TreeMakerTests {
             val expected = kageFileFromStatements(KGPrint(KGInvocation(KGBindingReference("returnOne"))))
             assertEquals(expected, kageFile)
         }
+
+        @Test fun testParseFunctionInvocation_invocationsShouldBeTreatedAsExpressions() {
+            val kageFile = kageFileFromCode("print(one() + one())")
+            val expected = kageFileFromStatements(KGPrint(KGBinary(
+                    KGInvocation(KGBindingReference("one")),
+                    "+",
+                    KGInvocation(KGBindingReference(("one")))))
+            )
+            assertEquals(expected, kageFile)
+        }
     }
 
     @Nested
