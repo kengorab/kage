@@ -12,16 +12,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
-/*
-    Unless specifically (in the title of the test) testing the KGPrint statement, the usage of printing
-    in these tests is due to the fact that it is the simplest top-level statement available. In order to
-    test the rest of the expressions get parsed and mapped to trees correctly, we need to wrap it at the
-    top level in a print. This should be completely transparent in the tests though.
- */
 class TreeMakerTests {
 
     @Nested
-    inner class PrintStatement() {
+    inner class PrintStatement {
         @TestFactory
         fun testParseAndTransformPrintStatement_literals(): List<DynamicTest> {
             data class Case(val repr: String, val statement: KGTree.KGStatement)
@@ -37,7 +31,7 @@ class TreeMakerTests {
 
                 dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                     val kageFile = kageFileFromCode(repr)
-                    val expected = kageFileFromStatements(expr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
@@ -45,17 +39,17 @@ class TreeMakerTests {
     }
 
     @Nested
-    inner class TopLevelValDeclarationStatement() {
+    inner class TopLevelValDeclarationStatement {
 
         @Test fun testParseValDeclarationWithTypeAnnotation() {
             val kageFile = kageFileFromCode("val a: Int = 1")
-            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), KGTypeTag.INT))
+            val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), KGTypeTag.INT))
             assertEquals(expected, kageFile)
         }
 
         @Test fun testParseValDeclarationWithoutTypeAnnotation() {
             val kageFile = kageFileFromCode("val a = 1")
-            val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), null))
+            val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), null))
             assertEquals(expected, kageFile)
         }
 
@@ -74,7 +68,7 @@ class TreeMakerTests {
 
                 dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                     val kageFile = kageFileFromCode(repr)
-                    val expected = kageFileFromStatements(expr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
@@ -98,7 +92,7 @@ class TreeMakerTests {
 
                 dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                     val kageFile = kageFileFromCode(repr)
-                    val expected = kageFileFromStatements(expr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
@@ -116,16 +110,15 @@ class TreeMakerTests {
 
                 dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                     val kageFile = kageFileFromCode(repr)
-                    val expected = kageFileFromStatements(expr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
         }
     }
 
-
     @Nested
-    inner class BinaryExpressions() {
+    inner class BinaryExpressions {
         @TestFactory
         fun testParseAndTransformSimpleArithmeticBinaryExpressions(): List<DynamicTest> {
             data class Case(val repr: String, val expr: KGTree.KGExpression)
@@ -143,8 +136,8 @@ class TreeMakerTests {
                 val (repr, expr) = testCase
 
                 dynamicTest("The expression `$repr` should be correctly mapped to its tree structure") {
-                    val kageFile = kageFileFromCode("print($repr)")
-                    val expected = kageFileFromStatements(KGPrint(expr))
+                    val kageFile = kageFileFromCode(repr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
@@ -162,8 +155,8 @@ class TreeMakerTests {
                 val (repr, expr) = testCase
 
                 dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
-                    val kageFile = kageFileFromCode("print($repr)")
-                    val expected = kageFileFromStatements(KGPrint(expr))
+                    val kageFile = kageFileFromCode(repr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
@@ -182,31 +175,27 @@ class TreeMakerTests {
                 val (repr, expr) = testCase
 
                 dynamicTest("The expression `$repr` should be correctly mapped to its tree structure") {
-                    val kageFile = kageFileFromCode("print($repr)")
-                    val expected = kageFileFromStatements(KGPrint(expr))
+                    val kageFile = kageFileFromCode(repr)
+                    val expected = kageFileFromLines(expr)
                     assertEquals(expected, kageFile)
                 }
             }
         }
 
         @Test fun testStringConcatenation() {
-            val kageFile = kageFileFromCode("val a = \"hello \" ++ \"world\"")
-            val expected = kageFileFromStatements(KGValDeclaration("a", KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))))
+            val kageFile = kageFileFromCode("\"hello \" ++ \"world\"")
+            val expected = kageFileFromLines(KGBinary(stringLiteral("hello "), "++", stringLiteral("world")))
             assertEquals(expected, kageFile)
         }
 
         @Test fun testMultipleStringConcatenations() {
-            val kageFile = kageFileFromCode("val a = \"hello\" ++ \" \" ++ \"world\"")
-            val expected = kageFileFromStatements(
-                    KGValDeclaration(
-                            "a",
-                            KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
-            )
+            val kageFile = kageFileFromCode("\"hello\" ++ \" \" ++ \"world\"")
+            val expected = kageFileFromLines(KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
             assertEquals(expected, kageFile)
         }
     }
 
-    private fun kageFileFromStatements(vararg statements: KGTree.KGStatement, bindings: Map<String, KGTypeTag> = mapOf()) =
+    private fun kageFileFromLines(vararg statements: KGTree, bindings: Map<String, KGTypeTag> = mapOf()) =
             KGFile(statements.toList(), bindings)
 
     private fun kageFileFromCode(code: String, considerPosition: Boolean = false): KGFile {

@@ -3,11 +3,17 @@ parser grammar KageParser;
 options { tokenVocab=KageLexer; }
 
 kageFile
-    : lines=line+ ;
+    : lines=line+
+    ;
 
 line
-    : statement (NEWLINE+ | EOF) ;
+    : statementOrExpression (NEWLINE+ | EOF)
+    ;
 
+statementOrExpression
+    : statement
+    | expression
+    ;
 
 // Statements
 

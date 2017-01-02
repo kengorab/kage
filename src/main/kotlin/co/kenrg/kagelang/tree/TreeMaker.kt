@@ -10,7 +10,14 @@ class TreeMaker(val considerPosition: Boolean = true) {
 
     fun toKageFile(file: KageParser.KageFileContext): KGFile {
         val statements = file.line().map {
-            toTree(it.statement())
+            if (it.statementOrExpression().expression() != null && it.statementOrExpression().statement() != null)
+                throw IllegalStateException("Line is both statement and expression")
+            else if (it.statementOrExpression().expression() != null)
+                toTree(it.statementOrExpression().expression())
+            else if (it.statementOrExpression().statement() != null)
+                toTree(it.statementOrExpression().statement())
+            else
+                throw IllegalStateException("Line is neither statement nor expression")
         }
 
         return KGFile(statements, bindings = mapOf())

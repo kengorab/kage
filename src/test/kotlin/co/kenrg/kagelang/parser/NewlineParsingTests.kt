@@ -12,13 +12,14 @@ class NewlineParsingTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[10]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -33,24 +34,26 @@ class NewlineParsingTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[10]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |    Leaf[<NEWLINE>]
                   |    Leaf[<NEWLINE>]
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[b]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[5]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[b]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[5]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
