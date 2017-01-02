@@ -19,7 +19,6 @@ abstract class KGTree : Tree {
         fun visitParenthesized(parenthesized: KGParenthesized, data: D)
         fun visitBindingReference(bindingReference: KGBindingReference, data: D)
         fun visitInvocation(invocation: KGInvocation, data: D)
-        fun visitBlock(blockTree: BlockTree, data: D)
 
         // Statement visitors
         fun visitPrint(print: KGPrint, data: D)
@@ -117,14 +116,6 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.Invocation
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitInvocation(this, data)
-    }
-
-    class KGBlock(val lines: List<KGTree>) : KGExpression(), BlockTree {
-        override fun lines() = lines
-
-        override fun kind() = Tree.Kind.Block
-
-        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitBlock(this, data)
     }
 
     /*

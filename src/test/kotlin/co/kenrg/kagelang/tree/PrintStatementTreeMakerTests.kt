@@ -23,7 +23,7 @@ class PrintStatementTreeMakerTests {
 
             dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                 val kageFile = kageFileFromCode(repr)
-                val expected = kageFileFromStatements(expr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }

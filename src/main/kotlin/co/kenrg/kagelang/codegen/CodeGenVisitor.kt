@@ -1,7 +1,6 @@
 package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.tree.KGTree
-import co.kenrg.kagelang.tree.iface.BlockTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import co.kenrg.kagelang.typechecker.Signature
@@ -297,10 +296,6 @@ class CodeGenVisitor(
             else ->
                 throw IllegalStateException("Expression is not invokable")
         }
-    }
-
-    override fun visitBlock(blockTree: BlockTree, data: LinkedMap<String, CodeGenBinding>) {
-        throw UnsupportedOperationException("not implemented")
     }
 
     /*****************************

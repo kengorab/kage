@@ -13,13 +13,13 @@ class TopLevelValDeclarationStatementTreeMakerTests {
 
     @Test fun testParseValDeclarationWithTypeAnnotation() {
         val kageFile = kageFileFromCode("val a: Int = 1")
-        val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), KGTypeTag.INT))
+        val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), KGTypeTag.INT))
         assertEquals(expected, kageFile)
     }
 
     @Test fun testParseValDeclarationWithoutTypeAnnotation() {
         val kageFile = kageFileFromCode("val a = 1")
-        val expected = kageFileFromStatements(KGValDeclaration("a", intLiteral(1), null))
+        val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), null))
         assertEquals(expected, kageFile)
     }
 
@@ -38,7 +38,7 @@ class TopLevelValDeclarationStatementTreeMakerTests {
 
             dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                 val kageFile = kageFileFromCode(repr)
-                val expected = kageFileFromStatements(expr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }
@@ -62,7 +62,7 @@ class TopLevelValDeclarationStatementTreeMakerTests {
 
             dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                 val kageFile = kageFileFromCode(repr)
-                val expected = kageFileFromStatements(expr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }
@@ -80,7 +80,7 @@ class TopLevelValDeclarationStatementTreeMakerTests {
 
             dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
                 val kageFile = kageFileFromCode(repr)
-                val expected = kageFileFromStatements(expr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }

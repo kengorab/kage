@@ -27,8 +27,8 @@ class BinaryExpressionTreeMakerTests {
             val (repr, expr) = testCase
 
             dynamicTest("The expression `$repr` should be correctly mapped to its tree structure") {
-                val kageFile = kageFileFromCode("print($repr)")
-                val expected = kageFileFromStatements(KGPrint(expr))
+                val kageFile = kageFileFromCode(repr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }
@@ -46,8 +46,8 @@ class BinaryExpressionTreeMakerTests {
             val (repr, expr) = testCase
 
             dynamicTest("The statement `$repr` should be correctly mapped to its tree structure") {
-                val kageFile = kageFileFromCode("print($repr)")
-                val expected = kageFileFromStatements(KGPrint(expr))
+                val kageFile = kageFileFromCode(repr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }
@@ -66,26 +66,22 @@ class BinaryExpressionTreeMakerTests {
             val (repr, expr) = testCase
 
             dynamicTest("The expression `$repr` should be correctly mapped to its tree structure") {
-                val kageFile = kageFileFromCode("print($repr)")
-                val expected = kageFileFromStatements(KGPrint(expr))
+                val kageFile = kageFileFromCode(repr)
+                val expected = kageFileFromLines(expr)
                 assertEquals(expected, kageFile)
             }
         }
     }
 
     @Test fun testStringConcatenation() {
-        val kageFile = kageFileFromCode("val a = \"hello \" ++ \"world\"")
-        val expected = kageFileFromStatements(KGValDeclaration("a", KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))))
+        val kageFile = kageFileFromCode("\"hello \" ++ \"world\"")
+        val expected = kageFileFromLines(KGBinary(stringLiteral("hello "), "++", stringLiteral("world")))
         assertEquals(expected, kageFile)
     }
 
     @Test fun testMultipleStringConcatenations() {
-        val kageFile = kageFileFromCode("val a = \"hello\" ++ \" \" ++ \"world\"")
-        val expected = kageFileFromStatements(
-                KGValDeclaration(
-                        "a",
-                        KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
-        )
+        val kageFile = kageFileFromCode("\"hello\" ++ \" \" ++ \"world\"")
+        val expected = kageFileFromLines(KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
         assertEquals(expected, kageFile)
     }
 }

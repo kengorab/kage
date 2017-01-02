@@ -10,7 +10,14 @@ class TreeMaker(val considerPosition: Boolean = true) {
 
     fun toKageFile(file: KageParser.KageFileContext): KGFile {
         val statements = file.line().map {
-            toTree(it.statement())
+            if (it.statementOrExpression().expression() != null && it.statementOrExpression().statement() != null)
+                throw IllegalStateException("Line is both statement and expression")
+            else if (it.statementOrExpression().expression() != null)
+                toTree(it.statementOrExpression().expression())
+            else if (it.statementOrExpression().statement() != null)
+                toTree(it.statementOrExpression().statement())
+            else
+                throw IllegalStateException("Line is neither statement nor expression")
         }
 
         return KGFile(statements, bindings = mapOf())
@@ -78,40 +85,6 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGBindingReference(expression.Identifier().text)
             is KageParser.InvocationContext ->
                 KGTree.KGInvocation(toTree(expression.invokee))
-            is KageParser.BlockExpressionContext -> {
-//                fun blockLineToTree(line: KageParser.StatementOrExpressionContext): Tree {
-//                }
-//
-//                fun blockLinesToTreeList(lines: KageParser.StatementsOrExpressionsContext): List<Tree> {
-//                    if (lines.statementOrExpression() != null && lines.)
-//                }
-//                KGTree.KGBlock(getBlockContents(expression.block().lines))
-                val contents = expression.block().lines?.statementOrExpression()?.map { line ->
-                    if (line.expression() != null && line.statement() != null)
-                        throw IllegalStateException("Line is both a statement and an expression")
-                    else if (line.expression() != null)
-                        toTree(line.expression())
-                    else if (line.statement() != null)
-                        toTree(line.statement())
-                    else
-                        throw IllegalStateException("Line is neither statement nor expression")
-                }
-                KGTree.KGBlock(contents ?: listOf())
-            }
-
-
-//                KGTree.KGBlock(expression.block().lines.jj .statementOrExpressionLine().map {
-//                    val statementOrExpr = it.statementOrExpression()
-//                    if (statementOrExpr.expression() != null && statementOrExpr.statement() != null)
-//                        throw UnsupportedOperationException("Block contains line which is both expression and statement")
-//
-//                    if (statementOrExpr.expression() != null)
-//                        toTree(statementOrExpr.expression())
-//                    else if (statementOrExpr.statement() != null)
-//                        toTree(statementOrExpr.statement())
-//                    else
-//                        throw UnsupportedOperationException("Block contains line which is neither expression nor statement")
-//                })
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 
@@ -120,30 +93,6 @@ class TreeMaker(val considerPosition: Boolean = true) {
         else
             exprTree
     }
-
-//    private fun getBlockContents(blockContents: KageParser.StatementsOrExpressionsContext, items: List<Tree> = listOf()): List<Tree> {
-//        if (blockContents.statementOrExpression() != null
-//                && blockContents.statementsOrExpressions() != null)
-//            throw IllegalStateException("Line is both single statement/expr AND recursively-multiple statements/exprs")
-//
-//        return if (blockContents.statementOrExpression() != null) {
-//            if (blockContents.statementOrExpression().expression() != null
-//                    && blockContents.statementOrExpression().statement() != null)
-//                throw IllegalStateException("Line is both statement and expression")
-//
-//            if (blockContents.statementOrExpression().expression() != null)
-//                listOf(toTree(blockContents.statementOrExpression().expression()))
-//            else if (blockContents.statementOrExpression().statement() != null)
-//                listOf(toTree(blockContents.statementOrExpression().statement()))
-//            else
-//                throw IllegalStateException("Line is neither statement nor expression")
-//        } else if (blockContents.statementsOrExpressions() != null) {
-//            items + getBlockContents(blockContents.statementsOrExpressions())
-//        } else {
-//            throw IllegalStateException("Line is neither single statement/expr nor recursively-multiple statements/exprs")
-//        }
-//
-//    }
 
     private fun getPositionFromContext(context: ParserRuleContext): Position {
         val start = context.getStart()

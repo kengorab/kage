@@ -11,13 +11,14 @@ class ValDeclarationStatementTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[1]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[1]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -29,13 +30,14 @@ class ValDeclarationStatementTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        DecLiteral
-                  |          Leaf[1.114]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          DecLiteral
+                  |            Leaf[1.114]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -47,13 +49,14 @@ class ValDeclarationStatementTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        BoolLiteral
-                  |          Leaf[true]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          BoolLiteral
+                  |            Leaf[true]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -65,17 +68,18 @@ class ValDeclarationStatementTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        BinaryOperation
-                  |          IntLiteral
-                  |            Leaf[1]
-                  |          Leaf[+]
-                  |          IntLiteral
-                  |            Leaf[2]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          BinaryOperation
+                  |            IntLiteral
+                  |              Leaf[1]
+                  |            Leaf[+]
+                  |            IntLiteral
+                  |              Leaf[2]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)
@@ -88,22 +92,24 @@ class ValDeclarationStatementTests {
         assertEquals(
                 """KageFile
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[a]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[10]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[a]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[10]
                   |    Leaf[<NEWLINE>]
                   |  Line
-                  |    ValDeclarationStatement
-                  |      ValDeclaration
-                  |        Leaf[val]
-                  |        Leaf[b]
-                  |        Leaf[=]
-                  |        IntLiteral
-                  |          Leaf[5]
+                  |    StatementOrExpression
+                  |      ValDeclarationStatement
+                  |        ValDeclaration
+                  |          Leaf[val]
+                  |          Leaf[b]
+                  |          Leaf[=]
+                  |          IntLiteral
+                  |            Leaf[5]
                   |    Leaf[<EOF>]
                   |""".trimMargin("|"),
                 parseTreeStr)

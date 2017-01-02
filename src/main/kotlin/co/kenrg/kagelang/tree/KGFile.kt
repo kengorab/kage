@@ -4,7 +4,7 @@ import co.kenrg.kagelang.model.Position
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 
-class KGFile(var statements: List<KGTree.KGStatement>, var bindings: Map<String, KGTypeTag>) : KGTree() {
+class KGFile(var statements: List<KGTree>, var bindings: Map<String, KGTypeTag>) : KGTree() {
     override fun <D> accept(visitor: Visitor<D>, data: D) {
         statements.forEach { it.accept(visitor, data) }
     }

@@ -7,20 +7,12 @@ kageFile
     ;
 
 line
-    : statement (NEWLINE+ | EOF)
+    : statementOrExpression (NEWLINE+ | EOF)
     ;
 
 statementOrExpression
     : statement
     | expression
-    ;
-
-statementsOrExpressions
-    : statementOrExpression (NEWLINE+ statementOrExpression)*
-    ;
-
-block
-    : '{' NEWLINE* lines=statementsOrExpressions? NEWLINE* '}'
     ;
 
 // Statements
@@ -48,8 +40,6 @@ print
 
 expression
     : '(' expression ')'                                             #parenExpression
-
-    | block                                                          #blockExpression
 
     | invokee=expression '(' ')'                                     #invocation
 
