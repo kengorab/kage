@@ -10,6 +10,18 @@ line
     : statement (NEWLINE+ | EOF)
     ;
 
+statementOrExpression
+    : statement
+    | expression
+    ;
+
+statementsOrExpressions
+    : statementOrExpression (NEWLINE+ statementOrExpression)*
+    ;
+
+block
+    : '{' NEWLINE* lines=statementsOrExpressions? NEWLINE* '}'
+    ;
 
 // Statements
 
@@ -36,12 +48,18 @@ print
 
 expression
     : '(' expression ')'                                             #parenExpression
+
+    | block                                                          #blockExpression
+
     | invokee=expression '(' ')'                                     #invocation
+
     | operator=('-'|'!') expression                                  #unaryOperation
+
     | left=expression operator=('/'|'*') right=expression            #binaryOperation
     | left=expression operator=('+'|'-') right=expression            #binaryOperation
     | left=expression operator=('||'|'&&') right=expression          #binaryOperation
     | left=expression operator='++' right=expression                 #binaryOperation
+
     | Identifier                                                     #bindingReference
     | StringLiteral                                                  #stringLiteral
     | IntLiteral                                                     #intLiteral

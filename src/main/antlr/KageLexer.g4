@@ -72,6 +72,8 @@ TypeAnnotation
 // Separator
 LPAREN          : '(' ;
 RPAREN          : ')' ;
+LBRACE          : '{' ;
+RBRACE          : '}' ;
 COLON           : ':' ;
 
 // Operators

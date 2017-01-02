@@ -4,6 +4,7 @@ import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
+import co.kenrg.kagelang.tree.iface.BlockTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import java.util.*
@@ -158,6 +159,10 @@ class TypeCheckerAttributorVisitor(
             else ->
                 handleError(Error("Expression is not invokable", invocation.invokee.position.start))
         }
+    }
+
+    override fun visitBlock(blockTree: BlockTree, data: HashMap<String, Binding>) {
+        throw UnsupportedOperationException("not implemented")
     }
 
     // Statement visitors

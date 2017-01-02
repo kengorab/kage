@@ -170,6 +170,23 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseBlock() {
+        val code = """{
+                     |  val a = 123
+                     |  print(a)
+                     |}""".trimMargin("|")
+        assertEquals(
+                listOf(
+                        "LBRACE", "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral", "NEWLINE",
+                        "PRINT", "LPAREN", "Identifier", "RPAREN", "NEWLINE",
+                        "RBRACE",
+                        "EOF"
+                ),
+                tokens(lexerForCode(code))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
