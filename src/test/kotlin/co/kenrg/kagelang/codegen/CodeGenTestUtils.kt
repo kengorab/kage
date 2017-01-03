@@ -6,7 +6,6 @@ import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
 import co.kenrg.kagelang.tree.types.KGTypeTag.*
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
-import org.apache.commons.collections4.map.LinkedMap
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
@@ -42,7 +41,7 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
             val treeWrappedInPrint = KGTree.KGPrint(expr = tree)
 
             treeWrappedInPrint.accept(typeCheckAttribVisitor, HashMap())
-            treeWrappedInPrint.accept(codeGenVisitor, LinkedMap())
+            treeWrappedInPrint.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
 
             writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes()) { output ->
                 assertEquals(expected, output)
@@ -57,7 +56,7 @@ fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
     file.accept(typeCheckAttribVisitor, HashMap())
-    file.accept(codeGenVisitor, LinkedMap())
+    file.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
 
     writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes(), fn)
 }

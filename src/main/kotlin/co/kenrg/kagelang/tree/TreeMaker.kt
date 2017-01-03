@@ -31,11 +31,12 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
                         expression = toTree(statement.valDeclaration().expression()),
-                        typeAnnotation =
-                        if (statement.valDeclaration().typeAnnotation?.text != null)
-                            KGTypeTag.fromString(statement.valDeclaration().typeAnnotation.text)
-                        else
-                            null
+                        typeAnnotation = (
+                                if (statement.valDeclaration().typeAnnotation?.text != null)
+                                    KGTypeTag.fromString(statement.valDeclaration().typeAnnotation.text)
+                                else
+                                    null
+                                )
                 )
             is KageParser.FnDeclarationStatementContext ->
                 KGTree.KGFnDeclaration(

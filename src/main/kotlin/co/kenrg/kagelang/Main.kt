@@ -1,10 +1,10 @@
 package co.kenrg.kagelang
 
 import co.kenrg.kagelang.codegen.CodeGenVisitor
+import co.kenrg.kagelang.codegen.Namespace
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.parser.KageParserFacade
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
-import org.apache.commons.collections4.map.LinkedMap
 import java.io.*
 import java.util.*
 
@@ -64,7 +64,7 @@ fun main(args: Array<String>) {
     }
 
     val codeGenVisitor = CodeGenVisitor(className = "MyClass")
-    parsingResult.root.accept(codeGenVisitor, LinkedMap())
+    parsingResult.root.accept(codeGenVisitor, Namespace("MyClass", LinkedHashMap(), LinkedHashMap()))
 
     val bytes = codeGenVisitor.resultBytes()
     val fos = FileOutputStream("MyClass.class")
