@@ -187,14 +187,14 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: HashMap<String, Binding>) {
-        attribExpr(fnDecl.expression, data)
+        attribExpr(fnDecl.body, data)
 
         if (data.containsKey(fnDecl.name)) {
             handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))
         } else {
-            val fnSignature = Signature(params = listOf(), returnType = fnDecl.expression.type)
+            val fnSignature = Signature(params = listOf(), returnType = fnDecl.body.type)
             fnDecl.signature = fnSignature
-            data.put(fnDecl.name, Binding.FnBinding(fnDecl.name, fnDecl.expression, fnSignature))
+            data.put(fnDecl.name, Binding.FnBinding(fnDecl.name, fnDecl.body, fnSignature))
         }
 
         result = KGTypeTag.UNIT

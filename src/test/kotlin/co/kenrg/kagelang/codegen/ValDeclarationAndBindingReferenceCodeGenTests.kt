@@ -11,11 +11,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 import java.util.*
 
-/*
-    Because of the way these codegen tests are set up, it's difficult to test val declaration on its own. The codegen
-    tests run by wrapping the expressions in `print` statements, and then by generating and executing the resulting class
-    and verifying the output. So this test suite will test val declarations AND binding references.
- */
 class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
 
     @TestFactory
@@ -39,7 +34,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
                 val file = KGFile(
                         statements = listOf(
                                 KGValDeclaration("a", expr),
-                                KGPrint(KGBindingReference("a"))
+                                wrapInMainMethod(KGPrint(KGBindingReference("a")))
                         ),
                         bindings = HashMap()
                 )
@@ -59,7 +54,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
         val file = KGFile(
                 statements = listOf(
                         KGValDeclaration("a", intLiteral(1), KGTypeTag.INT),
-                        KGPrint(KGBindingReference("a"))
+                        wrapInMainMethod(KGPrint(KGBindingReference("a")))
                 ),
                 bindings = HashMap()
         )
@@ -93,7 +88,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
                         statements = listOf(
                                 KGValDeclaration("a", exprA),
                                 KGValDeclaration("b", exprB),
-                                KGPrint(KGBinary(KGBindingReference("a"), op, KGBindingReference("b")))
+                                wrapInMainMethod(KGPrint(KGBinary(KGBindingReference("a"), op, KGBindingReference("b"))))
                         ),
                         bindings = HashMap()
                 )

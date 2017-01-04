@@ -38,10 +38,10 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
             val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
             val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
-            val treeWrappedInPrint = KGTree.KGPrint(expr = tree)
+            val treeWrappedInPrintAndMainMethod = KGTree.KGFnDeclaration("main", KGTree.KGPrint(expr = tree))
 
-            treeWrappedInPrint.accept(typeCheckAttribVisitor, HashMap())
-            treeWrappedInPrint.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
+            treeWrappedInPrintAndMainMethod.accept(typeCheckAttribVisitor, HashMap())
+            treeWrappedInPrintAndMainMethod.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
 
             writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes()) { output ->
                 assertEquals(expected, output)
@@ -49,6 +49,9 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
         }
     }
 }
+
+fun wrapInMainMethod(statementOrExpression: KGTree) =
+        KGTree.KGFnDeclaration("main", statementOrExpression)
 
 fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val randomClassName = RandomStringUtils.randomAlphabetic(16)

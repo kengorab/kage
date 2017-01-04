@@ -28,7 +28,7 @@ valDeclaration
     ;
 
 fnDeclaration
-    : 'fn' fnName=Identifier '(' ')' '=' body=expression
+    : 'fn' fnName=Identifier '(' ')' '=' NEWLINE* body=statementOrExpression
     ;
 
 print

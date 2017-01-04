@@ -8,18 +8,19 @@ import org.antlr.v4.runtime.ParserRuleContext
 
 class TreeMaker(val considerPosition: Boolean = true) {
 
-    fun toKageFile(file: KageParser.KageFileContext): KGFile {
-        val statements = file.line().map {
-            if (it.statementOrExpression().expression() != null && it.statementOrExpression().statement() != null)
-                throw IllegalStateException("Line is both statement and expression")
-            else if (it.statementOrExpression().expression() != null)
-                toTree(it.statementOrExpression().expression())
-            else if (it.statementOrExpression().statement() != null)
-                toTree(it.statementOrExpression().statement())
-            else
-                throw IllegalStateException("Line is neither statement nor expression")
-        }
+    private fun statementOrExpressionToTree(statementOrExpression: KageParser.StatementOrExpressionContext): KGTree {
+        return if (statementOrExpression.expression() != null && statementOrExpression.statement() != null)
+            throw IllegalStateException("Line is both statement and expression")
+        else if (statementOrExpression.expression() != null)
+            toTree(statementOrExpression.expression())
+        else if (statementOrExpression.statement() != null)
+            toTree(statementOrExpression.statement())
+        else
+            throw IllegalStateException("Line is neither statement nor expression")
+    }
 
+    fun toKageFile(file: KageParser.KageFileContext): KGFile {
+        val statements = file.line().map { statementOrExpressionToTree(it.statementOrExpression()) }
         return KGFile(statements, bindings = mapOf())
     }
 
@@ -41,7 +42,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
             is KageParser.FnDeclarationStatementContext ->
                 KGTree.KGFnDeclaration(
                         name = statement.fnDeclaration().fnName.text,
-                        expression = toTree(statement.fnDeclaration().body)
+                        body = //toTree(statement.fnDeclaration().body)
+                            statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression())
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }

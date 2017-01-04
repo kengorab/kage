@@ -163,27 +163,26 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseFunctionDeclaration_fnBodyIsPrintStatement() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "ASSIGN", "PRINT", "LPAREN", "StringLiteral", "RPAREN", "EOF"),
+                tokens(lexerForCode("fn printHello() = print(\"hello\")"))
+        )
+    }
+
+    @Test fun parseFunctionDeclaration_fnBodyIsPrintStatement_bodyIsOnNewline() {
+        val code = """fn printHello() =
+                     |  print("hello")""".trimMargin("|")
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "ASSIGN", "NEWLINE", "PRINT", "LPAREN", "StringLiteral", "RPAREN", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
     @Test fun parseFunctionInvocation_noParams() {
         assertEquals(
                 listOf("Identifier", "LPAREN", "RPAREN", "EOF"),
                 tokens(lexerForCode("add()"))
-        )
-    }
-
-    @Test fun parseBlock() {
-        val code = """{
-                     |  val a = 123
-                     |  print(a)
-                     |}""".trimMargin("|")
-        assertEquals(
-                listOf(
-                        "LBRACE", "NEWLINE",
-                        "VAL", "Identifier", "ASSIGN", "IntLiteral", "NEWLINE",
-                        "PRINT", "LPAREN", "Identifier", "RPAREN", "NEWLINE",
-                        "RBRACE",
-                        "EOF"
-                ),
-                tokens(lexerForCode(code))
         )
     }
 

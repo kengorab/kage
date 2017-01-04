@@ -35,7 +35,7 @@ class CodeGenVisitor(
     // it is the main method of the class, as seen in the `init` block below. When defining
     // top-level functions, this will be updated to hold the writer and other info for that
     // function. It is imperative that this be set back to the main method's context afterwards. (For now)
-    var focusedMethod: FocusedMethod
+    var focusedMethod: FocusedMethod? = null
 
     init {
         cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
@@ -44,12 +44,12 @@ class CodeGenVisitor(
         // code in kage files will be assumed to be in the main method; this will change later on once
         // functions are capable of taking in arguments (and arrays are implemented), and the main method
         // can be parsed for real.
-        val mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
-        val mainMethodStart = Label()
-        val mainMethodEnd = Label()
-        mainMethodWriter.visitCode()
-        mainMethodWriter.visitLabel(mainMethodStart)
-        focusedMethod = FocusedMethod(writer = mainMethodWriter, start = mainMethodStart, end = mainMethodEnd)
+//        val mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
+//        val mainMethodStart = Label()
+//        val mainMethodEnd = Label()
+//        mainMethodWriter.visitCode()
+//        mainMethodWriter.visitLabel(mainMethodStart)
+//        focusedMethod = FocusedMethod(writer = mainMethodWriter, start = mainMethodStart, end = mainMethodEnd)
 
         // Initialize <clinit> method writer for class. This method writer will be used to initialize all the static
         // values for the class (namespace).
@@ -64,12 +64,12 @@ class CodeGenVisitor(
      * @see KGTree.Visitor
      */
     fun resultBytes(): ByteArray? {
-        val (methodWriter, methodStart, methodEnd) = focusedMethod
-
-        methodWriter.visitLabel(methodEnd)
-        methodWriter.visitInsn(RETURN)
-        methodWriter.visitMaxs(-1, -1)
-        methodWriter.visitEnd()
+//        val (methodWriter, methodStart, methodEnd) = focusedMethod
+//
+//        methodWriter.visitLabel(methodEnd)
+//        methodWriter.visitInsn(RETURN)
+//        methodWriter.visitMaxs(-1, -1)
+//        methodWriter.visitEnd()
 
         clinitWriter.visitInsn(RETURN)
         clinitWriter.visitMaxs(-1, -1)
@@ -86,7 +86,8 @@ class CodeGenVisitor(
      *****************************/
 
     override fun visitLiteral(literal: KGTree.KGLiteral, data: Namespace) {
-        val methodWriter = focusedMethod.writer
+        val methodWriter = focusedMethod?.writer
+                ?: throw IllegalStateException("Attempted to visit literal with no methodVisitor active")
 
         when (literal.typeTag) {
             KGTypeTag.INT -> methodWriter.visitLdcInsn(literal.value as java.lang.Integer)
@@ -98,7 +99,8 @@ class CodeGenVisitor(
     }
 
     override fun visitUnary(unary: KGTree.KGUnary, data: Namespace) {
-        val methodWriter = focusedMethod.writer
+        val methodWriter = focusedMethod?.writer
+                ?: throw IllegalStateException("Attempted to visit unary with no methodVisitor active")
 
         if (unary.type == KGTypeTag.UNSET) {
             throw IllegalStateException("Cannot run codegen on Unary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
@@ -205,7 +207,8 @@ class CodeGenVisitor(
     }
 
     override fun visitBinary(binary: KGTree.KGBinary, data: Namespace) {
-        val methodWriter = focusedMethod.writer
+        val methodWriter = focusedMethod?.writer
+                ?: throw IllegalStateException("Attempted to visit binary with no methodVisitor active")
 
         if (binary.type == KGTypeTag.UNSET) {
             throw IllegalStateException("Cannot run codegen on Binary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
@@ -270,7 +273,8 @@ class CodeGenVisitor(
     }
 
     override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: Namespace) {
-        val methodWriter = focusedMethod.writer
+        val methodWriter = focusedMethod?.writer
+                ?: throw IllegalStateException("Attempted to visit binding-reference with no methodVisitor active")
 
         val name = bindingReference.binding
         val binding = data.staticVals[name]
@@ -292,8 +296,10 @@ class CodeGenVisitor(
                 } else {
                     when (target) {
                         is FunctionBinding -> {
+                            val methodWriter = focusedMethod?.writer
+                                    ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
                             val signature = jvmTypeDescriptorForSignature(target.signature)
-                            focusedMethod.writer.visitMethodInsn(INVOKESTATIC, className, target.name, signature, false)
+                            methodWriter.visitMethodInsn(INVOKESTATIC, className, target.name, signature, false)
                         }
                         else ->
                             throw IllegalStateException("Expression is not invokable")
@@ -316,6 +322,7 @@ class CodeGenVisitor(
         KGTypeTag.DEC -> "D"
         KGTypeTag.BOOL -> "Z"
         KGTypeTag.STRING -> "Ljava/lang/String;"
+        KGTypeTag.UNIT -> "V"
         else -> throw IllegalStateException("JVM descriptor for type $type not yet implemented")
     }
 
@@ -324,7 +331,8 @@ class CodeGenVisitor(
     }
 
     override fun visitPrint(print: KGTree.KGPrint, data: Namespace) {
-        val methodWriter = focusedMethod.writer
+        val methodWriter = focusedMethod?.writer
+                ?: throw IllegalStateException("Attempted to visit print with no methodVisitor active")
 
         methodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
         print.expr.accept(this, data)
@@ -385,8 +393,9 @@ class CodeGenVisitor(
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: Namespace) {
         val prevMethodWriter = focusedMethod
+        val isMain = fnDecl.name == "main"
 
-        val signature = jvmTypeDescriptorForSignature(fnDecl.signature)
+        val signature = if (isMain) "([Ljava/lang/String;)V" else jvmTypeDescriptorForSignature(fnDecl.signature)
         val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, signature, null, null)
         val fnStart = Label()
         val fnEnd = Label()
@@ -395,14 +404,24 @@ class CodeGenVisitor(
 
         focusedMethod = FocusedMethod(writer = fnWriter, start = fnStart, end = fnEnd)
 
-        fnDecl.expression.accept(this, data)
-        when (fnDecl.signature.returnType) {
-            KGTypeTag.INT -> fnWriter.visitInsn(IRETURN)
-            KGTypeTag.DEC -> fnWriter.visitInsn(DRETURN)
-            KGTypeTag.BOOL -> fnWriter.visitInsn(IRETURN)
-            KGTypeTag.STRING -> fnWriter.visitInsn(ARETURN)
-            else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
+        fnDecl.body.accept(this, data)
+
+        if (isMain) {
+            if (fnDecl.body.type != KGTypeTag.UNIT) {
+                throw IllegalStateException("Main method requires return type of Unit, actual: ${fnDecl.body.type}")
+            }
+
+            fnWriter.visitInsn(RETURN)
+        } else {
+            when (fnDecl.signature.returnType) {
+                KGTypeTag.INT -> fnWriter.visitInsn(IRETURN)
+                KGTypeTag.DEC -> fnWriter.visitInsn(DRETURN)
+                KGTypeTag.BOOL -> fnWriter.visitInsn(IRETURN)
+                KGTypeTag.STRING -> fnWriter.visitInsn(ARETURN)
+                else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
+            }
         }
+
         fnWriter.visitMaxs(-1, -1)
         fnWriter.visitEnd()
 

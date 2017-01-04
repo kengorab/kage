@@ -9,11 +9,6 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 import java.util.*
 
-/*
-    Because of the way these codegen tests are set up, it's difficult to test val declaration on its own. The codegen
-    tests run by wrapping the expressions in `print` statements, and then by generating and executing the resulting class
-    and verifying the output. So this test suite will test val declarations AND binding references.
- */
 class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
 
     @TestFactory
@@ -37,7 +32,7 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                 val file = KGFile(
                         statements = listOf(
                                 KGFnDeclaration("abc", expr),
-                                KGPrint(KGInvocation(KGBindingReference("abc")))
+                                wrapInMainMethod(KGPrint(KGInvocation(KGBindingReference("abc"))))
                         ),
                         bindings = HashMap()
                 )
@@ -73,7 +68,9 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                         statements = listOf(
                                 KGFnDeclaration("abc", exprA),
                                 KGFnDeclaration("xyz", exprB),
-                                KGPrint(KGBinary(KGInvocation(KGBindingReference("abc")), op, KGInvocation(KGBindingReference("xyz"))))
+                                wrapInMainMethod(KGPrint(
+                                        KGBinary(KGInvocation(KGBindingReference("abc")), op, KGInvocation(KGBindingReference("xyz")))
+                                ))
                         ),
                         bindings = HashMap()
                 )

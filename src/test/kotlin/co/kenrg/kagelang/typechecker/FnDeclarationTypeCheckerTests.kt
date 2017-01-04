@@ -25,7 +25,7 @@ class FnDeclarationTypeCheckerTests {
                 val statement = KGFnDeclaration("abc", fnBody)
                 val result = TypeChecker.typeCheck(statement)
                 assertSucceedsAnd(result) {
-                    assertEquals(type, statement.expression.type)
+                    assertEquals(type, statement.body.type)
                     assertEquals(KGTypeTag.UNIT, it.type)
                 }
             }

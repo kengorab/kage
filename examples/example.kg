@@ -1,4 +1,5 @@
-fn t() = true
-fn f() = false
+fn hello() = "hello"
+fn world() = "world"
 
-print(t() && f())
+fn main() =
+  print(hello() ++ " " ++ world())

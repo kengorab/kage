@@ -5,6 +5,10 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import java.nio.file.Files
 
+/*
+    Test suites that are subclasses of this run by wrapping the expressions in `print` statements, wrapping that print
+    in a main method, and then by generating and executing the resulting class and verifying the output on stdout.
+ */
 open class BaseTest {
     companion object {
         val deleteTempClassesWhenDone = true
