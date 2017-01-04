@@ -2,4 +2,4 @@ fn hello() = "hello"
 fn world() = "world"
 
 fn main() =
-  print(hello() ++ " " ++ world())
+  print(hello() ++ " " ++ 3)

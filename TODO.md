@@ -18,6 +18,8 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Concatenation of Strings and non-Strings~~
 - ~~Type annotations~~
 - Top-level function declaration
+- Warnings/validations
+  - No top-level expressions
 - Arrays
   - Int arrays
   - Bool arrays
