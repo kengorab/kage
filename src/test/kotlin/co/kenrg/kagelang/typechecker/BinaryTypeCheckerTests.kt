@@ -33,7 +33,7 @@ class BinaryTypeCheckerTests {
                                 val rightExpr = randomKGLiteralOfType(right)
 
                                 val binary = KGBinary(leftExpr, operator, rightExpr)
-                                val result = TypeChecker.typeCheck(binary)
+                                val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                                 assertSucceedsAnd(result) { assertEquals(expected, it.type) }
                             },
                             dynamicTest("Binary should have type $expected, left $left and right $right") {
@@ -41,7 +41,7 @@ class BinaryTypeCheckerTests {
                                 val rightExpr = randomKGLiteralOfType(right)
 
                                 val binary = KGBinary(leftExpr, operator, rightExpr)
-                                val result = TypeChecker.typeCheck(binary)
+                                val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                                 assertSucceedsAnd(result) {
                                     assertEquals(left, binary.left.type)
                                     assertEquals(right, binary.right.type)
@@ -69,7 +69,7 @@ class BinaryTypeCheckerTests {
                             val rightExpr = randomKGLiteralOfType(right)
 
                             val binary = KGBinary(leftExpr, "/", rightExpr)
-                            val result = TypeChecker.typeCheck(binary)
+                            val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                             assertSucceedsAnd(result) { assertEquals(DEC, it.type) }
                         },
                         dynamicTest("Binary should have type DEC, left $left and right $right") {
@@ -77,7 +77,7 @@ class BinaryTypeCheckerTests {
                             val rightExpr = randomKGLiteralOfType(right)
 
                             val binary = KGBinary(leftExpr, "/", rightExpr)
-                            val result = TypeChecker.typeCheck(binary)
+                            val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                             assertSucceedsAnd(result) {
                                 assertEquals(left, binary.left.type)
                                 assertEquals(right, binary.right.type)
@@ -109,7 +109,7 @@ class BinaryTypeCheckerTests {
                         val rightExpr = randomKGLiteralOfType(right)
 
                         val binary = KGBinary(leftExpr, operation, rightExpr)
-                        val result = TypeChecker.typeCheck(binary)
+                        val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                         assertFails(result)
                     }
 
@@ -132,7 +132,7 @@ class BinaryTypeCheckerTests {
                             val rightExpr = randomKGLiteralOfType(BOOL)
 
                             val binary = KGBinary(leftExpr, operation, rightExpr)
-                            val result = TypeChecker.typeCheck(binary)
+                            val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                             assertSucceedsAnd(result) { assertEquals(BOOL, it.type) }
                         },
                         dynamicTest("Binary should have type BOOL, left BOOL and right BOOL") {
@@ -140,7 +140,7 @@ class BinaryTypeCheckerTests {
                             val rightExpr = randomKGLiteralOfType(BOOL)
 
                             val binary = KGBinary(leftExpr, operation, rightExpr)
-                            val result = TypeChecker.typeCheck(binary)
+                            val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                             assertSucceedsAnd(result) {
                                 assertEquals(BOOL, binary.left.type)
                                 assertEquals(BOOL, binary.right.type)
@@ -169,7 +169,7 @@ class BinaryTypeCheckerTests {
                         val rightExpr = randomKGLiteralOfType(right)
 
                         val binary = KGBinary(leftExpr, operation, rightExpr)
-                        val result = TypeChecker.typeCheck(binary)
+                        val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                         assertFails(result)
                     }
                 }
@@ -200,7 +200,7 @@ class BinaryTypeCheckerTests {
                                 val rightExpr = randomKGLiteralOfType(right)
 
                                 val binary = KGBinary(leftExpr, operator, rightExpr)
-                                val result = TypeChecker.typeCheck(binary)
+                                val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                                 assertSucceedsAnd(result) { assertEquals(expected, it.type) }
                             },
                             dynamicTest("Binary should have type $expected, left $left and right $right") {
@@ -208,7 +208,7 @@ class BinaryTypeCheckerTests {
                                 val rightExpr = randomKGLiteralOfType(right)
 
                                 val binary = KGBinary(leftExpr, operator, rightExpr)
-                                val result = TypeChecker.typeCheck(binary)
+                                val result = TypeChecker.typeCheck(binary, randomTCNamespace())
                                 assertSucceedsAnd(result) {
                                     assertEquals(left, binary.left.type)
                                     assertEquals(right, binary.right.type)

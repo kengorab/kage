@@ -28,10 +28,9 @@ class InvocationTypeCheckerTests {
             val (repr, expr, type) = testCase
 
             dynamicTest("With `fn abc() = $repr` defined, the invocation `abc()` should have type $type") {
-                val bindings = hashMapOf<String, Binding>(
-                        "abc" to Binding.FnBinding("a", expr.withType(type), Signature(params = listOf(), returnType = type))
-                )
-                val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("abc")), bindings)
+                val ns = randomTCNamespace()
+                ns.rootScope.functions.put("abc", TC.Binding.FunctionBinding("a", expr.withType(type), Signature(params = listOf(), returnType = type)))
+                val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("abc")), ns)
                 assertSucceedsAnd(result) {
                     Assertions.assertEquals(type, it.type)
                 }
@@ -58,7 +57,7 @@ class InvocationTypeCheckerTests {
             val (repr, expr) = testCase
 
             dynamicTest("The expression `$repr()` should not typecheck, since $repr is not invokable") {
-                val result = TypeChecker.typeCheck(KGInvocation(expr))
+                val result = TypeChecker.typeCheck(KGInvocation(expr), randomTCNamespace())
                 assertFails(result)
             }
         }
@@ -83,17 +82,16 @@ class InvocationTypeCheckerTests {
             val (repr, expr) = testCase
 
             dynamicTest("The expression `$repr()` should not typecheck, since $repr is not invokable") {
-                val bindings = hashMapOf<String, Binding>(
-                        "a" to Binding.ValBinding("a", expr)
-                )
-                val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")), bindings)
+                val ns = randomTCNamespace()
+                ns.rootScope.staticVals.put("a", TC.Binding.StaticValBinding("a", expr))
+                val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")), ns)
                 assertFails(result)
             }
         }
     }
 
     @Test fun typecheckInvocation_targetIsUndefinedBinding_typecheckingFails() {
-        val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")))
+        val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")), randomTCNamespace())
         assertFails(result)
     }
 }

@@ -34,6 +34,9 @@ interface Tree {
         object ArithmeticNegation : Kind<UnaryTree>(UnaryTree::class.java)
         object BooleanNegation : Kind<UnaryTree>(UnaryTree::class.java)
 
+        // Other Expression Kinds
+        object LetIn : Kind<LetInTree>(LetInTree::class.java)
+
         // Statement Kinds
         object Print : Kind<PrintTree>(PrintTree::class.java)
         object ValDeclaration : Kind<ValDeclarationTree>(ValDeclarationTree::class.java)

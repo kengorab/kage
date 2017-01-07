@@ -1,5 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
+import co.kenrg.kagelang.codegen.TC
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.Visitor
@@ -26,7 +27,7 @@ import java.util.*
  */
 class TypeCheckerAttributorVisitor(
         val errorHandler: VisitorErrorHandler<Error>? = null
-) : Visitor<HashMap<String, Binding>>, VisitorErrorHandler<Error> {
+) : Visitor<TC.Scope>, VisitorErrorHandler<Error> {
 
     val typeErrors = LinkedList<Error>()
     override fun handleError(error: Error) {
@@ -38,25 +39,25 @@ class TypeCheckerAttributorVisitor(
 
     var result: KGTypeTag = KGTypeTag.UNSET
 
-    fun attribExpr(tree: KGTree, data: HashMap<String, Binding>): KGTypeTag {
+    fun attribExpr(tree: KGTree, data: TC.Scope): KGTypeTag {
         tree.accept(this, data)
         return result
     }
 
     // Expression visitors
 
-    override fun visitLiteral(literal: KGTree.KGLiteral, data: HashMap<String, Binding>) {
+    override fun visitLiteral(literal: KGTree.KGLiteral, data: TC.Scope) {
         literal.type = literal.typeTag
         result = literal.type
     }
 
-    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: HashMap<String, Binding>) {
+    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: TC.Scope) {
         val ownType = attribExpr(parenthesized.expr, data)
         parenthesized.type = ownType
         result = ownType
     }
 
-    override fun visitUnary(unary: KGTree.KGUnary, data: HashMap<String, Binding>) {
+    override fun visitUnary(unary: KGTree.KGUnary, data: TC.Scope) {
         val exprType = attribExpr(unary.expr, data)
 
         var ownType = unary.type
@@ -78,7 +79,7 @@ class TypeCheckerAttributorVisitor(
         result = ownType
     }
 
-    override fun visitBinary(binary: KGTree.KGBinary, data: HashMap<String, Binding>) {
+    override fun visitBinary(binary: KGTree.KGBinary, data: TC.Scope) {
         val leftType = attribExpr(binary.left, data)
         val rightType = attribExpr(binary.right, data)
 
@@ -123,8 +124,15 @@ class TypeCheckerAttributorVisitor(
         result = ownType
     }
 
-    override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: HashMap<String, Binding>) {
-        val binding = data[bindingReference.binding]
+    override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: TC.Scope) {
+        val binding = if (data.staticVals.containsKey(bindingReference.binding)) {
+            data.staticVals[bindingReference.binding]
+        } else if (data.functions.containsKey(bindingReference.binding)) {
+            data.functions[bindingReference.binding]
+        } else {
+            null
+        }
+
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
         } else {
@@ -137,22 +145,16 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
-    override fun visitInvocation(invocation: KGTree.KGInvocation, data: HashMap<String, Binding>) {
+    override fun visitInvocation(invocation: KGTree.KGInvocation, data: TC.Scope) {
         invocation.invokee.accept(this, data)
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val target = data[invocation.invokee.binding]
+                val target = data.functions[invocation.invokee.binding]
                 if (target == null) {
                     handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
                 } else {
-                    when (target) {
-                        is Binding.FnBinding -> {
-                            invocation.type = target.signature.returnType
-                            result = target.signature.returnType
-                        }
-                        else ->
-                            handleError(Error("Expression is not invokable", invocation.invokee.position.start))
-                    }
+                    invocation.type = target.signature.returnType
+                    result = target.signature.returnType
                 }
             }
             else ->
@@ -160,15 +162,24 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
+    override fun visitLetIn(letIn: KGTree.KGLetIn, data: TC.Scope) {
+        val childScope = TC.Scope(staticVals = HashMap(), functions = HashMap(), parent = data)
+        letIn.statements.forEach { it.accept(this, childScope) }
+        letIn.body.accept(this, childScope)
+
+        letIn.type = letIn.body.type
+        result = letIn.body.type
+    }
+
     // Statement visitors
 
-    override fun visitPrint(print: KGTree.KGPrint, data: HashMap<String, Binding>) {
+    override fun visitPrint(print: KGTree.KGPrint, data: TC.Scope) {
         // Typecheck the internal expression; type of print statement will always be Unit
         attribExpr(print.expr, data)
         result = KGTypeTag.UNIT
     }
 
-    override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: HashMap<String, Binding>) {
+    override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: TC.Scope) {
         attribExpr(valDecl.expression, data)
 
         if (valDecl.typeAnnotation != null) {
@@ -177,24 +188,24 @@ class TypeCheckerAttributorVisitor(
             }
         }
 
-        if (data.containsKey(valDecl.identifier)) {
+        if (data.staticVals.containsKey(valDecl.identifier)) {
             handleError(Error("Duplicate binding: val \"${valDecl.identifier}\" already defined in this context", valDecl.position.start))
         } else {
-            data.put(valDecl.identifier, Binding.ValBinding(valDecl.identifier, valDecl.expression))
+            data.staticVals.put(valDecl.identifier, TC.Binding.StaticValBinding(valDecl.identifier, valDecl.expression))
         }
 
         result = KGTypeTag.UNIT
     }
 
-    override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: HashMap<String, Binding>) {
+    override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: TC.Scope) {
         attribExpr(fnDecl.body, data)
 
-        if (data.containsKey(fnDecl.name)) {
+        if (data.functions.containsKey(fnDecl.name)) {
             handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))
         } else {
             val fnSignature = Signature(params = listOf(), returnType = fnDecl.body.type)
             fnDecl.signature = fnSignature
-            data.put(fnDecl.name, Binding.FnBinding(fnDecl.name, fnDecl.body, fnSignature))
+            data.functions.put(fnDecl.name, TC.Binding.FunctionBinding(fnDecl.name, fnDecl.body, fnSignature))
         }
 
         result = KGTypeTag.UNIT

@@ -311,6 +311,10 @@ class CodeGenVisitor(
         }
     }
 
+    override fun visitLetIn(letIn: KGTree.KGLetIn, data: Namespace) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     /*****************************
      *
      *     Statement Visitors

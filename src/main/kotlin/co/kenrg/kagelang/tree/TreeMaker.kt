@@ -43,7 +43,7 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGFnDeclaration(
                         name = statement.fnDeclaration().fnName.text,
                         body = //toTree(statement.fnDeclaration().body)
-                            statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression())
+                        statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression())
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }
@@ -88,6 +88,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGBindingReference(expression.Identifier().text)
             is KageParser.InvocationContext ->
                 KGTree.KGInvocation(toTree(expression.invokee))
+            is KageParser.LetInExpressionContext ->
+                KGTree.KGLetIn(
+                        statements = expression.statements().statement().map { toTree(it) },
+                        body = statementOrExpressionToTree(expression.statementOrExpression())
+                )
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 

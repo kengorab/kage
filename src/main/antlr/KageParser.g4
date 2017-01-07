@@ -15,6 +15,10 @@ statementOrExpression
     | expression
     ;
 
+statements
+    : statement (NEWLINE+ statement)*
+    ;
+
 // Statements
 
 statement
@@ -39,21 +43,23 @@ print
 // Expressions
 
 expression
-    : '(' expression ')'                                             #parenExpression
+    : '(' expression ')'                                                        #parenExpression
 
-    | invokee=expression '(' ')'                                     #invocation
+    | invokee=expression '(' ')'                                                #invocation
 
-    | operator=('-'|'!') expression                                  #unaryOperation
+    | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression    #letInExpression
 
-    | left=expression operator=('/'|'*') right=expression            #binaryOperation
-    | left=expression operator=('+'|'-') right=expression            #binaryOperation
-    | left=expression operator=('||'|'&&') right=expression          #binaryOperation
-    | left=expression operator='++' right=expression                 #binaryOperation
+    | operator=('-'|'!') expression                                             #unaryOperation
 
-    | Identifier                                                     #bindingReference
-    | StringLiteral                                                  #stringLiteral
-    | IntLiteral                                                     #intLiteral
-    | DecimalLiteral                                                 #decLiteral
-    | BooleanLiteral                                                 #boolLiteral
+    | left=expression operator=('/'|'*') right=expression                       #binaryOperation
+    | left=expression operator=('+'|'-') right=expression                       #binaryOperation
+    | left=expression operator=('||'|'&&') right=expression                     #binaryOperation
+    | left=expression operator='++' right=expression                            #binaryOperation
+
+    | Identifier                                                                #bindingReference
+    | StringLiteral                                                             #stringLiteral
+    | IntLiteral                                                                #intLiteral
+    | DecimalLiteral                                                            #decLiteral
+    | BooleanLiteral                                                            #boolLiteral
     ;
 

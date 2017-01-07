@@ -186,6 +186,86 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseLetInExpression_singleBinding_singleLine() {
+        val code = "let val a = 123 in print(a)"
+        assertEquals(
+                listOf("LET", "VAL", "Identifier", "ASSIGN", "IntLiteral", "IN", "PRINT", "LPAREN", "Identifier", "RPAREN", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseLetInExpression_singleBinding_multipleLines() {
+        val code = """let
+                     |  val a = 123
+                     |in
+                     |  print(a)""".trimMargin("|")
+        assertEquals(
+                listOf(
+                        "LET",
+                        "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral",
+                        "NEWLINE",
+                        "IN",
+                        "NEWLINE",
+                        "PRINT", "LPAREN", "Identifier", "RPAREN",
+                        "EOF"
+                ),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseLetInExpression_singleBinding_nestedLetIn_multipleLines() {
+        val code = """let
+                     |  val a = let
+                     |      val b = 11
+                     |    in
+                     |      b + 1
+                     |in
+                     |  print(a)""".trimMargin("|")
+        assertEquals(
+                listOf(
+                        "LET",
+                        "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "LET",
+                        "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral",
+                        "NEWLINE",
+                        "IN",
+                        "NEWLINE",
+                        "Identifier", "PLUS", "IntLiteral",
+                        "NEWLINE",
+                        "IN",
+                        "NEWLINE",
+                        "PRINT", "LPAREN", "Identifier", "RPAREN",
+                        "EOF"
+                ),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseLetInExpression_multipleBindings_multipleLines() {
+        val code = """let
+                     |  val a = 123
+                     |  val b = 456
+                     |in
+                     |  print(a + b)""".trimMargin("|")
+        assertEquals(
+                listOf(
+                        "LET",
+                        "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral",
+                        "NEWLINE",
+                        "VAL", "Identifier", "ASSIGN", "IntLiteral",
+                        "NEWLINE",
+                        "IN",
+                        "NEWLINE",
+                        "PRINT", "LPAREN", "Identifier", "PLUS", "Identifier", "RPAREN",
+                        "EOF"
+                ),
+                tokens(lexerForCode(code))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

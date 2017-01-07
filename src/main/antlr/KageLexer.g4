@@ -4,6 +4,8 @@ lexer grammar KageLexer;
 VAL             : 'val' ;
 PRINT           : 'print' ;
 FN              : 'fn' ;
+LET             : 'let' ;
+IN              : 'in' ;
 
 // Integer literals
 IntLiteral
