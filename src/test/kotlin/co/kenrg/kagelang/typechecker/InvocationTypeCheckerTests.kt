@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.*
+import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGTypeTag
@@ -29,7 +30,7 @@ class InvocationTypeCheckerTests {
 
             dynamicTest("With `fn abc() = $repr` defined, the invocation `abc()` should have type $type") {
                 val ns = randomTCNamespace()
-                ns.rootScope.functions.put("abc", TC.Binding.FunctionBinding("a", expr.withType(type), Signature(params = listOf(), returnType = type)))
+                ns.rootScope.functions.put("abc", TCBinding.FunctionBinding("a", expr.withType(type), Signature(params = listOf(), returnType = type)))
                 val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("abc")), ns)
                 assertSucceedsAnd(result) {
                     Assertions.assertEquals(type, it.type)
@@ -83,7 +84,7 @@ class InvocationTypeCheckerTests {
 
             dynamicTest("The expression `$repr()` should not typecheck, since $repr is not invokable") {
                 val ns = randomTCNamespace()
-                ns.rootScope.staticVals.put("a", TC.Binding.StaticValBinding("a", expr))
+                ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", expr))
                 val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")), ns)
                 assertFails(result)
             }

@@ -1,40 +1,33 @@
-package co.kenrg.kagelang.codegen
+package co.kenrg.kagelang.typechecker
 
+import co.kenrg.kagelang.model.Namespace
+import co.kenrg.kagelang.model.Scope
+import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
-import co.kenrg.kagelang.typechecker.Signature
 import java.util.*
 
-// Since data classes must be universally unique, and there are similarly named data classes for codegen, use TC (for
-// TypeChecker) as a namespace.
-class TC {
-    sealed class Binding(val name: String, val expression: KGTree) {
-        class StaticValBinding(identifier: String, expression: KGTree) : Binding(identifier, expression)
+sealed class TCBinding(val name: String, val expression: KGTree) {
+    class StaticValBinding(identifier: String, expression: KGTree) : TCBinding(identifier, expression)
 
-        class FunctionBinding(
-                name: String,
-                expression: KGTree,
-                val signature: Signature,
-                val scope: Scope = Scope.empty()
-        ) : Binding(name, expression)
+    class FunctionBinding(
+            name: String,
+            expression: KGTree,
+            val signature: Signature
+    ) : TCBinding(name, expression)
+}
+
+class TCScope(
+        override val vals: HashMap<String, TCBinding.StaticValBinding>,
+        override val functions: HashMap<String, TCBinding.FunctionBinding>,
+        override val parent: TCScope? = null
+) : Scope<HashMap<String, TCBinding.StaticValBinding>, HashMap<String, TCBinding.FunctionBinding>> {
+    companion object {
+        fun empty() = TCScope(vals = HashMap(), functions = HashMap())
     }
+}
 
-    data class Scope(
-            val staticVals: HashMap<String, Binding.StaticValBinding>,
-            val functions: HashMap<String, Binding.FunctionBinding>,
-            val parent: Scope? = null
-    ) {
-        companion object {
-            fun empty() = Scope(staticVals = HashMap(), functions = HashMap())
-        }
-
-        fun isRoot() = parent == null
-    }
-
-    data class Namespace(val name: String, val rootScope: Scope) {
-        companion object {
-            fun empty(name: String) =
-                    Namespace(name = name, rootScope = Scope.empty())
-
-        }
+class TCNamespace(name: String, rootScope: TCScope) : Namespace<TCScope>(name, rootScope) {
+    companion object {
+        fun empty(name: String) = TCNamespace(name, TCScope.empty())
     }
 }

@@ -5,6 +5,7 @@ import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
 import co.kenrg.kagelang.tree.types.KGTypeTag.*
+import co.kenrg.kagelang.typechecker.TCNamespace
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -40,7 +41,7 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
 
             val treeWrappedInPrintAndMainMethod = KGTree.KGFnDeclaration("main", KGTree.KGPrint(expr = tree))
 
-            val tcNamespace = TC.Namespace.empty(randomClassName)
+            val tcNamespace = TCNamespace.empty(randomClassName)
             treeWrappedInPrintAndMainMethod.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
             treeWrappedInPrintAndMainMethod.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
 
@@ -59,7 +60,7 @@ fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
     val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
-    val tcNamespace = TC.Namespace.empty(randomClassName)
+    val tcNamespace = TCNamespace.empty(randomClassName)
     file.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
     file.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
 

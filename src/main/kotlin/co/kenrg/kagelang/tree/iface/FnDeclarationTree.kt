@@ -2,7 +2,7 @@ package co.kenrg.kagelang.tree.iface
 
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
-import co.kenrg.kagelang.typechecker.Signature
+import co.kenrg.kagelang.model.Signature
 
 interface FnDeclarationTree : StatementTree {
     fun body(): Tree

@@ -6,7 +6,7 @@ import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.typechecker.Signature
+import co.kenrg.kagelang.model.Signature
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 

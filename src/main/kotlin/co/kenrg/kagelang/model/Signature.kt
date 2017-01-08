@@ -1,4 +1,4 @@
-package co.kenrg.kagelang.typechecker
+package co.kenrg.kagelang.model
 
 import co.kenrg.kagelang.tree.types.KGTypeTag
 

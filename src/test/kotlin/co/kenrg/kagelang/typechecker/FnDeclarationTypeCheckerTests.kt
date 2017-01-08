@@ -1,8 +1,8 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.codegen.TC
 import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.trueLiteral
+import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -55,18 +55,18 @@ class FnDeclarationTypeCheckerTests {
 
     @Test fun typecheckValDeclaration_assignValToBinding_newValHasTypeOfBinding() {
         val ns = randomTCNamespace()
-        ns.rootScope.staticVals.put("a", TC.Binding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
 
         val valDeclOfBinding = KGValDeclaration("b", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(valDeclOfBinding, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.INT, it.namespace.rootScope.staticVals["b"]?.expression?.type)
+            assertEquals(KGTypeTag.INT, it.namespace.rootScope.vals["b"]?.expression?.type)
         }
     }
 
     @Test fun typecheckValDeclaration_duplicateValDeclaration_typecheckingFails() {
         val ns = randomTCNamespace()
-        ns.rootScope.staticVals.put("a", TC.Binding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
 
         val valDecl = KGValDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, ns)
@@ -76,7 +76,7 @@ class FnDeclarationTypeCheckerTests {
 
     @Test fun typecheckFnDeclaration_duplicateFnDeclaration_typecheckingFails() {
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("a", TC.Binding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
+        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
 
         val valDecl = KGFnDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, ns)
@@ -86,7 +86,7 @@ class FnDeclarationTypeCheckerTests {
 
     @Test fun typecheckFnDeclaration_duplicateValDeclaration_typecheckingFails() {
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("a", TC.Binding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
+        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
 
         val valDecl = KGFnDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, ns)

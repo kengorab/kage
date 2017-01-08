@@ -1,6 +1,5 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.codegen.TC
 import co.kenrg.kagelang.model.Error
 //import co.kenrg.kagelang.model.toError
 import co.kenrg.kagelang.tree.KGTree
@@ -10,7 +9,7 @@ import java.util.*
 
 sealed class TypeCheckingResult {
     class Failure(val errors: List<Error>) : TypeCheckingResult()
-    class Success(val type: KGTypeTag, val namespace: TC.Namespace) : TypeCheckingResult()
+    class Success(val type: KGTypeTag, val namespace: TCNamespace) : TypeCheckingResult()
 }
 
 class TypeChecker : VisitorErrorHandler<Error> {
@@ -21,7 +20,7 @@ class TypeChecker : VisitorErrorHandler<Error> {
     }
 
     companion object {
-        fun typeCheck(tree: KGTree, namespace: TC.Namespace): TypeCheckingResult {
+        fun typeCheck(tree: KGTree, namespace: TCNamespace): TypeCheckingResult {
             val attributor = TypeCheckerAttributorVisitor()
 
             tree.accept(attributor, namespace.rootScope)

@@ -3,7 +3,7 @@ package co.kenrg.kagelang.codegen
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.typechecker.Signature
+import co.kenrg.kagelang.model.Signature
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor

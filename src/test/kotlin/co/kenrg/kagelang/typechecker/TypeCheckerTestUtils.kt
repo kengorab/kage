@@ -1,6 +1,5 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.codegen.TC
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import co.kenrg.kagelang.tree.types.KGTypeTag.*
@@ -9,10 +8,7 @@ import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.fail
 
 fun randomTCNamespace() =
-        TC.Namespace.empty(RandomStringUtils.randomAlphabetic(16))
-
-fun tcNamespaceWithScope(scope: TC.Scope) =
-        randomTCNamespace().copy(rootScope = scope)
+        TCNamespace.empty(RandomStringUtils.randomAlphabetic(16))
 
 fun assertSucceedsAnd(result: TypeCheckingResult, fn: (TypeCheckingResult.Success) -> Unit) {
     when (result) {

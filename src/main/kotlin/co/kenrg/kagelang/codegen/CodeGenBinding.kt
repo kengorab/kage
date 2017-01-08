@@ -1,7 +1,7 @@
 package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.typechecker.Signature
+import co.kenrg.kagelang.model.Signature
 
 sealed class CodeGenBinding(val name: String) {
     // The size property is used for bindings whose type occupies more than 1 stack slot (i.e. Doubles/Longs).

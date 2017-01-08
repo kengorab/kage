@@ -2,9 +2,9 @@ package co.kenrg.kagelang
 
 import co.kenrg.kagelang.codegen.CodeGenVisitor
 import co.kenrg.kagelang.codegen.Namespace
-import co.kenrg.kagelang.codegen.TC
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.parser.KageParserFacade
+import co.kenrg.kagelang.typechecker.TCNamespace
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
 import java.io.*
 import java.util.*
@@ -58,7 +58,7 @@ fun main(args: Array<String>) {
     }
 
     val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
-    val tcNamespace = TC.Namespace.empty("MyClass")
+    val tcNamespace = TCNamespace.empty("MyClass")
     parsingResult.root.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
     if (!typeCheckAttribVisitor.isValid()) {
         printErrors(lines, typeCheckAttribVisitor.typeErrors)
