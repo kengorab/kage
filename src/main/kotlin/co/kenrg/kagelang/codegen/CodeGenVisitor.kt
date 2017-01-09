@@ -40,6 +40,11 @@ class CodeGenVisitor(
     }
 
     override fun visitTopLevel(file: KGFile, data: CGScope) {
+        // At this point, `data` should be the root scope. Since the creation of the clinit method writer needs to
+        // wait until the init method of the CodeGenVisitor, we assign the `method` property to the root scope now.
+        if (!data.isRoot())
+            throw IllegalStateException("Visiting top level with non-root scope")
+
         data.method = FocusedMethod(clinitWriter, null, null)
         file.statements.forEach { it.accept(this, data) }
     }
