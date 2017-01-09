@@ -1,9 +1,10 @@
 package co.kenrg.kagelang.codegen
 
+import co.kenrg.kagelang.model.Signature
+import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.model.Signature
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -15,45 +16,32 @@ import jdk.internal.org.objectweb.asm.Opcodes.*
  * is contained in the "main" method of the class that gets generated (which, by default
  * is called MyClass).
  *
- * In each of the visitor methods, the `data` parameter contains the bindings
- * currently visible in scope.
+ * In each of the visitor methods, the `data` parameter contains the currently visible scope.
+ * When visiting a function declaration statement, for example, the `data` passed to child tree(s)
+ * of that statement will be the function's scope.
  *
  * @see KGTree.Visitor
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 class CodeGenVisitor(
         val className: String = "MyClass"
-) : KGTree.Visitor<Namespace> {
-    data class FocusedMethod(val writer: MethodVisitor, val start: Label?, val end: Label?)
-
+) : KGTree.Visitor<CGScope> {
     val cw: ClassWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
 
     // <clinit> method writer. Static val initializations need to be done in this method.
     val clinitWriter: MethodVisitor = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)
 
-    // This reference will be updated to reflect the current method being written. By default,
-    // it is the main method of the class, as seen in the `init` block below. When defining
-    // top-level functions, this will be updated to hold the writer and other info for that
-    // function. It is imperative that this be set back to the main method's context afterwards. (For now)
-    var focusedMethod: FocusedMethod? = null
-
     init {
         cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
-
-        // Create the writer for the main method, and set it as the focused method. For now, all freeform
-        // code in kage files will be assumed to be in the main method; this will change later on once
-        // functions are capable of taking in arguments (and arrays are implemented), and the main method
-        // can be parsed for real.
-//        val mainMethodWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, "main", "([Ljava/lang/String;)V", null, null)
-//        val mainMethodStart = Label()
-//        val mainMethodEnd = Label()
-//        mainMethodWriter.visitCode()
-//        mainMethodWriter.visitLabel(mainMethodStart)
-//        focusedMethod = FocusedMethod(writer = mainMethodWriter, start = mainMethodStart, end = mainMethodEnd)
 
         // Initialize <clinit> method writer for class. This method writer will be used to initialize all the static
         // values for the class (namespace).
         clinitWriter.visitCode()
+    }
+
+    override fun visitTopLevel(file: KGFile, data: CGScope) {
+        data.method = FocusedMethod(clinitWriter, null, null)
+        file.statements.forEach { it.accept(this, data) }
     }
 
     /**
@@ -64,13 +52,6 @@ class CodeGenVisitor(
      * @see KGTree.Visitor
      */
     fun resultBytes(): ByteArray? {
-//        val (methodWriter, methodStart, methodEnd) = focusedMethod
-//
-//        methodWriter.visitLabel(methodEnd)
-//        methodWriter.visitInsn(RETURN)
-//        methodWriter.visitMaxs(-1, -1)
-//        methodWriter.visitEnd()
-
         clinitWriter.visitInsn(RETURN)
         clinitWriter.visitMaxs(-1, -1)
         clinitWriter.visitEnd()
@@ -85,8 +66,8 @@ class CodeGenVisitor(
      *
      *****************************/
 
-    override fun visitLiteral(literal: KGTree.KGLiteral, data: Namespace) {
-        val methodWriter = focusedMethod?.writer
+    override fun visitLiteral(literal: KGTree.KGLiteral, data: CGScope) {
+        val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit literal with no methodVisitor active")
 
         when (literal.typeTag) {
@@ -98,8 +79,8 @@ class CodeGenVisitor(
         }
     }
 
-    override fun visitUnary(unary: KGTree.KGUnary, data: Namespace) {
-        val methodWriter = focusedMethod?.writer
+    override fun visitUnary(unary: KGTree.KGUnary, data: CGScope) {
+        val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit unary with no methodVisitor active")
 
         if (unary.type == KGTypeTag.UNSET) {
@@ -132,7 +113,7 @@ class CodeGenVisitor(
         }
     }
 
-    fun pushCondAnd(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: Namespace) {
+    fun pushCondAnd(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: CGScope) {
         val condEndLbl = Label()
         val condFalseLbl = Label()
         left.accept(this, data)
@@ -148,7 +129,7 @@ class CodeGenVisitor(
         methodWriter.visitLabel(condEndLbl)
     }
 
-    fun pushCondOr(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: Namespace) {
+    fun pushCondOr(left: KGTree, right: KGTree, methodWriter: MethodVisitor, data: CGScope) {
         val condEndLbl = Label()
         val condTrueLbl = Label()
         val condFalseLbl = Label()
@@ -167,7 +148,7 @@ class CodeGenVisitor(
         methodWriter.visitLabel(condEndLbl)
     }
 
-    fun pushArithmeticalOperands(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: Namespace) {
+    fun pushArithmeticalOperands(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: CGScope) {
         binary.left.accept(this, data)
         if (binary.left.type == KGTypeTag.INT && binary.type == KGTypeTag.DEC) {
             methodWriter.visitInsn(I2D)
@@ -179,7 +160,7 @@ class CodeGenVisitor(
         }
     }
 
-    fun appendStrings(tree: KGTree, methodWriter: MethodVisitor, data: Namespace) {
+    fun appendStrings(tree: KGTree, methodWriter: MethodVisitor, data: CGScope) {
         // Recurse down through the tree and allow it to be handled by this visitor, shortcutting if the tree is a
         // String concatenation, because we don't want to create duplicate StringBuilders.
         if (tree is KGTree.KGBinary && tree.kind() is Tree.Kind.Concatenation) {
@@ -193,7 +174,7 @@ class CodeGenVisitor(
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($treeType)Ljava/lang/StringBuilder;", false)
     }
 
-    fun pushStringConcatenation(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: Namespace) {
+    fun pushStringConcatenation(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: CGScope) {
         // Create and initialize a StringBuilder, leaving a reference on TOS.
         methodWriter.visitTypeInsn(NEW, "java/lang/StringBuilder")
         methodWriter.visitInsn(DUP)
@@ -206,8 +187,8 @@ class CodeGenVisitor(
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
     }
 
-    override fun visitBinary(binary: KGTree.KGBinary, data: Namespace) {
-        val methodWriter = focusedMethod?.writer
+    override fun visitBinary(binary: KGTree.KGBinary, data: CGScope) {
+        val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit binary with no methodVisitor active")
 
         if (binary.type == KGTypeTag.UNSET) {
@@ -268,16 +249,16 @@ class CodeGenVisitor(
         }
     }
 
-    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: Namespace) {
+    override fun visitParenthesized(parenthesized: KGTree.KGParenthesized, data: CGScope) {
         parenthesized.expr.accept(this, data)
     }
 
-    override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: Namespace) {
-        val methodWriter = focusedMethod?.writer
+    override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: CGScope) {
+        val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit binding-reference with no methodVisitor active")
 
         val name = bindingReference.binding
-        val binding = data.staticVals[name]
+        val binding = data.getVal(name)
                 ?: throw IllegalStateException("Binding $name not present in current context")
 
         when (binding) {
@@ -287,16 +268,16 @@ class CodeGenVisitor(
         }
     }
 
-    override fun visitInvocation(invocation: KGTree.KGInvocation, data: Namespace) {
+    override fun visitInvocation(invocation: KGTree.KGInvocation, data: CGScope) {
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val target = data.functions[invocation.invokee.binding]
+                val target = data.getFn(invocation.invokee.binding)
                 if (target == null) {
                     throw IllegalStateException("Binding with name ${invocation.invokee.binding} not visible in current context")
                 } else {
                     when (target) {
                         is FunctionBinding -> {
-                            val methodWriter = focusedMethod?.writer
+                            val methodWriter = data.method?.writer
                                     ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
                             val signature = jvmTypeDescriptorForSignature(target.signature)
                             methodWriter.visitMethodInsn(INVOKESTATIC, className, target.name, signature, false)
@@ -311,7 +292,7 @@ class CodeGenVisitor(
         }
     }
 
-    override fun visitLetIn(letIn: KGTree.KGLetIn, data: Namespace) {
+    override fun visitLetIn(letIn: KGTree.KGLetIn, data: CGScope) {
         throw UnsupportedOperationException("not implemented")
     }
 
@@ -334,8 +315,8 @@ class CodeGenVisitor(
         return "()${jvmTypeDescriptorForType(signature.returnType)}"
     }
 
-    override fun visitPrint(print: KGTree.KGPrint, data: Namespace) {
-        val methodWriter = focusedMethod?.writer
+    override fun visitPrint(print: KGTree.KGPrint, data: CGScope) {
+        val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit print with no methodVisitor active")
 
         methodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
@@ -361,28 +342,28 @@ class CodeGenVisitor(
 //        }
 //    }
 
-    override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: Namespace) {
-        val prevMethodWriter = focusedMethod
-        focusedMethod = FocusedMethod(clinitWriter, null, null)
-
+    override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: CGScope) {
         val valName = valDecl.identifier
-        if (data.staticVals.containsKey(valName)) {
+        if (data.vals.containsKey(valName)) {
             throw IllegalStateException("Cannot declare duplicate binding $valName")
+            // TODO - Check for duplicated names up the parent scopes and warn if shadowing?
         }
 
         val valDeclExpr = valDecl.expression
         val typeDesc = jvmTypeDescriptorForType(valDeclExpr.type)
 
-        // TODO - Keep track of context; the only possibility for vals now is top-level, but when let-expressions come along it's not that simple
-        cw.visitField(ACC_PUBLIC or ACC_STATIC, valName, typeDesc, null, null)
-        valDeclExpr.accept(this, data)
-        clinitWriter.visitFieldInsn(PUTSTATIC, className, valName, typeDesc)
-//        // Everything we're doing RIGHT NOW is wrapped in the main method of the generated class,
-//        // and since the main method receives args, the 0th local variable is args. So any additional
-//        // local variables we declare must account for that. This will change in the future.
-//        val bindingIndex = 0//getIndexForNextLocalVariable(data, startIndex = 1)
-        data.staticVals.put(valName, StaticValBinding(valName, valDeclExpr.type))
-        focusedMethod = prevMethodWriter
+        if (data.isRoot()) {
+            // If we're at the root scope, declare val as static val in the class
+            cw.visitField(ACC_PUBLIC or ACC_STATIC, valName, typeDesc, null, null)
+            valDeclExpr.accept(this, data)
+            clinitWriter.visitFieldInsn(PUTSTATIC, className, valName, typeDesc)
+
+            data.vals.put(valName, StaticValBinding(valName, valDeclExpr.type))
+        } else {
+            throw UnsupportedOperationException("Non-root val declaration not yet implemented")
+            // The commented-out block below may be useful in implementing bound val declarations
+//        val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 1)
+//        focusedMethod = prevMethodWriter
 //
 //        methodWriter.visitLocalVariable(valName, typeDesc, null, methodStart, methodEnd, bindingIndex)
 //        valDeclExpr.accept(this, data)
@@ -393,10 +374,10 @@ class CodeGenVisitor(
 //            KGTypeTag.STRING -> methodWriter.visitVarInsn(ASTORE, bindingIndex)
 //            else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
 //        }
+        }
     }
 
-    override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: Namespace) {
-        val prevMethodWriter = focusedMethod
+    override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: CGScope) {
         val isMain = fnDecl.name == "main"
 
         val signature = if (isMain) "([Ljava/lang/String;)V" else jvmTypeDescriptorForSignature(fnDecl.signature)
@@ -406,9 +387,8 @@ class CodeGenVisitor(
         fnWriter.visitCode()
         fnWriter.visitLabel(fnStart)
 
-        focusedMethod = FocusedMethod(writer = fnWriter, start = fnStart, end = fnEnd)
-
-        fnDecl.body.accept(this, data)
+        val fnScope = CGScope(parent = data, method = FocusedMethod(fnWriter, fnStart, fnEnd))
+        fnDecl.body.accept(this, fnScope)
 
         if (isMain) {
             if (fnDecl.body.type != KGTypeTag.UNIT) {
@@ -432,6 +412,5 @@ class CodeGenVisitor(
         data.functions.put(fnDecl.name, FunctionBinding(fnDecl.name, fnDecl.signature))
 
         fnWriter.visitLabel(fnEnd)
-        focusedMethod = prevMethodWriter
     }
 }

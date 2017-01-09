@@ -2,6 +2,7 @@ package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.model.Signature
+import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
@@ -20,8 +21,9 @@ import java.util.*
  * set, as will all of its subtrees. If the typechecking was unsuccessful, this
  * class's `typeErrors` list will be nonempty.
  *
- * In each of the visitor methods, the `data` parameter contains the bindings
- * currently visible in scope.
+ * In each of the visitor methods, the `data` parameter contains the currently visible scope.
+ * When visiting a function declaration statement, for example, the `data` passed to child tree(s)
+ * of that statement will be the function's scope.
  *
  * @see KGTree.Visitor
  */
@@ -42,6 +44,10 @@ class TypeCheckerAttributorVisitor(
     fun attribExpr(tree: KGTree, data: TCScope): KGTypeTag {
         tree.accept(this, data)
         return result
+    }
+
+    override fun visitTopLevel(file: KGFile, data: TCScope) {
+        file.statements.forEach { it.accept(this, data) }
     }
 
     // Expression visitors
@@ -125,13 +131,7 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: TCScope) {
-        val binding = if (data.vals.containsKey(bindingReference.binding)) {
-            data.vals[bindingReference.binding]
-        } else if (data.functions.containsKey(bindingReference.binding)) {
-            data.functions[bindingReference.binding]
-        } else {
-            null
-        }
+        val binding = data.getVal(bindingReference.binding) ?: data.getFn(bindingReference.binding)
 
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
@@ -149,7 +149,7 @@ class TypeCheckerAttributorVisitor(
         invocation.invokee.accept(this, data)
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val target = data.functions[invocation.invokee.binding]
+                val target = data.getFn(invocation.invokee.binding)
                 if (target == null) {
                     handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
                 } else {
@@ -198,7 +198,8 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: TCScope) {
-        attribExpr(fnDecl.body, data)
+        val fnScope = TCScope(parent = data)
+        attribExpr(fnDecl.body, fnScope)
 
         if (data.functions.containsKey(fnDecl.name)) {
             handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))

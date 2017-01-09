@@ -17,17 +17,13 @@ sealed class TCBinding(val name: String, val expression: KGTree) {
 }
 
 class TCScope(
-        override val vals: HashMap<String, TCBinding.StaticValBinding>,
-        override val functions: HashMap<String, TCBinding.FunctionBinding>,
+        override val vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
+        override val functions: HashMap<String, TCBinding.FunctionBinding> = HashMap(),
         override val parent: TCScope? = null
-) : Scope<HashMap<String, TCBinding.StaticValBinding>, HashMap<String, TCBinding.FunctionBinding>> {
-    companion object {
-        fun empty() = TCScope(vals = HashMap(), functions = HashMap())
-    }
-}
+) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding>
 
 class TCNamespace(name: String, rootScope: TCScope) : Namespace<TCScope>(name, rootScope) {
     companion object {
-        fun empty(name: String) = TCNamespace(name, TCScope.empty())
+        fun empty(name: String) = TCNamespace(name, TCScope())
     }
 }

@@ -17,7 +17,6 @@ import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.util.*
 import java.util.stream.Collectors.joining
 
 val tempClassesPathName = "build/test-temp-classes"
@@ -43,7 +42,8 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
 
             val tcNamespace = TCNamespace.empty(randomClassName)
             treeWrappedInPrintAndMainMethod.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
-            treeWrappedInPrintAndMainMethod.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
+            val ns = CGNamespace(randomClassName, CGScope())
+            treeWrappedInPrintAndMainMethod.accept(codeGenVisitor, ns.rootScope)
 
             writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes()) { output ->
                 assertEquals(expected, output)
@@ -62,7 +62,8 @@ fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
 
     val tcNamespace = TCNamespace.empty(randomClassName)
     file.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
-    file.accept(codeGenVisitor, Namespace(randomClassName, LinkedHashMap(), LinkedHashMap()))
+    val ns = CGNamespace(randomClassName, CGScope())
+    file.accept(codeGenVisitor, ns.rootScope)
 
     writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes(), fn)
 }

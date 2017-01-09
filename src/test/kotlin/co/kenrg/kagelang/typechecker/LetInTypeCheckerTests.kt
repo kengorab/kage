@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.*
+import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGTypeTag
@@ -19,6 +20,76 @@ class LetInTypeCheckerTests {
         )
         val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
         assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+    }
+
+    @Test fun testLetInExpression_bindingUsesNamespaceVal_passesTypechecking() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", KGBinary(intLiteral(1), "+", KGBindingReference("outerVal")))),
+                KGPrint(KGBindingReference("a"))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", intLiteral(2).withType(KGTypeTag.INT)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+    }
+
+    @Test fun testLetInExpression_bodyUsesNamespaceVal_passesTypechecking() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", intLiteral(1))),
+                KGPrint(KGBinary(KGBindingReference("a"), "+", KGBindingReference("outerVal")))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", intLiteral(2).withType(KGTypeTag.INT)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+    }
+
+    @Test fun testLetInExpression_bindingUsesNamespaceFn_passesTypechecking() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", KGInvocation(KGBindingReference("outerFn")))),
+                KGPrint(KGBindingReference("a"))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", intLiteral(2).withType(KGTypeTag.INT), Signature(returnType = KGTypeTag.INT)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+    }
+
+    @Test fun testLetInExpression_bodyUsesNamespaceFn_passesTypechecking() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", intLiteral(1))),
+                KGPrint(KGBinary(KGBindingReference("a"), "+", KGInvocation(KGBindingReference("outerFn"))))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", intLiteral(2).withType(KGTypeTag.INT), Signature(returnType = KGTypeTag.INT)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+    }
+
+    @Test fun testLetInExpression_valBindingReusesNameFromOuterScope_bodyUsesLocalBindingInsteadOfOuterScope() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", intLiteral(1))),
+                KGBinary(KGBindingReference("a"), "+", intLiteral(1))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", decLiteral(2.0).withType(KGTypeTag.DEC)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+
+        // Assert type is INT, because if it used the outer `a` instead of the local `a`, it'd be DEC.
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
+    }
+
+    @Test fun testLetInExpression_fnBindingReusesNameFromOuterScope_bodyUsesLocalBindingInsteadOfOuterScope() {
+        val letInExpr = KGLetIn(
+                listOf(KGFnDeclaration("a", intLiteral(1))),
+                KGBinary(KGInvocation(KGBindingReference("a")), "+", intLiteral(1))
+        )
+        val ns = randomTCNamespace()
+        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", decLiteral(2.0).withType(KGTypeTag.DEC), Signature(returnType = KGTypeTag.DEC)))
+        val result = TypeChecker.typeCheck(letInExpr, ns)
+
+        // Assert type is INT, because if it used the outer `a` instead of the local `a`, it'd be DEC.
+        assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
     }
 
     @TestFactory

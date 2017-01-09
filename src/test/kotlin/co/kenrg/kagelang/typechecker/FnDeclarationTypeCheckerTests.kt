@@ -33,6 +33,18 @@ class FnDeclarationTypeCheckerTests {
         }
     }
 
+    @Test fun typecheckFnDeclaration_usesValDefinedOutsideFn_succeeds() {
+        val fnDecl = KGFnDeclaration("abc", KGBinary(intLiteral(3), "+", KGBindingReference("a")))
+
+        val ns = randomTCNamespace()
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        val result = TypeChecker.typeCheck(fnDecl, ns)
+        assertSucceedsAnd(result) {
+            assertEquals(KGTypeTag.INT, fnDecl.body.type)
+            assertEquals(KGTypeTag.UNIT, it.type)
+        }
+    }
+
     @TestFactory
     @DisplayName("FnDeclaration statements cause the function to be inserted into the bindings, with proper signature")
     fun typecheckFnDeclaration_noParams_fnPresentInBindingsWithProperSignature(): List<DynamicTest> {

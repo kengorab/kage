@@ -1,17 +1,20 @@
 package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.model.Position
+import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.iface.*
 import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.model.Signature
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 
 abstract class KGTree : Tree {
     interface Visitor<in D> {
+        // Top-level visitor
+        fun visitTopLevel(file: KGFile, data: D)
+
         // Expression visitors
         fun visitLiteral(literal: KGLiteral, data: D)
         fun visitUnary(unary: KGUnary, data: D)

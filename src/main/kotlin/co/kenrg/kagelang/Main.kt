@@ -1,13 +1,13 @@
 package co.kenrg.kagelang
 
+import co.kenrg.kagelang.codegen.CGNamespace
+import co.kenrg.kagelang.codegen.CGScope
 import co.kenrg.kagelang.codegen.CodeGenVisitor
-import co.kenrg.kagelang.codegen.Namespace
 import co.kenrg.kagelang.model.Error
 import co.kenrg.kagelang.parser.KageParserFacade
 import co.kenrg.kagelang.typechecker.TCNamespace
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
 import java.io.*
-import java.util.*
 
 private fun printErrors(lines: List<String>, errs: List<Error>) {
     System.err.println("Found ${errs.size} errors:\n")
@@ -66,7 +66,8 @@ fun main(args: Array<String>) {
     }
 
     val codeGenVisitor = CodeGenVisitor(className = "MyClass")
-    parsingResult.root.accept(codeGenVisitor, Namespace("MyClass", LinkedHashMap(), LinkedHashMap()))
+    val cgNamespace = CGNamespace("MyClass", CGScope())
+    parsingResult.root.accept(codeGenVisitor, cgNamespace.rootScope)
 
     val bytes = codeGenVisitor.resultBytes()
     val fos = FileOutputStream("MyClass.class")

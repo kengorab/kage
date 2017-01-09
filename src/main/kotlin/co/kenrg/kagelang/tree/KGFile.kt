@@ -5,9 +5,7 @@ import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 
 class KGFile(var statements: List<KGTree>, var bindings: Map<String, KGTypeTag>) : KGTree() {
-    override fun <D> accept(visitor: Visitor<D>, data: D) {
-        statements.forEach { it.accept(visitor, data) }
-    }
+    override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitTopLevel(this, data)
 
     override fun kind(): Tree.Kind<*> = Tree.Kind.TopLevel
 
