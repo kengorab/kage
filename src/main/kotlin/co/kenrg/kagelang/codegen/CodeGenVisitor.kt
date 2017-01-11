@@ -267,9 +267,15 @@ class CodeGenVisitor(
                 ?: throw IllegalStateException("Binding $name not present in current context")
 
         when (binding) {
-            is StaticValBinding ->
+            is ValBinding.Static ->
                 methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, jvmTypeDescriptorForType(binding.type))
-            else -> throw UnsupportedOperationException("Cannot reference binding: $name, $binding")
+            is ValBinding.Local -> when(binding.type) {
+                KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
+                KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                KGTypeTag.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
+                else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
+            }
         }
     }
 
@@ -298,7 +304,8 @@ class CodeGenVisitor(
     }
 
     override fun visitLetIn(letIn: KGTree.KGLetIn, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        letIn.statements.forEach { it.accept(this, data) }
+        letIn.body.accept(this, data)
     }
 
     /*****************************
@@ -333,19 +340,16 @@ class CodeGenVisitor(
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", printlnSignature, false)
     }
 
-    // TODO - Use this function when scoped bindings are a thing
-//    private fun getIndexForNextLocalVariable(data: Namespace, startIndex: Int = 0): Int {
-//        return if (data.size == 0) {
-//            startIndex
-//        } else {
-//            val previousLocalVariable = data[data.lastKey()]!!
-//            val previousLocalVarSize = when (previousLocalVariable) {
-//                is CodeGenBinding.LocalValBinding -> previousLocalVariable.size
-//                else -> throw UnsupportedOperationException("Need to come back and fix up local variable resolution...currently cannot declare vals after declaring functions...")
-//            }
-//            data.size + previousLocalVarSize + startIndex
-//        }
-//    }
+    private fun getIndexForNextLocalVariable(data: CGScope, startIndex: Int = 0): Int {
+        return if (data.vals.size == 0) {
+            startIndex
+        } else {
+            val previousLocalVariable = data.vals[data.vals.lastKey()]!!
+                    as? ValBinding.Local
+                    ?: throw IllegalStateException("Expected local variable but got Static")
+            data.vals.size + previousLocalVariable.size + startIndex
+        }
+    }
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: CGScope) {
         val valName = valDecl.identifier
@@ -363,26 +367,44 @@ class CodeGenVisitor(
             valDeclExpr.accept(this, data)
             clinitWriter.visitFieldInsn(PUTSTATIC, className, valName, typeDesc)
 
-            data.vals.put(valName, StaticValBinding(valName, valDeclExpr.type))
+            data.vals.put(valName, ValBinding.Static(valName, valDeclExpr.type))
         } else {
-            throw UnsupportedOperationException("Non-root val declaration not yet implemented")
-            // The commented-out block below may be useful in implementing bound val declarations
-//        val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 1)
-//        focusedMethod = prevMethodWriter
-//
-//        methodWriter.visitLocalVariable(valName, typeDesc, null, methodStart, methodEnd, bindingIndex)
-//        valDeclExpr.accept(this, data)
-//        when (valDeclExpr.type) {
-//            KGTypeTag.INT -> methodWriter.visitVarInsn(ISTORE, bindingIndex)
-//            KGTypeTag.DEC -> methodWriter.visitVarInsn(DSTORE, bindingIndex)
-//            KGTypeTag.BOOL -> methodWriter.visitVarInsn(ISTORE, bindingIndex)
-//            KGTypeTag.STRING -> methodWriter.visitVarInsn(ASTORE, bindingIndex)
-//            else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
-//        }
+            val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 0)
+
+            if (data.method == null)
+                throw IllegalStateException("No method writer at non-root scope")
+
+            val (writer, start, end) = data.method!!
+            writer.visitLocalVariable(valName, typeDesc, null, start, end, bindingIndex)
+            valDeclExpr.accept(this, data)
+            when (valDeclExpr.type) {
+                KGTypeTag.INT -> writer.visitVarInsn(ISTORE, bindingIndex)
+                KGTypeTag.DEC -> writer.visitVarInsn(DSTORE, bindingIndex)
+                KGTypeTag.BOOL -> writer.visitVarInsn(ISTORE, bindingIndex)
+                KGTypeTag.STRING -> writer.visitVarInsn(ASTORE, bindingIndex)
+                else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
+            }
+
+            // TODO - Pull this out into separate function
+            val valSize = when (valDeclExpr.type) {
+                KGTypeTag.BOOL,
+                KGTypeTag.STRING,
+                KGTypeTag.INT -> 1
+                KGTypeTag.DEC -> 2
+                else -> throw IllegalStateException("Cannot calculate size of variable of type ${valDeclExpr.type}")
+            }
+
+            // TODO - Fix indexing of local vars with many nested scopes
+            data.vals.put(valName, ValBinding.Local(valName, valDeclExpr.type, valSize, bindingIndex))
         }
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: CGScope) {
+        if (!data.isRoot())
+            // If fn declared at root, encode it as a static method of the class. Otherwise, it needs to be created
+            // dynamically as an anonymous inner subclass of the yet-existent kageruntime.jvm.function.Function.
+            throw UnsupportedOperationException("Non-top-level fns not yet implemented")
+
         val isMain = fnDecl.name == "main"
 
         val signature = if (isMain) "([Ljava/lang/String;)V" else jvmTypeDescriptorForSignature(fnDecl.signature)

@@ -6,17 +6,20 @@ import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
-import java.util.*
+import org.apache.commons.collections4.map.LinkedMap
 
-data class StaticValBinding(val name: String, val type: KGTypeTag)
 data class FunctionBinding(val name: String, val signature: Signature)
+sealed class ValBinding(val name: String, val type: KGTypeTag) {
+    class Local(name: String, type: KGTypeTag, val size: Int = 1, val index: Int) : ValBinding(name, type)
+    class Static(name: String, type: KGTypeTag) : ValBinding(name, type)
+}
 
 data class FocusedMethod(val writer: MethodVisitor, val start: Label?, val end: Label?)
 class CGScope(
-        override val vals: LinkedHashMap<String, StaticValBinding> = LinkedHashMap(),
-        override val functions: LinkedHashMap<String, FunctionBinding> = LinkedHashMap(),
+        override val vals: LinkedMap<String, ValBinding> = LinkedMap(),
+        override val functions: LinkedMap<String, FunctionBinding> = LinkedMap(),
         override val parent: CGScope? = null,
         var method: FocusedMethod? = null
-) : Scope<StaticValBinding, FunctionBinding>
+) : Scope<ValBinding, FunctionBinding>
 
 class CGNamespace(name: String, rootScope: CGScope) : Namespace<CGScope>(name, rootScope)
