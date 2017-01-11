@@ -32,7 +32,7 @@ valDeclaration
     ;
 
 fnDeclaration
-    : 'fn' fnName=Identifier '(' ')' '=' NEWLINE* body=statementOrExpression
+    : 'fn' fnName=Identifier '(' ')' typeAnnotation=TypeAnnotation? '=' NEWLINE* body=statementOrExpression
     ;
 
 print

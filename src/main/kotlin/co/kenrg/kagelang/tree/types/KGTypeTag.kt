@@ -3,15 +3,15 @@ package co.kenrg.kagelang.tree.types
 import co.kenrg.kagelang.tree.iface.LiteralTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 
-enum class KGTypeTag {
+enum class KGTypeTag(val typeName: String) {
     // Literals
-    INT,
-    DEC,
-    BOOL,
-    STRING,
+    INT("Int"),
+    DEC("Dec"),
+    BOOL("Bool"),
+    STRING("String"),
 
-    UNIT,
-    UNSET;
+    UNIT("Unit"),
+    UNSET("???");
 
     fun getLiteralKind(): Tree.Kind<LiteralTree> {
         return when (this) {
@@ -36,3 +36,6 @@ enum class KGTypeTag {
                 }
     }
 }
+
+// Convenience method for nullable-chaining
+fun String.asKGTypeTag() = KGTypeTag.fromString(this)

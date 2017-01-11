@@ -167,7 +167,7 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitValDeclaration(this, data)
     }
 
-    class KGFnDeclaration(val name: String, val body: KGTree) : KGStatement(), FnDeclarationTree {
+    class KGFnDeclaration(val name: String, val body: KGTree, val retTypeAnnotation: KGTypeTag? = null) : KGStatement(), FnDeclarationTree {
         override fun body() = body
         override fun name() = name
 

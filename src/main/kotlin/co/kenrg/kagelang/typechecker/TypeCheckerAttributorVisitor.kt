@@ -201,6 +201,11 @@ class TypeCheckerAttributorVisitor(
         val fnScope = TCScope(parent = data)
         attribExpr(fnDecl.body, fnScope)
 
+        // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
+        if (fnDecl.retTypeAnnotation != null && fnDecl.retTypeAnnotation != fnDecl.body.type) {
+            handleError(Error("Expected return type of ${fnDecl.retTypeAnnotation}, saw ${fnDecl.body.type}", fnDecl.body.position.start))
+        }
+
         if (data.functions.containsKey(fnDecl.name)) {
             handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))
         } else {
