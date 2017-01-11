@@ -2,4 +2,8 @@ fn hello() = "hello"
 fn world() = "world"
 
 fn main() =
-  print(hello() ++ " " ++ 3)
+  let
+    val hello = "hello"
+    val world = "world"
+  in
+    print(hello ++ " " ++ world ++ "\n")
