@@ -8,6 +8,7 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
 /**
@@ -131,17 +132,32 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: TCScope) {
-        val binding = data.getVal(bindingReference.binding) ?: data.getFn(bindingReference.binding)
+        val binding = data.getVal(bindingReference.binding) ?: data.getFnsForName(bindingReference.binding)
 
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
         } else {
-            if (binding.expression.type == KGTypeTag.UNSET) {
-                throw IllegalStateException("Binding expression's type is UNSET, somehow...")
-            }
+//            if (binding.expression.type == KGTypeTag.UNSET) {
+//                throw IllegalStateException("Binding expression's type is UNSET, somehow...")
+//            }
+//
+//            bindingReference.type = binding.expression.type
+//            result = binding.expression.type
+            when (binding) {
+                is TCBinding.StaticValBinding -> {
+                    if (binding.type == KGTypeTag.UNSET) {
+                        throw IllegalStateException("Binding expression's type is UNSET, somehow...")
+                    }
 
-            bindingReference.type = binding.expression.type
-            result = binding.expression.type
+                    bindingReference.type = binding.type
+                    result = binding.type
+                }
+                is TCBinding.FunctionBinding -> {
+                    // TODO - Come back to this. The type of a binding is only the signature's return type if all params supplied.
+                    bindingReference.type = binding.signature.returnType
+                    result = binding.signature.returnType
+                }
+            }
         }
     }
 
@@ -149,12 +165,47 @@ class TypeCheckerAttributorVisitor(
         invocation.invokee.accept(this, data)
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val target = data.getFn(invocation.invokee.binding)
-                if (target == null) {
+                val fnsForName = data.getFnsForName(invocation.invokee.binding)
+                if (fnsForName == null) {
                     handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
                 } else {
-                    invocation.type = target.signature.returnType
-                    result = target.signature.returnType
+                    val fnsMatchingParamsSig = fnsForName.filter {
+                        invocation.params.map { it.type } == it.signature.params
+                    }
+
+                    if (fnsMatchingParamsSig.size > 1) {
+                        handleError(Error("Multiple functions available with name ${invocation.invokee.binding} and params signature", invocation.invokee.position.start))
+                    } else if (fnsMatchingParamsSig.isEmpty()) {
+                        // To not throw a bunch of errors, only try to compare against the first possible match for the
+                        // function's name. In the future, this should probably show all possible matches for function name.
+                        val firstFnForName = fnsForName.first()
+                        if (invocation.params.size == firstFnForName.signature.params.size) {
+                            invocation.params.zip(firstFnForName.signature.params).forEach { pair ->
+                                val (param, requiredType) = pair
+                                if (param.type != requiredType) {
+                                    handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
+                                }
+                            }
+                        } else {
+                            if (invocation.params.size < firstFnForName.signature.params.size) {
+                                // TODO - Allow for currying in the (distant?) future
+                                handleError(Error("Not enough arguments provided", invocation.position.start))
+                            } else {
+                                handleError(Error("Too many arguments provided", invocation.position.start))
+                            }
+                        }
+
+                        // This is a terrible way to assign a type to the invocation; it takes the first possibility
+                        // for a match based on the function's name and uses its return type. Really, it should attempt
+                        // to pick a function whose return type matches the inferred type of the invocation. Inference
+                        // is going to be a whole other animal.
+                        invocation.type = firstFnForName.signature.returnType
+                        result = firstFnForName.signature.returnType
+                    } else {
+                        // If there's exactly 1 function matching the params signature
+                        invocation.type = fnsMatchingParamsSig.first().signature.returnType
+                        result = fnsMatchingParamsSig.first().signature.returnType
+                    }
                 }
             }
             else ->
@@ -163,7 +214,7 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitLetIn(letIn: KGTree.KGLetIn, data: TCScope) {
-        val childScope = TCScope(vals = HashMap(), functions = HashMap(), parent = data)
+        val childScope = TCScope(vals = HashMap(), functions = ArrayListValuedHashMap(), parent = data)
         letIn.statements.forEach { it.accept(this, childScope) }
         letIn.body.accept(this, childScope)
 
@@ -191,14 +242,27 @@ class TypeCheckerAttributorVisitor(
         if (data.vals.containsKey(valDecl.identifier)) {
             handleError(Error("Duplicate binding: val \"${valDecl.identifier}\" already defined in this context", valDecl.position.start))
         } else {
-            data.vals.put(valDecl.identifier, TCBinding.StaticValBinding(valDecl.identifier, valDecl.expression))
+            data.vals.put(valDecl.identifier, TCBinding.StaticValBinding(valDecl.identifier, valDecl.expression.type))
         }
 
         result = KGTypeTag.UNIT
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: TCScope) {
-        val fnScope = TCScope(parent = data)
+        if (fnDecl.params.isNotEmpty()) {
+            fnDecl.params.forEachIndexed { index, param ->
+                if (fnDecl.params.subList(0, index).map { it.name }.contains(param.name)) {
+                    handleError(Error("Cannot have duplicated parameter name ${param.name}", fnDecl.position.start))
+                }
+            }
+        }
+
+        val vals = fnDecl.params.map {
+            it.name to TCBinding.StaticValBinding(it.name, it.type)
+        }.toMap(HashMap<String, TCBinding.StaticValBinding>())
+
+        val fnScope = TCScope(vals = vals, parent = data)
+
         attribExpr(fnDecl.body, fnScope)
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
@@ -206,12 +270,21 @@ class TypeCheckerAttributorVisitor(
             handleError(Error("Expected return type of ${fnDecl.retTypeAnnotation}, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
+        val fnSignature = Signature(params = fnDecl.params.map { it.type }, returnType = fnDecl.body.type)
+
         if (data.functions.containsKey(fnDecl.name)) {
-            handleError(Error("Duplicate binding: val \"${fnDecl.name}\" already defined in this context", fnDecl.position.start))
+            data.functions[fnDecl.name].forEach {
+                if (it.signature.returnType != fnSignature.returnType) {
+                    handleError(Error("Binding \"${fnDecl.name}\" conflicts with another in this context", fnDecl.position.start))
+                } else if (it.signature.params == fnSignature.params) {
+                    handleError(Error("Binding \"${fnDecl.name}\" conflicts with another in this context", fnDecl.position.start))
+                } else {
+                    // If two functions have the same name and return type, but different param signatures, allow it.
+                }
+            }
         } else {
-            val fnSignature = Signature(params = listOf(), returnType = fnDecl.body.type)
             fnDecl.signature = fnSignature
-            data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnDecl.body, fnSignature))
+            data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnSignature))
         }
 
         result = KGTypeTag.UNIT

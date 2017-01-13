@@ -179,6 +179,27 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseFunctionDeclaration_returnTypeAnnotation() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "TypeAnnotation", "ASSIGN", "IntLiteral", "EOF"),
+                tokens(lexerForCode("fn abc(): Int = 3"))
+        )
+    }
+
+    @Test fun parseFunctionDeclaration_oneParam() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "Identifier", "TypeAnnotation", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
+                tokens(lexerForCode("fn abc(x: Int) = 3"))
+        )
+    }
+
+    @Test fun parseFunctionDeclaration_manyParams() {
+        assertEquals(
+                listOf("FN", "Identifier", "LPAREN", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
+                tokens(lexerForCode("fn abc(x: Int, y: Int, z: Int) = 3"))
+        )
+    }
+
     @Test fun parseFunctionInvocation_noParams() {
         assertEquals(
                 listOf("Identifier", "LPAREN", "RPAREN", "EOF"),

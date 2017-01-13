@@ -31,9 +31,7 @@ class BindingReferenceTypeCheckerTests {
 
             dynamicTest("If `val a = $repr` is in context, then the binding reference `a` should have type $exprType") {
                 val ns = randomTCNamespace()
-                ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", innerExpr.withType(exprType)))
-                // Manually add the type using `withType`; normally this would be done by running the expression through
-                // the TypeCheckerAttributorVisitor, but we want to simulate that here in tests.
+                ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", exprType))
 
                 val bindingRef = KGBindingReference("a")
                 val result = TypeChecker.typeCheck(bindingRef, ns)
@@ -46,12 +44,12 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckingBindingReference_inBinaryExpression_binaryExpressionTypeBasedOnBindingType() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", decLiteral(1.2).withType(KGTypeTag.DEC)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.DEC))
 
         val binaryExprUsingBinding = KGBinary(intLiteral(2), "+", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(binaryExprUsingBinding, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.DEC, it.namespace.rootScope.vals["a"]?.expression?.type)
+            assertEquals(KGTypeTag.DEC, it.namespace.rootScope.vals["a"]?.type)
             assertEquals(KGTypeTag.DEC, it.type)
         }
     }
@@ -65,8 +63,7 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckBindingReference_bindingPresentInContext_bindingExpressionTypeUnset_throwsException() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGBinary(intLiteral(1), "+", intLiteral(2))))
-        // The KGBinary hasn't been run through the TypeCheckerAttributorVisitor, so its type is UNSET.
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.UNSET))
 
         val bindingRef = KGBindingReference("a")
         assertThrows<IllegalStateException>(IllegalStateException::class.java) {

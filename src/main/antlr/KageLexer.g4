@@ -77,6 +77,7 @@ RPAREN          : ')' ;
 LBRACE          : '{' ;
 RBRACE          : '}' ;
 COLON           : ':' ;
+COMMA           : ',' ;
 
 // Operators
 PLUS            : '+' ;

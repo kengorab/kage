@@ -7,6 +7,7 @@ import co.kenrg.kagelang.tree.types.KGTypeTag
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
 import org.apache.commons.collections4.map.LinkedMap
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 
 data class FunctionBinding(val name: String, val signature: Signature)
 sealed class ValBinding(val name: String, val type: KGTypeTag) {
@@ -17,7 +18,7 @@ sealed class ValBinding(val name: String, val type: KGTypeTag) {
 data class FocusedMethod(val writer: MethodVisitor, val start: Label?, val end: Label?)
 class CGScope(
         override val vals: LinkedMap<String, ValBinding> = LinkedMap(),
-        override val functions: LinkedMap<String, FunctionBinding> = LinkedMap(),
+        override val functions: ArrayListValuedHashMap<String, FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: CGScope? = null,
         var method: FocusedMethod? = null
 ) : Scope<ValBinding, FunctionBinding>

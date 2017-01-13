@@ -3,22 +3,22 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.model.Namespace
 import co.kenrg.kagelang.model.Scope
 import co.kenrg.kagelang.model.Signature
-import co.kenrg.kagelang.tree.KGTree
+import co.kenrg.kagelang.tree.types.KGTypeTag
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
-sealed class TCBinding(val name: String, val expression: KGTree) {
-    class StaticValBinding(identifier: String, expression: KGTree) : TCBinding(identifier, expression)
+sealed class TCBinding(val name: String) {
+    class StaticValBinding(identifier: String, val type: KGTypeTag) : TCBinding(identifier)
 
     class FunctionBinding(
             name: String,
-            expression: KGTree,
             val signature: Signature
-    ) : TCBinding(name, expression)
+    ) : TCBinding(name)
 }
 
 class TCScope(
         override val vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
-        override val functions: HashMap<String, TCBinding.FunctionBinding> = HashMap(),
+        override val functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: TCScope? = null
 ) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding>
 

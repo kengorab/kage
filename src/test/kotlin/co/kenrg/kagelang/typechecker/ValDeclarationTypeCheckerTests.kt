@@ -49,7 +49,7 @@ class ValDeclarationTypeCheckerTests {
             dynamicTest("After typechecking $repr, there should be a val `a` with type $exprType in `bindings`") {
                 val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                 assertSucceedsAnd(result) {
-                    assertEquals(it.namespace.rootScope.vals["a"]?.expression?.type, exprType)
+                    assertEquals(it.namespace.rootScope.vals["a"]?.type, exprType)
                 }
             }
         }
@@ -57,18 +57,18 @@ class ValDeclarationTypeCheckerTests {
 
     @Test fun typecheckValDeclaration_assignValToBinding_newValHasTypeOfBinding() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
 
         val valDeclOfBinding = KGValDeclaration("b", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(valDeclOfBinding, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.INT, it.namespace.rootScope.vals["b"]?.expression?.type)
+            assertEquals(KGTypeTag.INT, it.namespace.rootScope.vals["b"]?.type)
         }
     }
 
     @Test fun typecheckValDeclaration_duplicateValDeclaration_typecheckingFails() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
 
         val valDecl = KGValDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, ns)

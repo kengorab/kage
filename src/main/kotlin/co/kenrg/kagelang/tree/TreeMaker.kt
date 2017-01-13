@@ -3,6 +3,7 @@ package co.kenrg.kagelang.tree
 import co.kenrg.kagelang.KageParser
 import co.kenrg.kagelang.model.Point
 import co.kenrg.kagelang.model.Position
+import co.kenrg.kagelang.tree.iface.FnDeclarationTree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import co.kenrg.kagelang.tree.types.asKGTypeTag
 import org.antlr.v4.runtime.ParserRuleContext
@@ -39,6 +40,9 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGFnDeclaration(
                         name = statement.fnDeclaration().fnName.text,
                         body = statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression()),
+                        params = statement.fnDeclaration().params?.fnParam()?.map {
+                            FnDeclarationTree.Param(it.Identifier().text, it.TypeAnnotation().text.asKGTypeTag())
+                        } ?: listOf(),
                         retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.text?.asKGTypeTag()
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")

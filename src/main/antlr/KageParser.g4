@@ -31,8 +31,16 @@ valDeclaration
     : 'val' Identifier typeAnnotation=TypeAnnotation? '=' expression
     ;
 
+fnParam
+    : Identifier TypeAnnotation
+    ;
+
+fnParams
+    : fnParam (',' fnParam)*
+    ;
+
 fnDeclaration
-    : 'fn' fnName=Identifier '(' ')' typeAnnotation=TypeAnnotation? '=' NEWLINE* body=statementOrExpression
+    : 'fn' fnName=Identifier '(' params=fnParams? ')' typeAnnotation=TypeAnnotation? '=' NEWLINE* body=statementOrExpression
     ;
 
 print

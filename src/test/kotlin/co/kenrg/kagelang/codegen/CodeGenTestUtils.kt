@@ -38,7 +38,7 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
             val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
             val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
-            val treeWrappedInPrintAndMainMethod = KGTree.KGFnDeclaration("main", KGTree.KGPrint(expr = tree))
+            val treeWrappedInPrintAndMainMethod = KGTree.KGFnDeclaration("main", KGTree.KGPrint(expr = tree), listOf())
 
             val tcNamespace = TCNamespace.empty(randomClassName)
             treeWrappedInPrintAndMainMethod.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
@@ -53,7 +53,8 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
 }
 
 fun wrapInMainMethod(statementOrExpression: KGTree) =
-        KGTree.KGFnDeclaration("main", statementOrExpression)
+        // There's a hard-coded special case for main methods at this point, so any params passed here will be ignored.
+        KGTree.KGFnDeclaration("main", statementOrExpression, listOf())
 
 fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val randomClassName = RandomStringUtils.randomAlphabetic(16)

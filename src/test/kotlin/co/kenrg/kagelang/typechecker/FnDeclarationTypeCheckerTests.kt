@@ -5,6 +5,7 @@ import co.kenrg.kagelang.codegen.trueLiteral
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
+import co.kenrg.kagelang.tree.iface.FnDeclarationTree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.*
@@ -45,7 +46,7 @@ class FnDeclarationTypeCheckerTests {
                 val (fnBody, repr) = fnBodyAndReprForType(type)
 
                 dynamicTest("$repr should pass typechecking, since its body's type is $type") {
-                    val statement = KGFnDeclaration("abc", fnBody, type)
+                    val statement = KGFnDeclaration("abc", fnBody, listOf(), type)
                     val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                     assertSucceedsAnd(result) { assertEquals(type, statement.body.type) }
                 }
@@ -61,11 +62,96 @@ class FnDeclarationTypeCheckerTests {
                 val (fnBody, repr) = fnBodyAndReprForType(type, returnAnnotationType)
 
                 dynamicTest("$repr should fail typechecking, since its body's type is $type but the return annotation is $returnAnnotationType") {
-                    val statement = KGFnDeclaration("abc", fnBody, returnAnnotationType)
+                    val statement = KGFnDeclaration("abc", fnBody, listOf(), returnAnnotationType)
                     val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                     assertFails(result)
                 }
             }
+        }
+    }
+
+    @Nested
+    inner class FnDeclarationWithParams {
+
+        @Test fun typecheckFnDeclaration_duplicateParamsSameType_typecheckingFails() {
+            // fn abc(a: Int, a: Int) = 1
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnDeclarationTree.Param("a", KGTypeTag.INT), FnDeclarationTree.Param("a", KGTypeTag.INT)))
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertFails(result)
+        }
+
+        @Test fun typecheckFnDeclaration_duplicateParams_typecheckingFails() {
+            // fn abc(a: Int, b: String, a: Bool) = 1
+            val statement = KGFnDeclaration(
+                    "abc",
+                    intLiteral(1),
+                    listOf(
+                            FnDeclarationTree.Param("a", KGTypeTag.INT),
+                            FnDeclarationTree.Param("b", KGTypeTag.BOOL),
+                            FnDeclarationTree.Param("a", KGTypeTag.INT)
+                    )
+            )
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertFails(result)
+        }
+
+        @Test fun typecheckFnDeclaration_oneParamWithTypeAnnotation_passesTypecheckingWithSignatureSet() {
+            // fn abc(a: Int) = 1
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnDeclarationTree.Param("a", KGTypeTag.INT)))
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                val abc = it.namespace.rootScope.functions["abc"]
+                assertNotNull(abc)
+                assertEquals(Signature(params = listOf(KGTypeTag.INT), returnType = KGTypeTag.INT), abc[0].signature)
+            }
+        }
+
+        @Test fun typecheckFnDeclaration_manyParamsWithTypeAnnotations_passesTypecheckingWithSignatureSet() {
+            // fn abc(a: Int, a1: Int, b: Bool, c: String) = 1
+            val statement = KGFnDeclaration(
+                    "abc",
+                    intLiteral(1),
+                    listOf(
+                            FnDeclarationTree.Param("a", KGTypeTag.INT), FnDeclarationTree.Param("a1", KGTypeTag.INT),
+                            FnDeclarationTree.Param("b", KGTypeTag.BOOL), FnDeclarationTree.Param("c", KGTypeTag.STRING)
+                    )
+            )
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                val abc = it.namespace.rootScope.functions["abc"]
+                assertNotNull(abc)
+                assertEquals(
+                        Signature(params = listOf(KGTypeTag.INT, KGTypeTag.INT, KGTypeTag.BOOL, KGTypeTag.STRING), returnType = KGTypeTag.INT),
+                        abc[0].signature
+                )
+            }
+        }
+
+        @Test fun typecheckFnDeclaration_oneParamWithTypeAnnotation_useParamInBody_passesTypechecking() {
+            // fn abc(a: Int) = a + 1
+            val statement = KGFnDeclaration(
+                    "abc",
+                    KGBinary(KGBindingReference("a"), "+", intLiteral(1)),
+                    listOf(FnDeclarationTree.Param("a", KGTypeTag.INT))
+            )
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                assertEquals(KGTypeTag.INT, statement.body.type)
+                val abc = it.namespace.rootScope.functions["abc"]
+                assertNotNull(abc)
+                assertEquals(Signature(params = listOf(KGTypeTag.INT), returnType = KGTypeTag.INT), abc[0].signature)
+            }
+        }
+
+        @Test fun typecheckFnDeclaration_twoParamsUsedInBody_bodyFailsTypechecking_failsTypechecking() {
+            // fn abc(a: Int, b: String) = a + b
+            val statement = KGFnDeclaration(
+                    "abc",
+                    KGBinary(KGBindingReference("a"), "+", KGBindingReference("b")),
+                    listOf(FnDeclarationTree.Param("a", KGTypeTag.INT), FnDeclarationTree.Param("b", KGTypeTag.STRING))
+            )
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertFails(result)
         }
     }
 
@@ -91,7 +177,7 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration("abc", KGBinary(intLiteral(3), "+", KGBindingReference("a")))
 
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertSucceedsAnd(result) {
             assertEquals(KGTypeTag.INT, fnDecl.body.type)
@@ -113,50 +199,52 @@ class FnDeclarationTypeCheckerTests {
                     val fn = it.namespace.rootScope.functions["abc"]
                     assertNotNull(fn)
 
-                    assertEquals(Signature(params = listOf(), returnType = type), fn?.signature)
+                    assertEquals(Signature(params = listOf(), returnType = type), fn[0].signature)
                 }
             }
         }
     }
 
-    @Test fun typecheckValDeclaration_assignValToBinding_newValHasTypeOfBinding() {
-        val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+    @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_differentParamSignature_sameReturnType_typecheckingPasses() {
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
 
-        val valDeclOfBinding = KGValDeclaration("b", KGBindingReference("a"))
-        val result = TypeChecker.typeCheck(valDeclOfBinding, ns)
-        assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.INT, it.namespace.rootScope.vals["b"]?.expression?.type)
-        }
+        val ns = randomTCNamespace()
+        ns.rootScope.functions.put("abc", abcFn)
+
+        val fnDecl = KGFnDeclaration(
+                "abc",
+                intLiteral(3),
+                listOf(FnDeclarationTree.Param("b", KGTypeTag.BOOL)),
+                KGTypeTag.INT
+        )
+        val result = TypeChecker.typeCheck(fnDecl, ns)
+        assertSucceeds(result)
     }
 
-    @Test fun typecheckValDeclaration_duplicateValDeclaration_typecheckingFails() {
+    @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_sameParamSignature_differentReturnType_typecheckingFails() {
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
+
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", intLiteral(1).withType(KGTypeTag.INT)))
+        ns.rootScope.functions.put("abc", abcFn)
 
-        val valDecl = KGValDeclaration("a", trueLiteral())
-        val result = TypeChecker.typeCheck(valDecl, ns)
-
+        val fnDecl = KGFnDeclaration("abc", trueLiteral(), listOf(), KGTypeTag.BOOL)
+        val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
 
-    @Test fun typecheckFnDeclaration_duplicateFnDeclaration_typecheckingFails() {
+    @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_differentParamSignature_differentReturnType_typecheckingFails() {
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
+
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
+        ns.rootScope.functions.put("abc", abcFn)
 
-        val valDecl = KGFnDeclaration("a", trueLiteral())
-        val result = TypeChecker.typeCheck(valDecl, ns)
-
-        assertFails(result)
-    }
-
-    @Test fun typecheckFnDeclaration_duplicateValDeclaration_typecheckingFails() {
-        val ns = randomTCNamespace()
-        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", intLiteral(1).withType(KGTypeTag.INT), Signature(params = listOf(), returnType = KGTypeTag.INT)))
-
-        val valDecl = KGFnDeclaration("a", trueLiteral())
-        val result = TypeChecker.typeCheck(valDecl, ns)
-
+        val fnDecl = KGFnDeclaration(
+                "abc",
+                trueLiteral(),
+                listOf(FnDeclarationTree.Param("b", KGTypeTag.BOOL)),
+                KGTypeTag.BOOL
+        )
+        val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
 }

@@ -269,7 +269,7 @@ class CodeGenVisitor(
         when (binding) {
             is ValBinding.Static ->
                 methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, jvmTypeDescriptorForType(binding.type))
-            is ValBinding.Local -> when(binding.type) {
+            is ValBinding.Local -> when (binding.type) {
                 KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
                 KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
                 KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
@@ -282,10 +282,16 @@ class CodeGenVisitor(
     override fun visitInvocation(invocation: KGTree.KGInvocation, data: CGScope) {
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val target = data.getFn(invocation.invokee.binding)
-                if (target == null) {
+                val fnsMatchingParamsSig = data.getFnsForName(invocation.invokee.binding)?.filter {
+                    it.signature.params == invocation.params.map { it.type }
+                }
+
+                if (fnsMatchingParamsSig == null) {
                     throw IllegalStateException("Binding with name ${invocation.invokee.binding} not visible in current context")
+                } else if (fnsMatchingParamsSig.size > 1) {
+                    throw IllegalStateException("Multiple functions available with name ${invocation.invokee.binding} and params signature")
                 } else {
+                    val target = fnsMatchingParamsSig.first()
                     when (target) {
                         is FunctionBinding -> {
                             val methodWriter = data.method?.writer
