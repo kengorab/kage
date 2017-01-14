@@ -17,7 +17,8 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Concatenation of Strings (++)~~
   - ~~Concatenation of Strings and non-Strings~~
 - ~~Type annotations~~
-- Top-level function declaration
+- ~~Top-level function declaration~~
+- ~~Function invocation (top-level functions)~~
 - Warnings/validations
   - No top-level expressions
 - Arrays
@@ -29,7 +30,6 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - When attributing types, if node has error give it a type of ERROR and don't continue checking
     (This avoids an error being pointed out at each parent expression)
 - If-expression
-- Function invocation
 - Custom types (other than primitives Int, Dec, Bool, and String)
 - Compiler command-line arguments
   - input file
