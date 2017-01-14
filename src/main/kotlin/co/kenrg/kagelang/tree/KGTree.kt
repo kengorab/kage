@@ -1,5 +1,6 @@
 package co.kenrg.kagelang.tree
 
+import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Position
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.iface.*
@@ -172,7 +173,7 @@ abstract class KGTree : Tree {
     class KGFnDeclaration(
             val name: String,
             val body: KGTree,
-            val params: List<FnDeclarationTree.Param> = listOf(),
+            val params: List<FnParameter> = listOf(),
             val retTypeAnnotation: KGTypeTag? = null
     ) : KGStatement(), FnDeclarationTree {
         override fun params() = params

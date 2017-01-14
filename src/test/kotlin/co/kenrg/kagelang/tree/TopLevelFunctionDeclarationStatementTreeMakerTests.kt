@@ -1,9 +1,9 @@
 package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.codegen.intLiteral
+import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGFnDeclaration
-import co.kenrg.kagelang.tree.iface.FnDeclarationTree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -34,7 +34,7 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                 KGFnDeclaration(
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
-                        listOf(FnDeclarationTree.Param("a", KGTypeTag.INT)),
+                        listOf(FnParameter("a", KGTypeTag.INT)),
                         KGTypeTag.INT
                 )
         )
@@ -48,9 +48,9 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
                         listOf(
-                                FnDeclarationTree.Param("a", KGTypeTag.INT),
-                                FnDeclarationTree.Param("b", KGTypeTag.STRING),
-                                FnDeclarationTree.Param("c", KGTypeTag.BOOL)
+                                FnParameter("a", KGTypeTag.INT),
+                                FnParameter("b", KGTypeTag.STRING),
+                                FnParameter("c", KGTypeTag.BOOL)
                         ),
                         KGTypeTag.INT
                 )

@@ -170,7 +170,7 @@ class TypeCheckerAttributorVisitor(
                     handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
                 } else {
                     val fnsMatchingParamsSig = fnsForName.filter {
-                        invocation.params.map { it.type } == it.signature.params
+                        invocation.params.map { it.type } == it.signature.params.map { it.type }
                     }
 
                     if (fnsMatchingParamsSig.size > 1) {
@@ -182,7 +182,7 @@ class TypeCheckerAttributorVisitor(
                         if (invocation.params.size == firstFnForName.signature.params.size) {
                             invocation.params.zip(firstFnForName.signature.params).forEach { pair ->
                                 val (param, requiredType) = pair
-                                if (param.type != requiredType) {
+                                if (param.type != requiredType.type) {
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                                 }
                             }
@@ -270,7 +270,7 @@ class TypeCheckerAttributorVisitor(
             handleError(Error("Expected return type of ${fnDecl.retTypeAnnotation}, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
-        val fnSignature = Signature(params = fnDecl.params.map { it.type }, returnType = fnDecl.body.type)
+        val fnSignature = Signature(params = fnDecl.params, returnType = fnDecl.body.type)
 
         if (data.functions.containsKey(fnDecl.name)) {
             data.functions[fnDecl.name].forEach {
@@ -282,11 +282,10 @@ class TypeCheckerAttributorVisitor(
                     // If two functions have the same name and return type, but different param signatures, allow it.
                 }
             }
-        } else {
-            fnDecl.signature = fnSignature
-            data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnSignature))
         }
 
+        fnDecl.signature = fnSignature
+        data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnSignature))
         result = KGTypeTag.UNIT
     }
 }

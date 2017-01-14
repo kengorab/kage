@@ -1,15 +1,262 @@
 package co.kenrg.kagelang.codegen
 
+import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree.*
+import co.kenrg.kagelang.tree.types.KGTypeTag
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
-import org.junit.jupiter.api.TestFactory
 import java.util.*
 
 class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
+
+    @Nested
+    inner class FunctionsWithParameters {
+        @Test fun testFnDeclarationInvocationWithParameter() {
+            // fn abc(a: Int) = print(a + 2)
+            // fn main(...) = abc(1)
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration("abc", KGPrint(KGBinary(KGBindingReference("a"), "+", intLiteral(2))), listOf(FnParameter("a", KGTypeTag.INT)), KGTypeTag.UNIT),
+                            wrapInMainMethod(KGInvocation(KGBindingReference("abc"), listOf(intLiteral(1).withType(KGTypeTag.INT))))
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("3", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocationWithMultipleParameters() {
+            // fn abc(a: Int, b: Int): Int = a + b
+            // fn main(...) = print(abc(1, 3))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "abc",
+                                    KGBinary(KGBindingReference("a"), "+", KGBindingReference("b")),
+                                    listOf(FnParameter("a", KGTypeTag.INT), FnParameter("b", KGTypeTag.INT)),
+                                    KGTypeTag.INT
+                            ),
+                            wrapInMainMethod(KGPrint(KGInvocation(
+                                    KGBindingReference("abc"),
+                                    listOf(
+                                            intLiteral(1).withType(KGTypeTag.INT),
+                                            intLiteral(3).withType(KGTypeTag.INT)
+                                    )))
+                            )
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("4", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocationWithParams_notAllParamsUsed() {
+            // fn abc(a: Int, b: Int): Int = a + 1
+            // fn main(...) = print(abc(1, 1000))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "abc",
+                                    KGBinary(KGBindingReference("a"), "+", intLiteral(1)),
+                                    listOf(FnParameter("a", KGTypeTag.INT), FnParameter("b", KGTypeTag.INT)),
+                                    KGTypeTag.INT
+                            ),
+                            wrapInMainMethod(KGPrint(KGInvocation(
+                                    KGBindingReference("abc"),
+                                    listOf(
+                                            intLiteral(1).withType(KGTypeTag.INT),
+                                            intLiteral(1000).withType(KGTypeTag.INT)
+                                    )))
+                            )
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("2", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocationWithParam_paramIsExpression() {
+            // fn exclaim(str: String): String = str ++ "!"
+            // fn main(...) = print(exclaim("Hello" ++ " World"))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    KGBinary(KGBindingReference("str"), "++", stringLiteral("!")),
+                                    listOf(FnParameter("str", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            wrapInMainMethod(KGPrint(KGInvocation(
+                                    KGBindingReference("exclaim"),
+                                    listOf(
+                                            KGBinary(
+                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
+                                                    "++",
+                                                    stringLiteral(" World").withType(KGTypeTag.STRING)
+                                            ).withType(KGTypeTag.STRING)
+                                    )))
+                            )
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("Hello World!", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocationWithParam_paramIsInvocation() {
+            // fn exclaim(str: String): String = str ++ "!"
+            // fn main(...) = print(exclaim(exclaim("Hello World")))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    KGBinary(KGBindingReference("str"), "++", stringLiteral("!").withType(KGTypeTag.STRING)),
+                                    listOf(FnParameter("str", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            wrapInMainMethod(KGPrint(
+                                    KGInvocation(
+                                            KGBindingReference("exclaim"),
+                                            listOf(
+                                                    KGInvocation(
+                                                            KGBindingReference("exclaim"),
+                                                            listOf(
+                                                                    stringLiteral("Hello World").withType(KGTypeTag.STRING)
+                                                            )
+                                                    ).withType(KGTypeTag.STRING)
+                                            )
+                                    ))
+                            )
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("Hello World!!", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocationWithParams_paramShadowsExtVal_usesParam() {
+            // val a = "Static val"
+            // fn exclaim(a: String): String = a ++ "!"
+            // fn main(...) = print(exclaim("Hello"))
+            val file = KGFile(
+                    statements = listOf(
+                            KGValDeclaration("a", stringLiteral("Static val").withType(KGTypeTag.STRING)),
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    KGBinary(KGBindingReference("a"), "++", stringLiteral("!").withType(KGTypeTag.STRING)),
+                                    listOf(FnParameter("a", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            wrapInMainMethod(KGPrint(KGInvocation(
+                                    KGBindingReference("exclaim"),
+                                    listOf(
+                                            stringLiteral("Hello").withType(KGTypeTag.STRING)
+                                    )))
+                            )
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("Hello!", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocation_polymorphism_sameNumberOfParams() {
+            // fn polyFunc(a: String, b: Int): String = "String, Int\n"
+            // fn polyFunc(a: String, b: String): String = "String, String\n"
+            // fn main(...) = print(exclaim("Hello", 1))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    stringLiteral("String, Int\n").withType(KGTypeTag.STRING),
+                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.INT)),
+                                    KGTypeTag.STRING
+                            ),
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    stringLiteral("String, String\n").withType(KGTypeTag.STRING),
+                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            wrapInMainMethod(KGPrint(KGBinary(
+                                    KGInvocation(
+                                            KGBindingReference("exclaim"),
+                                            listOf(
+                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
+                                                    intLiteral(1).withType(KGTypeTag.INT)
+                                            )),
+                                    "++",
+                                    KGInvocation(
+                                            KGBindingReference("exclaim"),
+                                            listOf(
+                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
+                                                    stringLiteral("World").withType(KGTypeTag.STRING)
+                                            ))
+                            )))
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("String, Int\nString, String\n", output)
+            }
+        }
+
+        @Test fun testFnDeclarationInvocation_polymorphism_differentNumberOfParams() {
+            // fn polyFunc(a: String): String = "String\n"
+            // fn polyFunc(a: String, b: String): String = "String, String\n"
+            // fn main(...) = print(exclaim("Hello", 1))
+            val file = KGFile(
+                    statements = listOf(
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    stringLiteral("String\n").withType(KGTypeTag.STRING),
+                                    listOf(FnParameter("a", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            KGFnDeclaration(
+                                    "exclaim",
+                                    stringLiteral("String, String\n").withType(KGTypeTag.STRING),
+                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.STRING)),
+                                    KGTypeTag.STRING
+                            ),
+                            wrapInMainMethod(KGPrint(KGBinary(
+                                    KGInvocation(
+                                            KGBindingReference("exclaim"),
+                                            listOf(
+                                                    stringLiteral("Hello").withType(KGTypeTag.STRING)
+                                            )),
+                                    "++",
+                                    KGInvocation(
+                                            KGBindingReference("exclaim"),
+                                            listOf(
+                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
+                                                    stringLiteral("World").withType(KGTypeTag.STRING)
+                                            ))
+                            )))
+                    ),
+                    bindings = HashMap()
+            )
+
+            compileAndExecuteFileAnd(file) { output ->
+                assertEquals("String\nString, String\n", output)
+            }
+        }
+    }
 
     @TestFactory
     @DisplayName("Declaring a no-params function whose body is an expression of literals, then printing the invocation")

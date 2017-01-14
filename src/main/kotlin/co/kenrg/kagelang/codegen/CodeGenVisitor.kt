@@ -282,30 +282,24 @@ class CodeGenVisitor(
     override fun visitInvocation(invocation: KGTree.KGInvocation, data: CGScope) {
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val fnsMatchingParamsSig = data.getFnsForName(invocation.invokee.binding)?.filter {
-                    it.signature.params == invocation.params.map { it.type }
+                // Grab the first function. At this point, it's already passed typechecking so there
+                // should definitely be a function matching the necessary param signature.
+                val fnForName = data.getFnsForName(invocation.invokee.binding)
+                        ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.type } }
+                        ?.elementAtOrNull(0)
+                        ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
+
+                val methodWriter = data.method?.writer
+                        ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
+
+                invocation.params.forEach {
+                    it.accept(this, data)
                 }
 
-                if (fnsMatchingParamsSig == null) {
-                    throw IllegalStateException("Binding with name ${invocation.invokee.binding} not visible in current context")
-                } else if (fnsMatchingParamsSig.size > 1) {
-                    throw IllegalStateException("Multiple functions available with name ${invocation.invokee.binding} and params signature")
-                } else {
-                    val target = fnsMatchingParamsSig.first()
-                    when (target) {
-                        is FunctionBinding -> {
-                            val methodWriter = data.method?.writer
-                                    ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
-                            val signature = jvmTypeDescriptorForSignature(target.signature)
-                            methodWriter.visitMethodInsn(INVOKESTATIC, className, target.name, signature, false)
-                        }
-                        else ->
-                            throw IllegalStateException("Expression is not invokable")
-                    }
-                }
+                val signature = jvmTypeDescriptorForSignature(fnForName.signature)
+                methodWriter.visitMethodInsn(INVOKESTATIC, className, fnForName.name, signature, false)
             }
-            else ->
-                throw IllegalStateException("Expression is not invokable")
+            else -> throw IllegalStateException("Expression is not invokable")
         }
     }
 
@@ -330,7 +324,7 @@ class CodeGenVisitor(
     }
 
     private fun jvmTypeDescriptorForSignature(signature: Signature): String {
-        return "()${jvmTypeDescriptorForType(signature.returnType)}"
+        return "(${signature.params.map { jvmTypeDescriptorForType(it.type) }.joinToString("")})${jvmTypeDescriptorForType(signature.returnType)}"
     }
 
     override fun visitPrint(print: KGTree.KGPrint, data: CGScope) {
@@ -347,14 +341,13 @@ class CodeGenVisitor(
     }
 
     private fun getIndexForNextLocalVariable(data: CGScope, startIndex: Int = 0): Int {
-        return if (data.vals.size == 0) {
-            startIndex
-        } else {
-            val previousLocalVariable = data.vals[data.vals.lastKey()]!!
-                    as? ValBinding.Local
-                    ?: throw IllegalStateException("Expected local variable but got Static")
-            data.vals.size + previousLocalVariable.size + startIndex
-        }
+        return data.vals.values
+                .map {
+                    val localVal = it as? ValBinding.Local
+                            ?: throw IllegalStateException("Expected local variable but saw Static")
+                    localVal.size
+                }
+                .fold(startIndex, Int::plus)
     }
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: CGScope) {
@@ -391,24 +384,15 @@ class CodeGenVisitor(
                 else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
             }
 
-            // TODO - Pull this out into separate function
-            val valSize = when (valDeclExpr.type) {
-                KGTypeTag.BOOL,
-                KGTypeTag.STRING,
-                KGTypeTag.INT -> 1
-                KGTypeTag.DEC -> 2
-                else -> throw IllegalStateException("Cannot calculate size of variable of type ${valDeclExpr.type}")
-            }
-
             // TODO - Fix indexing of local vars with many nested scopes
-            data.vals.put(valName, ValBinding.Local(valName, valDeclExpr.type, valSize, bindingIndex))
+            data.vals.put(valName, ValBinding.Local(valName, valDeclExpr.type, valDeclExpr.type.getSize(), bindingIndex))
         }
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: CGScope) {
+        // If fn declared at root, encode it as a static method of the class. Otherwise, it needs to be created
+        // dynamically as an anonymous inner subclass of the yet-existent kageruntime.jvm.function.Function.
         if (!data.isRoot())
-            // If fn declared at root, encode it as a static method of the class. Otherwise, it needs to be created
-            // dynamically as an anonymous inner subclass of the yet-existent kageruntime.jvm.function.Function.
             throw UnsupportedOperationException("Non-top-level fns not yet implemented")
 
         val isMain = fnDecl.name == "main"
@@ -421,6 +405,15 @@ class CodeGenVisitor(
         fnWriter.visitLabel(fnStart)
 
         val fnScope = CGScope(parent = data, method = FocusedMethod(fnWriter, fnStart, fnEnd))
+
+        // Since we can make the assumption that this is a static method (all functions are static methods at the moment)
+        // then place the local variables at their indices, starting at 0.
+        fnDecl.params.forEach {
+            val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
+            fnScope.vals.put(it.name, ValBinding.Local(it.name, it.type, it.type.getSize(), index))
+            fnWriter.visitLocalVariable(it.name, jvmTypeDescriptorForType(it.type), null, fnStart, fnEnd, index)
+        }
+
         fnDecl.body.accept(this, fnScope)
 
         if (isMain) {
@@ -435,6 +428,7 @@ class CodeGenVisitor(
                 KGTypeTag.DEC -> fnWriter.visitInsn(DRETURN)
                 KGTypeTag.BOOL -> fnWriter.visitInsn(IRETURN)
                 KGTypeTag.STRING -> fnWriter.visitInsn(ARETURN)
+                KGTypeTag.UNIT -> fnWriter.visitInsn(RETURN)
                 else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
             }
         }

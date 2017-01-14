@@ -23,6 +23,14 @@ enum class KGTypeTag(val typeName: String) {
         }
     }
 
+    fun getSize() = when (this) {
+        KGTypeTag.BOOL,
+        KGTypeTag.STRING,
+        KGTypeTag.INT -> 1
+        KGTypeTag.DEC -> 2
+        else -> throw IllegalStateException("Cannot calculate size of type $this")
+    }
+
     companion object {
         val numericTypes = listOf(INT, DEC)
 

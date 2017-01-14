@@ -1,10 +1,10 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.*
+import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.iface.FnDeclarationTree
 import co.kenrg.kagelang.tree.types.KGTypeTag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
@@ -163,7 +163,7 @@ class LetInTypeCheckerTests {
                 listOf(KGValDeclaration("a", intLiteral(1)), KGValDeclaration("a", intLiteral(2))),
                 KGPrint(KGBindingReference("a"))
         )
-        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnDeclarationTree.Param("a", KGTypeTag.STRING)))
+        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", KGTypeTag.STRING)))
         val result = TypeChecker.typeCheck(fnDecl, randomTCNamespace())
         assertFails(result)
     }

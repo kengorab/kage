@@ -63,6 +63,11 @@ fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
 
     val tcNamespace = TCNamespace.empty(randomClassName)
     file.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
+
+    if (!typeCheckAttribVisitor.isValid()) {
+        fail("File failed typechecking with the following errors: ${typeCheckAttribVisitor.typeErrors}")
+    }
+
     val ns = CGNamespace(randomClassName, CGScope())
     file.accept(codeGenVisitor, ns.rootScope)
 
