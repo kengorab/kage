@@ -32,7 +32,7 @@ class CodeGenVisitor(
     val clinitWriter: MethodVisitor = cw.visitMethod(ACC_STATIC, "<clinit>", "()V", null, null)
 
     init {
-        cw.visit(V1_8, ACC_PUBLIC, className, null, "java/lang/Object", null)
+        cw.visit(V1_6, ACC_PUBLIC, className, null, "java/lang/Object", null)
 
         // Initialize <clinit> method writer for class. This method writer will be used to initialize all the static
         // values for the class (namespace).
