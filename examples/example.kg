@@ -2,12 +2,4 @@ fn hello() = "hello"
 fn world() = "world"
 
 fn main() =
-  let
-    val hello = "hello"
-
-    val world = let
-        val sp = " "
-      in
-        sp ++ "world"
-  in
-    print(hello ++ world)
+  print(hello() ++ world())
