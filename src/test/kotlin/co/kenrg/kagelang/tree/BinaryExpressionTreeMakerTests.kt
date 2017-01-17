@@ -84,4 +84,38 @@ class BinaryExpressionTreeMakerTests {
         val expected = kageFileFromLines(KGBinary(KGBinary(stringLiteral("hello"), "++", stringLiteral(" ")), "++", stringLiteral("world")))
         assertEquals(expected, kageFile)
     }
+
+    @TestFactory
+    fun testParseAndTransformBooleanComparisons(): List<DynamicTest> {
+        data class Case(val repr: String, val expr: KGTree.KGExpression)
+
+        return listOf(">", "<").flatMap { op ->
+            listOf(
+                    Case(
+                            "3 $op 1",
+                            KGBinary(intLiteral(3), op, intLiteral(1))
+                    ),
+                    Case(
+                            "1 * 3 $op 1 / 2.0",
+                            KGBinary(KGBinary(intLiteral(1), "*", intLiteral(3)), op, KGBinary(intLiteral(1), "/", decLiteral(2.0)))
+                    ),
+                    Case(
+                            "3 $op 1 && 3 $op 2",
+                            KGBinary(KGBinary(intLiteral(3), op, intLiteral(1)), "&&", KGBinary(intLiteral(3), op, intLiteral(2)))
+                    ),
+                    Case(
+                            "3 $op 1 || 3 $op 2",
+                            KGBinary(KGBinary(intLiteral(3), op, intLiteral(1)), "||", KGBinary(intLiteral(3), op, intLiteral(2)))
+                    )
+            ).map { testCase ->
+                val (repr, expr) = testCase
+
+                dynamicTest("`$repr` should be correctly transformed into a tree") {
+                    val kageFile = kageFileFromCode(repr)
+                    val expected = kageFileFromLines(expr)
+                    assertEquals(expected, kageFile)
+                }
+            }
+        }
+    }
 }

@@ -91,6 +91,8 @@ PIPE            : '|' ;
 PIPES           : '||' ;
 AMP             : '&' ;
 AMPS            : '&&' ;
+LANGL           : '<' ;
+RANGL           : '>' ;
 
 // Whitespace
 NEWLINE         : '\r\n' | '\r' | '\n' ;
