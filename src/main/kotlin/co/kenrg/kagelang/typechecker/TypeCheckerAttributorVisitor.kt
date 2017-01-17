@@ -123,6 +123,15 @@ class TypeCheckerAttributorVisitor(
                 }
             is Tree.Kind.Concatenation ->
                 ownType = KGTypeTag.STRING
+            is Tree.Kind.GreaterThan,
+            is Tree.Kind.LessThan ->
+                if (!KGTypeTag.comparableTypes.contains(leftType)) {
+                    handleError(Error(error = "Comparable type expected for left expression", position = binary.position.start))
+                } else if (!KGTypeTag.comparableTypes.contains(rightType)) {
+                    handleError(Error(error = "Comparable type expected for right expression", position = binary.position.start))
+                } else {
+                    ownType = KGTypeTag.BOOL
+                }
             else ->
                 throw UnsupportedOperationException("${binary.kind().javaClass.canonicalName} is not a BinaryTree")
         }

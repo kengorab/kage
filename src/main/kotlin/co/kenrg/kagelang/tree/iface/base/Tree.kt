@@ -25,6 +25,8 @@ interface Tree {
         object ConditionalAnd : Kind<BinaryTree>(BinaryTree::class.java)
         object ConditionalOr : Kind<BinaryTree>(BinaryTree::class.java)
         object Concatenation : Kind<BinaryTree>(BinaryTree::class.java)
+        object GreaterThan : Kind<BinaryTree>(BinaryTree::class.java)
+        object LessThan : Kind<BinaryTree>(BinaryTree::class.java)
 
         // Binding Kinds
         object BindingReference : Kind<BindingReferenceTree>(BindingReferenceTree::class.java)

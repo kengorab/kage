@@ -33,6 +33,7 @@ enum class KGTypeTag(val typeName: String) {
 
     companion object {
         val numericTypes = listOf(INT, DEC)
+        val comparableTypes = listOf(INT, DEC, STRING)
 
         fun fromString(str: String): KGTypeTag =
                 when (str.trimStart(':', ' ').trimEnd(' ')) {
