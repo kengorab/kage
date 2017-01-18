@@ -31,8 +31,10 @@ enum class KGTypeTag(val typeName: String) {
         else -> throw IllegalStateException("Cannot calculate size of type $this")
     }
 
+    fun isNumeric() = numericTypes.contains(this)
+
     companion object {
-        val numericTypes = listOf(INT, DEC)
+        private val numericTypes = listOf(INT, DEC)
         val comparableTypes = listOf(INT, DEC, STRING)
 
         fun fromString(str: String): KGTypeTag =

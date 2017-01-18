@@ -1,5 +1,6 @@
 package co.kenrg.kagelang.codegen
 
+import co.kenrg.kagelang.ext.pairwiseEq
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
@@ -153,14 +154,14 @@ class CodeGenVisitor(
         methodWriter.visitLabel(condEndLbl)
     }
 
-    fun pushArithmeticalOperands(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: CGScope) {
+    fun pushAndCastNumericOperands(binary: KGTree.KGBinary, shouldCast: Boolean, methodWriter: MethodVisitor, data: CGScope) {
         binary.left.accept(this, data)
-        if (binary.left.type == KGTypeTag.INT && binary.type == KGTypeTag.DEC) {
+        if (binary.left.type == KGTypeTag.INT && shouldCast) {
             methodWriter.visitInsn(I2D)
         }
 
         binary.right.accept(this, data)
-        if (binary.right.type == KGTypeTag.INT && binary.type == KGTypeTag.DEC) {
+        if (binary.right.type == KGTypeTag.INT && shouldCast) {
             methodWriter.visitInsn(I2D)
         }
     }
@@ -192,6 +193,101 @@ class CodeGenVisitor(
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
     }
 
+    fun pushIntegerComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
+        val falseLbl = Label()
+        val trueLbl = Label()
+        val endLbl = Label()
+        binary.left.accept(this, data)
+        binary.right.accept(this, data)
+
+        when (kind) {
+            is Tree.Kind.GreaterThan -> methodWriter.visitJumpInsn(IF_ICMPGT, trueLbl)
+            is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IF_ICMPLT, trueLbl)
+        }
+
+        methodWriter.visitLabel(falseLbl)
+        methodWriter.visitInsn(ICONST_0)
+        methodWriter.visitJumpInsn(GOTO, endLbl)
+
+        methodWriter.visitLabel(trueLbl)
+        methodWriter.visitInsn(ICONST_1)
+
+        methodWriter.visitLabel(endLbl)
+    }
+
+    fun pushDecimalComparison(kind: Tree.Kind<*>, methodWriter: MethodVisitor) {
+        val falseLbl = Label()
+        val trueLbl = Label()
+        val endLbl = Label()
+
+        when (kind) {
+            is Tree.Kind.GreaterThan -> {
+                methodWriter.visitInsn(DCMPG)
+                methodWriter.visitJumpInsn(IFGT, trueLbl)
+            }
+            is Tree.Kind.LessThan -> {
+                methodWriter.visitInsn(DCMPL)
+                methodWriter.visitJumpInsn(IFLT, trueLbl)
+            }
+        }
+
+        methodWriter.visitLabel(falseLbl)
+        methodWriter.visitInsn(ICONST_0)
+        methodWriter.visitJumpInsn(GOTO, endLbl)
+
+        methodWriter.visitLabel(trueLbl)
+        methodWriter.visitInsn(ICONST_1)
+
+        methodWriter.visitLabel(endLbl)
+    }
+
+    fun pushComparableComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
+        binary.left.accept(this, data)
+        binary.right.accept(this, data)
+
+        // TODO - Solve this when dealing with types; shouldn't have to manually remove the L and ; from the descriptor
+        // It works now because we're only dealing with Strings, but will need to be addressed later. Also, during the
+        // typechecking, we need to verify that the two types here both implement Comparable.
+        val typeDesc = jvmTypeDescriptorForType(binary.left.type)
+        val type = typeDesc.trimStart('L').trimEnd(';')
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, type, "compareTo", "($typeDesc)I", false)
+
+        val falseLbl = Label()
+        val trueLbl = Label()
+        val endLbl = Label()
+        when (kind) {
+            is Tree.Kind.GreaterThan -> methodWriter.visitJumpInsn(IFGT, trueLbl)
+            is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IFLT, trueLbl)
+        }
+
+        methodWriter.visitLabel(falseLbl)
+        methodWriter.visitInsn(ICONST_0)
+        methodWriter.visitJumpInsn(GOTO, endLbl)
+
+        methodWriter.visitLabel(trueLbl)
+        methodWriter.visitInsn(ICONST_1)
+
+        methodWriter.visitLabel(endLbl)
+    }
+
+    fun pushComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
+        // TODO - Consolidate these 3 approaches to comparisons (integers, decimals, and Comparables (Strings))?
+
+        if (binary.left.type.isNumeric() && binary.right.type.isNumeric()) {
+            if (binary.left.type == KGTypeTag.INT && binary.right.type == KGTypeTag.INT) {
+                pushIntegerComparison(kind, binary, data, methodWriter)
+            } else {
+                val shouldCast = listOf(binary.left.type, binary.right.type).pairwiseEq(KGTypeTag.INT, KGTypeTag.DEC)
+                pushAndCastNumericOperands(binary, shouldCast, methodWriter, data)
+                pushDecimalComparison(kind, methodWriter)
+            }
+        } else if (binary.left.type == KGTypeTag.STRING && binary.right.type == KGTypeTag.STRING) {
+            pushComparableComparison(kind, binary, data, methodWriter)
+        } else {
+            throw IllegalStateException("Cannot compare types ${binary.left.type} and ${binary.right.type}")
+        }
+    }
+
     override fun visitBinary(binary: KGTree.KGBinary, data: CGScope) {
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit binary with no methodVisitor active")
@@ -202,7 +298,7 @@ class CodeGenVisitor(
 
         when (binary.kind()) {
             is Tree.Kind.Plus -> {
-                pushArithmeticalOperands(binary, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
                 when (binary.type) {
                     KGTypeTag.INT -> methodWriter.visitInsn(IADD)
                     KGTypeTag.DEC -> methodWriter.visitInsn(DADD)
@@ -210,7 +306,7 @@ class CodeGenVisitor(
                 }
             }
             is Tree.Kind.Minus -> {
-                pushArithmeticalOperands(binary, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
                 when (binary.type) {
                     KGTypeTag.INT -> methodWriter.visitInsn(ISUB)
                     KGTypeTag.DEC -> methodWriter.visitInsn(DSUB)
@@ -218,7 +314,7 @@ class CodeGenVisitor(
                 }
             }
             is Tree.Kind.Multiply -> {
-                pushArithmeticalOperands(binary, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
                 when (binary.type) {
                     KGTypeTag.INT -> methodWriter.visitInsn(IMUL)
                     KGTypeTag.DEC -> methodWriter.visitInsn(DMUL)
@@ -226,7 +322,7 @@ class CodeGenVisitor(
                 }
             }
             is Tree.Kind.Divide -> {
-                pushArithmeticalOperands(binary, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
                 when (binary.type) {
                     KGTypeTag.INT -> methodWriter.visitInsn(IDIV)
                     KGTypeTag.DEC -> methodWriter.visitInsn(DDIV)
@@ -250,6 +346,10 @@ class CodeGenVisitor(
                     KGTypeTag.STRING -> pushStringConcatenation(binary, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is Concatenation, but type is non-String")
                 }
+            }
+            is Tree.Kind.GreaterThan,
+            is Tree.Kind.LessThan -> {
+                pushComparison(binary.kind(), binary, data, methodWriter)
             }
         }
     }

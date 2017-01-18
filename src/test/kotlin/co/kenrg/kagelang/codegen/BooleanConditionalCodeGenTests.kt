@@ -13,7 +13,7 @@ class BooleanConditionalCodeGenTests : BaseTest() {
 
     @Nested
     @DisplayName("Conditional AND Expressions (&&)")
-    inner class ConditionalAndTests() {
+    inner class ConditionalAndTests {
 
         @TestFactory
         @DisplayName("Compiling and executing a print of simple, non-nested conditional AND statements")
@@ -45,7 +45,7 @@ class BooleanConditionalCodeGenTests : BaseTest() {
 
     @Nested
     @DisplayName("Conditional OR Expressions (||)")
-    inner class ConditionalOrTests() {
+    inner class ConditionalOrTests {
 
         @TestFactory
         @DisplayName("Compiling and executing a print of simple, non-nested conditional OR statements")
@@ -77,7 +77,7 @@ class BooleanConditionalCodeGenTests : BaseTest() {
 
     @Nested
     @DisplayName("Testing expressions which are combinations of Conditional AND and OR Expressions (&&, ||)")
-    inner class ConditionalAndsOrsTests() {
+    inner class ConditionalAndsOrsTests {
 
         @TestFactory
         @DisplayName("Compiling and executing a print of nested conditional AND and OR statements")

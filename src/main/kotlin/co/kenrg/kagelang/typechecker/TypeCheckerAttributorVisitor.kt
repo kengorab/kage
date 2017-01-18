@@ -102,9 +102,9 @@ class TypeCheckerAttributorVisitor(
             is Tree.Kind.Plus,
             is Tree.Kind.Minus,
             is Tree.Kind.Multiply ->
-                if (!KGTypeTag.numericTypes.contains(leftType)) {
+                if (!leftType.isNumeric()) {
                     handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
-                } else if (!KGTypeTag.numericTypes.contains(rightType)) {
+                } else if (!rightType.isNumeric()) {
                     handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
                 } else if (leftType == KGTypeTag.INT && rightType == KGTypeTag.INT) {
                     ownType = KGTypeTag.INT
@@ -114,9 +114,9 @@ class TypeCheckerAttributorVisitor(
                     ownType = KGTypeTag.DEC
                 }
             is Tree.Kind.Divide ->
-                if (!KGTypeTag.numericTypes.contains(leftType)) {
+                if (!leftType.isNumeric()) {
                     handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
-                } else if (!KGTypeTag.numericTypes.contains(rightType)) {
+                } else if (!rightType.isNumeric()) {
                     handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
                 } else {
                     ownType = KGTypeTag.DEC
@@ -130,7 +130,11 @@ class TypeCheckerAttributorVisitor(
                 } else if (!KGTypeTag.comparableTypes.contains(rightType)) {
                     handleError(Error(error = "Comparable type expected for right expression", position = binary.position.start))
                 } else {
-                    ownType = KGTypeTag.BOOL
+                    if (leftType.isNumeric() && !rightType.isNumeric() || rightType.isNumeric() && !leftType.isNumeric()) {
+                        handleError(Error(error = "Cannot compare unlike types", position = binary.position.start))
+                    } else {
+                        ownType = KGTypeTag.BOOL
+                    }
                 }
             else ->
                 throw UnsupportedOperationException("${binary.kind().javaClass.canonicalName} is not a BinaryTree")
