@@ -177,7 +177,7 @@ class BinaryTypeCheckerTests {
         }
 
         @TestFactory
-        @DisplayName("Boolean comparisons (>, <) should pass typechecking, with type BOOL, if given comparable inputs")
+        @DisplayName("Boolean comparisons (>, >=, <, <=, ==, !=) should pass typechecking, with type BOOL, if given comparable inputs")
         fun testBooleanComparison_comparableInputs_passesTypecheckWithTypeBool(): List<DynamicTest> {
             data class Case(val left: KGTypeTag, val right: KGTypeTag)
 
@@ -187,7 +187,7 @@ class BinaryTypeCheckerTests {
                     Case(left = STRING, right = STRING)
             ).flatMap { testCase ->
                 val (left, right) = testCase
-                listOf(">", ">=", "<", "<=").map { operation ->
+                listOf(">", ">=", "<", "<=", "==", "!=").map { operation ->
                     dynamicTest("$left $operation $right typecheck to Bool") {
                         val leftExpr = randomKGLiteralOfType(left)
                         val rightExpr = randomKGLiteralOfType(right)
@@ -203,7 +203,7 @@ class BinaryTypeCheckerTests {
         }
 
         @TestFactory
-        @DisplayName("Boolean comparisons (>, <) should fail typechecking, if given non-comparable inputs")
+        @DisplayName("Boolean comparisons (>, >=, <, <=, ==, !=) should fail typechecking, if given non-comparable inputs")
         fun testBooleanComparison_nonComparableInputs_failsTypechecking(): List<DynamicTest> {
             data class Case(val left: KGTypeTag, val right: KGTypeTag)
 
@@ -214,7 +214,7 @@ class BinaryTypeCheckerTests {
                     Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC), Case(left = BOOL, right = STRING)
             ).flatMap { testCase ->
                 val (left, right) = testCase
-                listOf(">", ">=", "<", "<=").map { operation ->
+                listOf(">", ">=", "<", "<=", "==", "!=").map { operation ->
                     dynamicTest("$left $operation $right should fail to typecheck") {
                         val leftExpr = randomKGLiteralOfType(left)
                         val rightExpr = randomKGLiteralOfType(right)

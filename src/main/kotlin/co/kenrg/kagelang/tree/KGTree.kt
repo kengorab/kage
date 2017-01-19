@@ -98,6 +98,8 @@ abstract class KGTree : Tree {
             "<" -> Tree.Kind.LessThan
             ">=" -> Tree.Kind.GreaterThanOrEqualTo
             "<=" -> Tree.Kind.LessThanOrEqualTo
+            "==" -> Tree.Kind.Equals
+            "!=" -> Tree.Kind.NotEquals
             else -> throw UnsupportedOperationException("Operator $operator not yet implemented")
         }
 

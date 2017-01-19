@@ -62,6 +62,7 @@ expression
     | left=expression operator=('/'|'*') right=expression                       #binaryOperation
     | left=expression operator=('+'|'-') right=expression                       #binaryOperation
     | left=expression operator=('<'|'<='|'>'|'>=') right=expression             #binaryOperation
+    | left=expression operator=('=='|'!=') right=expression                     #binaryOperation
     | left=expression operator=('||'|'&&') right=expression                     #binaryOperation
     | left=expression operator='++' right=expression                            #binaryOperation
 

@@ -29,6 +29,8 @@ interface Tree {
         object LessThan : Kind<BinaryTree>(BinaryTree::class.java)
         object GreaterThanOrEqualTo : Kind<BinaryTree>(BinaryTree::class.java)
         object LessThanOrEqualTo : Kind<BinaryTree>(BinaryTree::class.java)
+        object Equals : Kind<BinaryTree>(BinaryTree::class.java)
+        object NotEquals : Kind<BinaryTree>(BinaryTree::class.java)
 
         // Binding Kinds
         object BindingReference : Kind<BindingReferenceTree>(BindingReferenceTree::class.java)

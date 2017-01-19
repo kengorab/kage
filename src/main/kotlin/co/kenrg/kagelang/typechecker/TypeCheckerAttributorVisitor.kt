@@ -126,7 +126,9 @@ class TypeCheckerAttributorVisitor(
             is Tree.Kind.GreaterThan,
             is Tree.Kind.LessThan,
             is Tree.Kind.GreaterThanOrEqualTo,
-            is Tree.Kind.LessThanOrEqualTo ->
+            is Tree.Kind.LessThanOrEqualTo,
+            is Tree.Kind.Equals,
+            is Tree.Kind.NotEquals ->
                 if (!KGTypeTag.comparableTypes.contains(leftType)) {
                     handleError(Error(error = "Comparable type expected for left expression", position = binary.position.start))
                 } else if (!KGTypeTag.comparableTypes.contains(rightType)) {

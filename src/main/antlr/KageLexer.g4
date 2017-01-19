@@ -95,6 +95,8 @@ LANGL           : '<' ;
 RANGL           : '>' ;
 LTE             : '<=' ;
 GTE             : '>=' ;
+EQ              : '==' ;
+NEQ             : '!=' ;
 
 // Whitespace
 NEWLINE         : '\r\n' | '\r' | '\n' ;

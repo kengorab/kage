@@ -315,6 +315,34 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseSimpleEq() {
+        assertEquals(
+                listOf("IntLiteral", "EQ", "IntLiteral", "EOF"),
+                tokens(lexerForCode("2 == 1"))
+        )
+    }
+
+    @Test fun parseEqOfExpressions() {
+        assertEquals(
+                listOf("IntLiteral", "LTE", "IntLiteral", "EQ", "IntLiteral", "GTE", "IntLiteral", "EOF"),
+                tokens(lexerForCode("2 <= 1 == 1 >= 2"))
+        )
+    }
+
+    @Test fun parseSimpleNeq() {
+        assertEquals(
+                listOf("IntLiteral", "NEQ", "IntLiteral", "EOF"),
+                tokens(lexerForCode("2 != 1"))
+        )
+    }
+
+    @Test fun parseNeqOfExpressions() {
+        assertEquals(
+                listOf("IntLiteral", "LTE", "IntLiteral", "NEQ", "IntLiteral", "GTE", "IntLiteral", "EOF"),
+                tokens(lexerForCode("2 <= 1 != 1 >= 2"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

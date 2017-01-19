@@ -30,8 +30,10 @@ LANGL=29
 RANGL=30
 LTE=31
 GTE=32
-NEWLINE=33
-WS=34
+EQ=33
+NEQ=34
+NEWLINE=35
+WS=36
 'val'=1
 'print'=2
 'fn'=3
@@ -58,3 +60,5 @@ WS=34
 '>'=30
 '<='=31
 '>='=32
+'=='=33
+'!='=34
