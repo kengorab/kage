@@ -194,7 +194,6 @@ class CodeGenVisitor(
     }
 
     fun pushIntegerComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
-        val falseLbl = Label()
         val trueLbl = Label()
         val endLbl = Label()
         binary.left.accept(this, data)
@@ -209,7 +208,6 @@ class CodeGenVisitor(
             is Tree.Kind.NotEquals -> methodWriter.visitJumpInsn(IF_ICMPNE, trueLbl)
         }
 
-        methodWriter.visitLabel(falseLbl)
         methodWriter.visitInsn(ICONST_0)
         methodWriter.visitJumpInsn(GOTO, endLbl)
 
@@ -220,7 +218,6 @@ class CodeGenVisitor(
     }
 
     fun pushDecimalComparison(kind: Tree.Kind<*>, methodWriter: MethodVisitor) {
-        val falseLbl = Label()
         val trueLbl = Label()
         val endLbl = Label()
 
@@ -251,7 +248,6 @@ class CodeGenVisitor(
             }
         }
 
-        methodWriter.visitLabel(falseLbl)
         methodWriter.visitInsn(ICONST_0)
         methodWriter.visitJumpInsn(GOTO, endLbl)
 
@@ -271,7 +267,6 @@ class CodeGenVisitor(
         val typeDesc = jvmTypeDescriptorForType(binary.left.type)
         val type = typeDesc.trimStart('L').trimEnd(';')
 
-        val falseLbl = Label()
         val trueLbl = Label()
         val endLbl = Label()
 
@@ -302,7 +297,6 @@ class CodeGenVisitor(
             is Tree.Kind.LessThanOrEqualTo -> methodWriter.visitJumpInsn(IFLE, trueLbl)
         }
 
-        methodWriter.visitLabel(falseLbl)
         methodWriter.visitInsn(ICONST_0)
         methodWriter.visitJumpInsn(GOTO, endLbl)
 
