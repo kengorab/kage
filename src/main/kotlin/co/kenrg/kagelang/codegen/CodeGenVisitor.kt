@@ -203,6 +203,8 @@ class CodeGenVisitor(
         when (kind) {
             is Tree.Kind.GreaterThan -> methodWriter.visitJumpInsn(IF_ICMPGT, trueLbl)
             is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IF_ICMPLT, trueLbl)
+            is Tree.Kind.GreaterThanOrEqualTo -> methodWriter.visitJumpInsn(IF_ICMPGE, trueLbl)
+            is Tree.Kind.LessThanOrEqualTo -> methodWriter.visitJumpInsn(IF_ICMPLE, trueLbl)
         }
 
         methodWriter.visitLabel(falseLbl)
@@ -228,6 +230,14 @@ class CodeGenVisitor(
             is Tree.Kind.LessThan -> {
                 methodWriter.visitInsn(DCMPL)
                 methodWriter.visitJumpInsn(IFLT, trueLbl)
+            }
+            is Tree.Kind.GreaterThanOrEqualTo -> {
+                methodWriter.visitInsn(DCMPG)
+                methodWriter.visitJumpInsn(IFGE, trueLbl)
+            }
+            is Tree.Kind.LessThanOrEqualTo -> {
+                methodWriter.visitInsn(DCMPL)
+                methodWriter.visitJumpInsn(IFLE, trueLbl)
             }
         }
 
@@ -258,6 +268,8 @@ class CodeGenVisitor(
         when (kind) {
             is Tree.Kind.GreaterThan -> methodWriter.visitJumpInsn(IFGT, trueLbl)
             is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IFLT, trueLbl)
+            is Tree.Kind.GreaterThanOrEqualTo -> methodWriter.visitJumpInsn(IFGE, trueLbl)
+            is Tree.Kind.LessThanOrEqualTo -> methodWriter.visitJumpInsn(IFLE, trueLbl)
         }
 
         methodWriter.visitLabel(falseLbl)
@@ -348,7 +360,9 @@ class CodeGenVisitor(
                 }
             }
             is Tree.Kind.GreaterThan,
-            is Tree.Kind.LessThan -> {
+            is Tree.Kind.LessThan,
+            is Tree.Kind.GreaterThanOrEqualTo,
+            is Tree.Kind.LessThanOrEqualTo -> {
                 pushComparison(binary.kind(), binary, data, methodWriter)
             }
         }
