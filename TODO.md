@@ -19,7 +19,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - ~~Type annotations~~
 - ~~Top-level function declaration~~
 - ~~Function invocation (top-level functions)~~
-- Boolean comparisons (>, >=, <, <=, ==, !=)
+- ~~Boolean comparisons (>, >=, <, <=, ==, !=)~~
 - If-expression
 - Use Kotlin to make an extension-based wrapper around ASM, easier to use?
 - Warnings/validations
