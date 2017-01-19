@@ -187,7 +187,7 @@ class BinaryTypeCheckerTests {
                     Case(left = STRING, right = STRING)
             ).flatMap { testCase ->
                 val (left, right) = testCase
-                listOf(">", "<").map { operation ->
+                listOf(">", ">=", "<", "<=").map { operation ->
                     dynamicTest("$left $operation $right typecheck to Bool") {
                         val leftExpr = randomKGLiteralOfType(left)
                         val rightExpr = randomKGLiteralOfType(right)
@@ -214,7 +214,7 @@ class BinaryTypeCheckerTests {
                     Case(left = BOOL, right = INT), Case(left = BOOL, right = DEC), Case(left = BOOL, right = STRING)
             ).flatMap { testCase ->
                 val (left, right) = testCase
-                listOf(">", "<").map { operation ->
+                listOf(">", ">=", "<", "<=").map { operation ->
                     dynamicTest("$left $operation $right should fail to typecheck") {
                         val leftExpr = randomKGLiteralOfType(left)
                         val rightExpr = randomKGLiteralOfType(right)

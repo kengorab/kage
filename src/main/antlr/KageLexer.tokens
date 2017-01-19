@@ -28,8 +28,10 @@ AMP=27
 AMPS=28
 LANGL=29
 RANGL=30
-NEWLINE=31
-WS=32
+LTE=31
+GTE=32
+NEWLINE=33
+WS=34
 'val'=1
 'print'=2
 'fn'=3
@@ -54,3 +56,5 @@ WS=32
 '&&'=28
 '<'=29
 '>'=30
+'<='=31
+'>='=32

@@ -301,6 +301,20 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseGreaterThanOrEqual() {
+        assertEquals(
+                listOf("IntLiteral", "GTE", "IntLiteral", "EOF"),
+                tokens(lexerForCode("1 >= 2"))
+        )
+    }
+
+    @Test fun parseLessThanOrEqual() {
+        assertEquals(
+                listOf("IntLiteral", "LTE", "IntLiteral", "EOF"),
+                tokens(lexerForCode("2 <= 1"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

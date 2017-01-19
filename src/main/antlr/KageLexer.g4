@@ -93,6 +93,8 @@ AMP             : '&' ;
 AMPS            : '&&' ;
 LANGL           : '<' ;
 RANGL           : '>' ;
+LTE             : '<=' ;
+GTE             : '>=' ;
 
 // Whitespace
 NEWLINE         : '\r\n' | '\r' | '\n' ;

@@ -27,6 +27,8 @@ interface Tree {
         object Concatenation : Kind<BinaryTree>(BinaryTree::class.java)
         object GreaterThan : Kind<BinaryTree>(BinaryTree::class.java)
         object LessThan : Kind<BinaryTree>(BinaryTree::class.java)
+        object GreaterThanOrEqualTo : Kind<BinaryTree>(BinaryTree::class.java)
+        object LessThanOrEqualTo : Kind<BinaryTree>(BinaryTree::class.java)
 
         // Binding Kinds
         object BindingReference : Kind<BindingReferenceTree>(BindingReferenceTree::class.java)

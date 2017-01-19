@@ -96,6 +96,8 @@ abstract class KGTree : Tree {
             "++" -> Tree.Kind.Concatenation
             ">" -> Tree.Kind.GreaterThan
             "<" -> Tree.Kind.LessThan
+            ">=" -> Tree.Kind.GreaterThanOrEqualTo
+            "<=" -> Tree.Kind.LessThanOrEqualTo
             else -> throw UnsupportedOperationException("Operator $operator not yet implemented")
         }
 

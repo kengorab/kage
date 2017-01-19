@@ -90,7 +90,7 @@ class BinaryExpressionTreeMakerTests {
     fun testParseAndTransformBooleanComparisons(): List<DynamicTest> {
         data class Case(val repr: String, val expr: KGTree.KGExpression)
 
-        return listOf(">", "<").flatMap { op ->
+        return listOf(">", ">=", "<", "<=").flatMap { op ->
             listOf(
                     Case(
                             "3 $op 1",
