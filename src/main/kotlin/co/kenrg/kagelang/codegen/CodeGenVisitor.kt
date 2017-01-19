@@ -205,6 +205,8 @@ class CodeGenVisitor(
             is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IF_ICMPLT, trueLbl)
             is Tree.Kind.GreaterThanOrEqualTo -> methodWriter.visitJumpInsn(IF_ICMPGE, trueLbl)
             is Tree.Kind.LessThanOrEqualTo -> methodWriter.visitJumpInsn(IF_ICMPLE, trueLbl)
+            is Tree.Kind.Equals -> methodWriter.visitJumpInsn(IF_ICMPEQ, trueLbl)
+            is Tree.Kind.NotEquals -> methodWriter.visitJumpInsn(IF_ICMPNE, trueLbl)
         }
 
         methodWriter.visitLabel(falseLbl)
@@ -239,6 +241,14 @@ class CodeGenVisitor(
                 methodWriter.visitInsn(DCMPL)
                 methodWriter.visitJumpInsn(IFLE, trueLbl)
             }
+            is Tree.Kind.Equals -> {
+                methodWriter.visitInsn(DCMPL)
+                methodWriter.visitJumpInsn(IFEQ, trueLbl)
+            }
+            is Tree.Kind.NotEquals -> {
+                methodWriter.visitInsn(DCMPL)
+                methodWriter.visitJumpInsn(IFNE, trueLbl)
+            }
         }
 
         methodWriter.visitLabel(falseLbl)
@@ -260,11 +270,31 @@ class CodeGenVisitor(
         // typechecking, we need to verify that the two types here both implement Comparable.
         val typeDesc = jvmTypeDescriptorForType(binary.left.type)
         val type = typeDesc.trimStart('L').trimEnd(';')
-        methodWriter.visitMethodInsn(INVOKEVIRTUAL, type, "compareTo", "($typeDesc)I", false)
 
         val falseLbl = Label()
         val trueLbl = Label()
         val endLbl = Label()
+
+        when (kind) {
+            is Tree.Kind.GreaterThan,
+            is Tree.Kind.LessThan,
+            is Tree.Kind.GreaterThanOrEqualTo,
+            is Tree.Kind.LessThanOrEqualTo ->
+                methodWriter.visitMethodInsn(INVOKEVIRTUAL, type, "compareTo", "($typeDesc)I", false)
+
+            is Tree.Kind.Equals -> {
+                // If the comparison is an eq (==), call the `equals` method and return early
+                methodWriter.visitMethodInsn(INVOKEVIRTUAL, type, "equals", "(Ljava/lang/Object;)Z", false)
+                return
+            }
+            is Tree.Kind.NotEquals -> {
+                // If the comparison is a neq (!=), call the `equals` method. If `equals` returns 0 (false), negate
+                // by jumping to the true label.
+                methodWriter.visitMethodInsn(INVOKEVIRTUAL, type, "equals", "(Ljava/lang/Object;)Z", false)
+                methodWriter.visitJumpInsn(IFEQ, trueLbl)
+            }
+        }
+
         when (kind) {
             is Tree.Kind.GreaterThan -> methodWriter.visitJumpInsn(IFGT, trueLbl)
             is Tree.Kind.LessThan -> methodWriter.visitJumpInsn(IFLT, trueLbl)
@@ -362,7 +392,9 @@ class CodeGenVisitor(
             is Tree.Kind.GreaterThan,
             is Tree.Kind.LessThan,
             is Tree.Kind.GreaterThanOrEqualTo,
-            is Tree.Kind.LessThanOrEqualTo -> {
+            is Tree.Kind.LessThanOrEqualTo,
+            is Tree.Kind.Equals,
+            is Tree.Kind.NotEquals -> {
                 pushComparison(binary.kind(), binary, data, methodWriter)
             }
         }

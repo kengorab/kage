@@ -11,7 +11,7 @@ import java.nio.file.Files
  */
 open class BaseTest {
     companion object {
-        val deleteTempClassesWhenDone = true
+        val deleteTempClassesWhenDone = false
         val testLogs = false
 
         @BeforeAll
