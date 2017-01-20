@@ -6,6 +6,9 @@ PRINT           : 'print' ;
 FN              : 'fn' ;
 LET             : 'let' ;
 IN              : 'in' ;
+IF              : 'if' ;
+THEN            : 'then' ;
+ELSE            : 'else' ;
 
 // Integer literals
 IntLiteral

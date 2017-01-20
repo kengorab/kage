@@ -343,6 +343,54 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseIfExpressionWithNoElse() {
+        val code = "if true then \"asdf\""
+        assertEquals(
+                listOf("IF", "BooleanLiteral", "THEN", "StringLiteral", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseIfExpressionNewlinesWithNoElse() {
+        val code = """if true
+                     |then "asdf"
+                   """.trimMargin("|")
+        assertEquals(
+                listOf("IF", "BooleanLiteral", "NEWLINE", "THEN", "StringLiteral", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseIfExpressionWithElse() {
+        val code = "if true then \"asdf\" else \"qwer\""
+        assertEquals(
+                listOf("IF", "BooleanLiteral", "THEN", "StringLiteral", "ELSE", "StringLiteral", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseIfExpressionWithElseWithNewlinesSeparatingClauses() {
+        val code = """if true
+                     |then "asdf"
+                     |else "qwer"
+                   """.trimMargin("|")
+        assertEquals(
+                listOf("IF", "BooleanLiteral", "NEWLINE", "THEN", "StringLiteral", "NEWLINE", "ELSE", "StringLiteral", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
+    @Test fun parseIfExpressionWithElseWithNewlinesSeparatingEverything() {
+        val code = """if true
+                     |then "asdf"
+                     |else "qwer"
+                   """.trimMargin("|")
+        assertEquals(
+                listOf("IF", "BooleanLiteral", "NEWLINE", "THEN", "StringLiteral", "NEWLINE", "ELSE", "StringLiteral", "EOF"),
+                tokens(lexerForCode(code))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

@@ -154,12 +154,6 @@ class TypeCheckerAttributorVisitor(
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
         } else {
-//            if (binding.expression.type == KGTypeTag.UNSET) {
-//                throw IllegalStateException("Binding expression's type is UNSET, somehow...")
-//            }
-//
-//            bindingReference.type = binding.expression.type
-//            result = binding.expression.type
             when (binding) {
                 is TCBinding.StaticValBinding -> {
                     if (binding.type == KGTypeTag.UNSET) {
@@ -237,6 +231,10 @@ class TypeCheckerAttributorVisitor(
 
         letIn.type = letIn.body.type
         result = letIn.body.type
+    }
+
+    override fun visitIfElse(ifElse: KGTree.KGIfElse, data: TCScope) {
+        throw UnsupportedOperationException("not implemented")
     }
 
     // Statement visitors

@@ -21,6 +21,10 @@ class TreeMaker(val considerPosition: Boolean = true) {
             throw IllegalStateException("Line is neither statement nor expression")
     }
 
+    private fun nullableStatementOrExpressionToTree(statementOrExpression: KageParser.StatementOrExpressionContext?) =
+            if (statementOrExpression != null) statementOrExpressionToTree(statementOrExpression)
+            else null
+
     fun toKageFile(file: KageParser.KageFileContext): KGFile {
         val statements = file.line().map { statementOrExpressionToTree(it.statementOrExpression()) }
         return KGFile(statements, bindings = mapOf())
@@ -92,6 +96,12 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGLetIn(
                         statements = expression.statements().statement().map { toTree(it) },
                         body = statementOrExpressionToTree(expression.statementOrExpression())
+                )
+            is KageParser.IfElseExpressionContext ->
+                KGTree.KGIfElse(
+                        condition = toTree(expression.cond),
+                        trueBody = statementOrExpressionToTree(expression.thenBody),
+                        falseBody = nullableStatementOrExpressionToTree(expression.falseBody)
                 )
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }

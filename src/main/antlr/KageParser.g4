@@ -51,25 +51,28 @@ print
 // Expressions
 
 expression
-    : '(' expression ')'                                                        #parenExpression
+    : '(' NEWLINE* expression NEWLINE* ')'                                              #parenExpression
 
-    | invokee=expression '(' ')'                                                #invocation
+    | invokee=expression '(' ')'                                                        #invocation
 
-    | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression    #letInExpression
+    | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression            #letInExpression
 
-    | operator=('-'|'!') expression                                             #unaryOperation
+    | operator=('-'|'!') expression                                                     #unaryOperation
 
-    | left=expression operator=('/'|'*') right=expression                       #binaryOperation
-    | left=expression operator=('+'|'-') right=expression                       #binaryOperation
-    | left=expression operator=('<'|'<='|'>'|'>=') right=expression             #binaryOperation
-    | left=expression operator=('=='|'!=') right=expression                     #binaryOperation
-    | left=expression operator=('||'|'&&') right=expression                     #binaryOperation
-    | left=expression operator='++' right=expression                            #binaryOperation
+    | left=expression operator=('/'|'*') right=expression                               #binaryOperation
+    | left=expression operator=('+'|'-') right=expression                               #binaryOperation
+    | left=expression operator=('<'|'<='|'>'|'>=') right=expression                     #binaryOperation
+    | left=expression operator=('=='|'!=') right=expression                             #binaryOperation
+    | left=expression operator=('||'|'&&') right=expression                             #binaryOperation
+    | left=expression operator='++' right=expression                                    #binaryOperation
 
-    | Identifier                                                                #bindingReference
-    | StringLiteral                                                             #stringLiteral
-    | IntLiteral                                                                #intLiteral
-    | DecimalLiteral                                                            #decLiteral
-    | BooleanLiteral                                                            #boolLiteral
+    | 'if' cond=expression NEWLINE* 'then' NEWLINE* thenBody=statementOrExpression
+        (NEWLINE* 'else' NEWLINE* falseBody=statementOrExpression)?                     #ifElseExpression
+
+    | Identifier                                                                        #bindingReference
+    | StringLiteral                                                                     #stringLiteral
+    | IntLiteral                                                                        #intLiteral
+    | DecimalLiteral                                                                    #decLiteral
+    | BooleanLiteral                                                                    #boolLiteral
     ;
 

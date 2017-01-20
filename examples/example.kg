@@ -1,5 +1,15 @@
 fn hello() = "hello"
 fn world() = "world"
 
+let
+  val msg = hello()
+in
+  if msg == "world"
+  then (
+    if world() == msg
+    then "failure"
+  )
+  else "success"
+
 fn main() =
   print(hello() ++ world())

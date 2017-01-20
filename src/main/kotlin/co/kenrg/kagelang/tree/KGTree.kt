@@ -17,18 +17,19 @@ abstract class KGTree : Tree {
         fun visitTopLevel(file: KGFile, data: D)
 
         // Expression visitors
-        fun visitLiteral(literal: KGLiteral, data: D)
 
+        fun visitLiteral(literal: KGLiteral, data: D)
         fun visitUnary(unary: KGUnary, data: D)
         fun visitBinary(binary: KGBinary, data: D)
         fun visitParenthesized(parenthesized: KGParenthesized, data: D)
         fun visitBindingReference(bindingReference: KGBindingReference, data: D)
         fun visitInvocation(invocation: KGInvocation, data: D)
         fun visitLetIn(letIn: KGLetIn, data: D)
+        fun visitIfElse(ifElse: KGIfElse, data: D)
 
         // Statement visitors
-        fun visitPrint(print: KGPrint, data: D)
 
+        fun visitPrint(print: KGPrint, data: D)
         fun visitValDeclaration(valDecl: KGValDeclaration, data: D)
         fun visitFnDeclaration(fnDecl: KGFnDeclaration, data: D)
     }
@@ -138,6 +139,16 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.LetIn
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitLetIn(this, data)
+    }
+
+    class KGIfElse(val condition: KGExpression, val trueBody: KGTree, val falseBody: KGTree? = null) : KGExpression(), IfElseTree {
+        override fun condition() = condition
+        override fun trueBody() = trueBody
+        override fun falseBody() = falseBody
+
+        override fun kind() = Tree.Kind.IfElse
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitIfElse(this, data)
     }
 
     /*
