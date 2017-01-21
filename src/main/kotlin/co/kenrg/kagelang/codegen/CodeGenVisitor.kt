@@ -448,7 +448,7 @@ class CodeGenVisitor(
         letIn.body.accept(this, data)
     }
 
-    override fun visitIfElse(ifElse: KGTree.KGIfElse, data: CGScope) {
+    override fun visitIfThenElse(ifElse: KGTree.KGIfThenElse, data: CGScope) {
         throw UnsupportedOperationException("not implemented")
     }
 

@@ -67,7 +67,7 @@ expression
     | left=expression operator='++' right=expression                                    #binaryOperation
 
     | 'if' cond=expression NEWLINE* 'then' NEWLINE* thenBody=statementOrExpression
-        (NEWLINE* 'else' NEWLINE* falseBody=statementOrExpression)?                     #ifElseExpression
+        (NEWLINE* 'else' NEWLINE* elseBody=statementOrExpression)?                      #ifThenElseExpression
 
     | Identifier                                                                        #bindingReference
     | StringLiteral                                                                     #stringLiteral

@@ -219,8 +219,7 @@ class TypeCheckerAttributorVisitor(
                     }
                 }
             }
-            else ->
-                handleError(Error("Expression is not invokable", invocation.invokee.position.start))
+            else -> handleError(Error("Expression is not invokable", invocation.invokee.position.start))
         }
     }
 
@@ -233,8 +232,32 @@ class TypeCheckerAttributorVisitor(
         result = letIn.body.type
     }
 
-    override fun visitIfElse(ifElse: KGTree.KGIfElse, data: TCScope) {
-        throw UnsupportedOperationException("not implemented")
+    override fun visitIfThenElse(ifElse: KGTree.KGIfThenElse, data: TCScope) {
+        attribExpr(ifElse.condition, data)
+        if (ifElse.condition.type != KGTypeTag.BOOL)
+            handleError(Error("If expression's condition must be Bool", ifElse.position.start))
+
+        ifElse.thenBody.accept(this, data)
+        val thenBodyType = ifElse.thenBody.type
+
+        if (ifElse.elseBody == null) {
+            if (thenBodyType != KGTypeTag.UNIT)
+                handleError(Error("If expression returning a value must have `then` and `else` branches", ifElse.position.start))
+            else {
+                ifElse.type = KGTypeTag.UNIT
+                result = KGTypeTag.UNIT
+            }
+        } else {
+            ifElse.elseBody.accept(this, data)
+            val elseBodyType = ifElse.elseBody.type
+
+            if (elseBodyType != thenBodyType)
+                handleError(Error("Type mismatch: type of `else` branch must match that of `then` branch", ifElse.elseBody.position.start))
+            else {
+                ifElse.type = thenBodyType
+                result = thenBodyType
+            }
+        }
     }
 
     // Statement visitors

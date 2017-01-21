@@ -25,7 +25,7 @@ abstract class KGTree : Tree {
         fun visitBindingReference(bindingReference: KGBindingReference, data: D)
         fun visitInvocation(invocation: KGInvocation, data: D)
         fun visitLetIn(letIn: KGLetIn, data: D)
-        fun visitIfElse(ifElse: KGIfElse, data: D)
+        fun visitIfThenElse(ifElse: KGIfThenElse, data: D)
 
         // Statement visitors
 
@@ -141,14 +141,14 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitLetIn(this, data)
     }
 
-    class KGIfElse(val condition: KGExpression, val trueBody: KGTree, val falseBody: KGTree? = null) : KGExpression(), IfElseTree {
+    class KGIfThenElse(val condition: KGExpression, val thenBody: KGTree, val elseBody: KGTree? = null) : KGExpression(), IfThenElseTree {
         override fun condition() = condition
-        override fun trueBody() = trueBody
-        override fun falseBody() = falseBody
+        override fun thenBody() = thenBody
+        override fun elseBody() = elseBody
 
         override fun kind() = Tree.Kind.IfElse
 
-        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitIfElse(this, data)
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitIfThenElse(this, data)
     }
 
     /*

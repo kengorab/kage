@@ -97,11 +97,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         statements = expression.statements().statement().map { toTree(it) },
                         body = statementOrExpressionToTree(expression.statementOrExpression())
                 )
-            is KageParser.IfElseExpressionContext ->
-                KGTree.KGIfElse(
+            is KageParser.IfThenElseExpressionContext ->
+                KGTree.KGIfThenElse(
                         condition = toTree(expression.cond),
-                        trueBody = statementOrExpressionToTree(expression.thenBody),
-                        falseBody = nullableStatementOrExpressionToTree(expression.falseBody)
+                        thenBody = statementOrExpressionToTree(expression.thenBody),
+                        elseBody = nullableStatementOrExpressionToTree(expression.elseBody)
                 )
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }

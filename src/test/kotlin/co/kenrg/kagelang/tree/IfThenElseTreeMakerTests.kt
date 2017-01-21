@@ -9,7 +9,7 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
-class IfElseTreeMakerTests {
+class IfThenElseTreeMakerTests {
 
     @TestFactory
     fun testParseSimpleIfExpression_noElse(): List<DynamicTest> {
@@ -21,7 +21,7 @@ class IfElseTreeMakerTests {
         ).map { code ->
             dynamicTest("`$code` should be correctly mapped to a tree") {
                 val kageFile = kageFileFromCode(code)
-                val expected = kageFileFromLines(KGIfElse(
+                val expected = kageFileFromLines(KGIfThenElse(
                         KGBinary(intLiteral(1), ">", intLiteral(3)),
                         stringLiteral("hello")
                 ))
@@ -44,7 +44,7 @@ class IfElseTreeMakerTests {
         ).map { code ->
             dynamicTest("`$code` should be correctly mapped to a tree") {
                 val kageFile = kageFileFromCode(code)
-                val expected = kageFileFromLines(KGIfElse(
+                val expected = kageFileFromLines(KGIfThenElse(
                         KGBinary(intLiteral(1), ">", intLiteral(3)),
                         stringLiteral("hello"),
                         stringLiteral("goodbye")
@@ -65,7 +65,7 @@ class IfElseTreeMakerTests {
                      |  2
                      |""".trimMargin("|")
         val kageFile = kageFileFromCode(code)
-        val expected = kageFileFromLines(KGIfElse(
+        val expected = kageFileFromLines(KGIfThenElse(
                 KGBinary(KGInvocation(KGBindingReference("fnCall")), "==", intLiteral(12)),
                 KGLetIn(
                         listOf(KGValDeclaration("a", stringLiteral("hello"))),
@@ -85,9 +85,9 @@ class IfElseTreeMakerTests {
                      |  else 4
                      |""".trimMargin("|")
         val kageFile = kageFileFromCode(code)
-        val expected = kageFileFromLines(KGIfElse(
+        val expected = kageFileFromLines(KGIfThenElse(
                 KGBinary(intLiteral(1), ">", intLiteral(0)),
-                KGIfElse(
+                KGIfThenElse(
                         KGBinary(intLiteral(2), ">", intLiteral(0)),
                         intLiteral(3),
                         intLiteral(4)
@@ -105,10 +105,10 @@ class IfElseTreeMakerTests {
                      |else 5
                      |""".trimMargin("|")
         val kageFile = kageFileFromCode(code)
-        val expected = kageFileFromLines(KGIfElse(
+        val expected = kageFileFromLines(KGIfThenElse(
                 KGBinary(intLiteral(1), ">", intLiteral(0)),
                 KGParenthesized(
-                        KGIfElse(
+                        KGIfThenElse(
                                 KGBinary(intLiteral(2), ">", intLiteral(0)),
                                 intLiteral(3)
                         )
@@ -128,9 +128,9 @@ class IfElseTreeMakerTests {
                      |  5
                      |""".trimMargin("|")
         val kageFile = kageFileFromCode(code)
-        val expected = kageFileFromLines(KGIfElse(
+        val expected = kageFileFromLines(KGIfThenElse(
                 KGBinary(intLiteral(1), ">", intLiteral(0)),
-                KGIfElse(
+                KGIfThenElse(
                         KGBinary(intLiteral(2), ">", intLiteral(0)),
                         intLiteral(3),
                         intLiteral(4)
