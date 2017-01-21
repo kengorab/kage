@@ -22,8 +22,8 @@ class CGScope(
         override val parent: CGScope? = null,
         var method: FocusedMethod? = null
 ) : Scope<ValBinding, FunctionBinding> {
-    fun createChildScope(method: FocusedMethod? = null) =
-            CGScope(vals = LinkedMap(), functions = ArrayListValuedHashMap(), parent = this, method = method)
+    fun createChildScope(vals: LinkedMap<String, ValBinding> = LinkedMap(), method: FocusedMethod? = null) =
+            CGScope(vals = vals, functions = ArrayListValuedHashMap(), parent = this, method = method)
 }
 
 class CGNamespace(name: String, rootScope: CGScope) : Namespace<CGScope>(name, rootScope)

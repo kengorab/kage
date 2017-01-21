@@ -180,40 +180,40 @@ class IfThenElseCodeGenTests : BaseTest() {
     }
 
     // TODO - When binding names are allowed to be duplicated between different branches, this test should pass.
-//    @Test fun testIfThenElseExpression_thenAndElseHaveLetInExpressions_letBindingsUseSameVariables() {
-//        /*
-//          fn func() =
-//            if 1 > 3
-//            then
-//              let
-//                val a = 123
-//              in
-//                print(a)
-//            else
-//              let
-//                val a = 456
-//              in
-//                print(a)
-//          */
-//        val fn = KGFnDeclaration("func", KGIfThenElse(
-//                KGBinary(intLiteral(1), ">", intLiteral(3)),
-//                KGLetIn(
-//                        listOf(KGValDeclaration("a", intLiteral(123))),
-//                        KGPrint(KGBindingReference("a"))
-//                ),
-//                KGLetIn(
-//                        listOf(KGValDeclaration("a", intLiteral(456))),
-//                        KGPrint(KGBindingReference("a"))
-//                )
-//        ))
-//        val file = KGFile(
-//                statements = listOf(
-//                        fn,
-//                        wrapInMainMethod(KGInvocation(KGBindingReference("func")))
-//                ),
-//                bindings = HashMap()
-//        )
-//
-//        compileAndExecuteFileAnd(file) { output -> assertEquals("456", output) }
-//    }
+    @Test fun testIfThenElseExpression_thenAndElseHaveLetInExpressions_letBindingsUseSameVariables() {
+        /*
+          fn func() =
+            if 1 > 3
+            then
+              let
+                val a = 123
+              in
+                print(a)
+            else
+              let
+                val a = 456
+              in
+                print(a)
+          */
+        val fn = KGFnDeclaration("func", KGIfThenElse(
+                KGBinary(intLiteral(1), ">", intLiteral(3)),
+                KGLetIn(
+                        listOf(KGValDeclaration("a", intLiteral(123))),
+                        KGPrint(KGBindingReference("a"))
+                ),
+                KGLetIn(
+                        listOf(KGValDeclaration("a", intLiteral(456))),
+                        KGPrint(KGBindingReference("a"))
+                )
+        ))
+        val file = KGFile(
+                statements = listOf(
+                        fn,
+                        wrapInMainMethod(KGInvocation(KGBindingReference("func")))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output -> assertEquals("456", output) }
+    }
 }

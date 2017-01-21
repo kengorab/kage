@@ -467,10 +467,10 @@ class CodeGenVisitor(
 
         // The then branch of the if-expression. Right now, any bindings defined within branches will be stored w.r.t.
         // the outer scope. Meaning, they will be accessible within the else branch.
-        // TODO - Proper scoping of branch bindings.
-        // TODO - Allow binding names to be duplicated between different branches.
         methodWriter.visitLabel(thenBranchLbl)
-        ifElse.thenBody.accept(this, data)
+
+        val thenScope = data.createChildScope(vals = data.vals.clone(), method = data.method)
+        ifElse.thenBody.accept(this, thenScope)
         methodWriter.visitJumpInsn(GOTO, endLbl)
 
         // The else branch of the if-expression (only perform codegen if else branch exists for if-expression).
@@ -481,7 +481,9 @@ class CodeGenVisitor(
 
             // TODO - Pass count (and types) of local variables here, instead of 0 and null
             methodWriter.visitFrame(F_SAME, 0, null, 0, null)
-            ifElse.elseBody!!.accept(this, data)
+
+            val elseScope = data.createChildScope(vals = data.vals.clone(), method = data.method)
+            ifElse.elseBody!!.accept(this, elseScope)
         }
 
         methodWriter.visitLabel(endLbl)
@@ -554,8 +556,12 @@ class CodeGenVisitor(
             if (data.method == null)
                 throw IllegalStateException("No method writer at non-root scope")
 
-            val (writer, start, end) = data.method!!
-            writer.visitLocalVariable(valName, typeDesc, null, start, end, bindingIndex)
+            val writer = data.method!!.writer
+
+            // Unnecessary, unless we want to add debug information. It also makes it more complicated to duplicate
+            // binding names in adjacent inner scopes (as in if-then-else branches).
+            // writer.visitLocalVariable(valName, typeDesc, null, start, end, bindingIndex)
+
             valDeclExpr.accept(this, data)
             when (valDeclExpr.type) {
                 KGTypeTag.INT -> writer.visitVarInsn(ISTORE, bindingIndex)
