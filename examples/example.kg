@@ -1,15 +1,28 @@
 fn hello() = "hello"
 fn world() = "world"
 
-let
-  val msg = hello()
-in
-  if msg == "world"
-  then (
-    if world() == msg
-    then "failure"
-  )
-  else "success"
+fn func1() =
+  let
+    val c = 12
+  in
+    if hello() == "world"
+      then
+        let
+          val a = 123
+        in
+          print(a + c)
+      else
+        let
+          val b = 456
+        in
+          print(b + c)
 
-fn main() =
-  print(hello() ++ world())
+fn func2() =
+  let
+    val a = if hello() == "world"
+    then 1
+    else 2
+  in
+    print(a)
+
+fn main() = func1()

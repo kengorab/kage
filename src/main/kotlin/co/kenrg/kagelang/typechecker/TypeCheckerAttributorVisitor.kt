@@ -8,7 +8,6 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGTypeTag
-import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
 /**
@@ -224,7 +223,7 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitLetIn(letIn: KGTree.KGLetIn, data: TCScope) {
-        val childScope = TCScope(vals = HashMap(), functions = ArrayListValuedHashMap(), parent = data)
+        val childScope = data.createChildScope() //TCScope(vals = HashMap(), functions = ArrayListValuedHashMap(), parent = data)
         letIn.statements.forEach { it.accept(this, childScope) }
         letIn.body.accept(this, childScope)
 
@@ -299,7 +298,7 @@ class TypeCheckerAttributorVisitor(
             it.name to TCBinding.StaticValBinding(it.name, it.type)
         }.toMap(HashMap<String, TCBinding.StaticValBinding>())
 
-        val fnScope = TCScope(vals = vals, parent = data)
+        val fnScope = data.createChildScope(vals)//TCScope(vals = vals, parent = data)
 
         attribExpr(fnDecl.body, fnScope)
 

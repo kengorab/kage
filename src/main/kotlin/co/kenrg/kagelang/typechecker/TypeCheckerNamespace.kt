@@ -20,7 +20,12 @@ class TCScope(
         override val vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
         override val functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: TCScope? = null
-) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding>
+) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding> {
+
+    fun createChildScope(vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
+                         functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap()) =
+            TCScope(vals, functions, parent = this)
+}
 
 class TCNamespace(name: String, rootScope: TCScope) : Namespace<TCScope>(name, rootScope) {
     companion object {

@@ -449,7 +449,44 @@ class CodeGenVisitor(
     }
 
     override fun visitIfThenElse(ifElse: KGTree.KGIfThenElse, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        val thenBranchLbl = Label()
+        val elseBranchLbl = Label()
+        val endLbl = Label()
+
+        val methodWriter = data.method?.writer
+                ?: throw IllegalStateException("Attempted to visit ifThenElse with no methodVisitor active")
+
+        val hasElse = ifElse.elseBody != null
+
+        // Evaluate the condition, leaving either a 0 (false) or 1 (true) on TOS
+        ifElse.condition.accept(this, data)
+
+        // If TOS == 0 (false), jump to the else branch (if the elseBody exists) or the end
+        val condFalseLbl = if (hasElse) elseBranchLbl else endLbl
+        methodWriter.visitJumpInsn(IFEQ, condFalseLbl)
+
+        // The then branch of the if-expression. Right now, any bindings defined within branches will be stored w.r.t.
+        // the outer scope. Meaning, they will be accessible within the else branch.
+        // TODO - Proper scoping of branch bindings.
+        // TODO - Allow binding names to be duplicated between different branches.
+        methodWriter.visitLabel(thenBranchLbl)
+        ifElse.thenBody.accept(this, data)
+        methodWriter.visitJumpInsn(GOTO, endLbl)
+
+        // The else branch of the if-expression (only perform codegen if else branch exists for if-expression).
+        // Create a new stack frame here, for the else branch. As of java 6, it's required for bytecode to explicitly
+        // specify the local values as well as the values on the stack, when doing bytecode level jump instructions.
+        if (hasElse) {
+            methodWriter.visitLabel(elseBranchLbl)
+
+            // TODO - Pass count (and types) of local variables here, instead of 0 and null
+            methodWriter.visitFrame(F_SAME, 0, null, 0, null)
+            ifElse.elseBody!!.accept(this, data)
+        }
+
+        methodWriter.visitLabel(endLbl)
+        // Visit frame after the if expression has ended
+        methodWriter.visitFrame(F_SAME, 0, null, 0, null)
     }
 
     /*****************************
@@ -548,7 +585,7 @@ class CodeGenVisitor(
         fnWriter.visitCode()
         fnWriter.visitLabel(fnStart)
 
-        val fnScope = CGScope(parent = data, method = FocusedMethod(fnWriter, fnStart, fnEnd))
+        val fnScope = data.createChildScope(method = FocusedMethod(fnWriter, fnStart, fnEnd))
 
         // Since we can make the assumption that this is a static method (all functions are static methods at the moment)
         // then place the local variables at their indices, starting at 0.
