@@ -627,4 +627,8 @@ class CodeGenVisitor(
 
         fnWriter.visitLabel(fnEnd)
     }
+
+    override fun visitTypeDeclaration(typeDecl: KGTree.KGTypeDeclaration, data: CGScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
 }

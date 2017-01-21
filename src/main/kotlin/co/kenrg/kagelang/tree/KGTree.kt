@@ -32,6 +32,7 @@ abstract class KGTree : Tree {
         fun visitPrint(print: KGPrint, data: D)
         fun visitValDeclaration(valDecl: KGValDeclaration, data: D)
         fun visitFnDeclaration(fnDecl: KGFnDeclaration, data: D)
+        fun visitTypeDeclaration(typeDecl: KGTypeDeclaration, data: D)
     }
 
     interface VisitorErrorHandler<in E> {
@@ -203,5 +204,13 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.FnDeclaration
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitFnDeclaration(this, data)
+    }
+
+    class KGTypeDeclaration(val name: String) : KGStatement(), TypeDeclarationTree {
+        override fun name() = name
+
+        override fun kind() = Tree.Kind.TypeDeclaration
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitTypeDeclaration(this, data)
     }
 }

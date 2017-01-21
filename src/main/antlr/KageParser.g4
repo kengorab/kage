@@ -22,9 +22,10 @@ statements
 // Statements
 
 statement
-    : valDeclaration  #valDeclarationStatement
-    | fnDeclaration   #fnDeclarationStatement
-    | print           #printStatement
+    : valDeclaration            #valDeclarationStatement
+    | fnDeclaration             #fnDeclarationStatement
+    | 'type' name=Identifier    #typeDeclarationStatement
+    | print                     #printStatement
     ;
 
 valDeclaration

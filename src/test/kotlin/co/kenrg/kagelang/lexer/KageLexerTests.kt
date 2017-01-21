@@ -391,6 +391,13 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseTypeDeclaration_emptyBody() {
+        assertEquals(
+                listOf("TYPE", "Identifier", "EOF"),
+                tokens(lexerForCode("type Empty"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

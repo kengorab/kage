@@ -9,6 +9,7 @@ IN              : 'in' ;
 IF              : 'if' ;
 THEN            : 'then' ;
 ELSE            : 'else' ;
+TYPE            : 'type' ;
 
 // Integer literals
 IntLiteral

@@ -48,6 +48,7 @@ interface Tree {
         object Print : Kind<PrintTree>(PrintTree::class.java)
         object ValDeclaration : Kind<ValDeclarationTree>(ValDeclarationTree::class.java)
         object FnDeclaration : Kind<FnDeclarationTree>(FnDeclarationTree::class.java)
+        object TypeDeclaration : Kind<TypeDeclarationTree>(TypeDeclarationTree::class.java)
     }
 
     fun kind(): Kind<*>

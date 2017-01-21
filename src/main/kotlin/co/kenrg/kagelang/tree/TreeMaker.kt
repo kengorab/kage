@@ -49,6 +49,10 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         } ?: listOf(),
                         retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.text?.asKGTypeTag()
                 )
+            is KageParser.TypeDeclarationStatementContext ->
+                KGTree.KGTypeDeclaration(
+                        name = statement.name.text
+                )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }
 

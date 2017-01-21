@@ -223,7 +223,7 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitLetIn(letIn: KGTree.KGLetIn, data: TCScope) {
-        val childScope = data.createChildScope() //TCScope(vals = HashMap(), functions = ArrayListValuedHashMap(), parent = data)
+        val childScope = data.createChildScope()
         letIn.statements.forEach { it.accept(this, childScope) }
         letIn.body.accept(this, childScope)
 
@@ -298,8 +298,7 @@ class TypeCheckerAttributorVisitor(
             it.name to TCBinding.StaticValBinding(it.name, it.type)
         }.toMap(HashMap<String, TCBinding.StaticValBinding>())
 
-        val fnScope = data.createChildScope(vals)//TCScope(vals = vals, parent = data)
-
+        val fnScope = data.createChildScope(vals)
         attribExpr(fnDecl.body, fnScope)
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
@@ -323,6 +322,22 @@ class TypeCheckerAttributorVisitor(
 
         fnDecl.signature = fnSignature
         data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnSignature))
+        result = KGTypeTag.UNIT
+    }
+
+    override fun visitTypeDeclaration(typeDecl: KGTree.KGTypeDeclaration, data: TCScope) {
+        if (!data.isRoot())
+            handleError(Error("Type declarations must occur at root", typeDecl.position.start))
+
+        val typeName = typeDecl.name
+        if (data.types.containsKey(typeName))
+            handleError(Error("Type $typeName conflicts with another type in this context", typeDecl.position.start))
+
+        if (typeName[0].isLowerCase())
+            handleError(Error("Naming: Type $typeName should begin with a capital letter", typeDecl.position.start))
+
+        data.types.put(typeName, TCType(typeName))
+
         result = KGTypeTag.UNIT
     }
 }
