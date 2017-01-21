@@ -1,7 +1,38 @@
+typedef Tuple[A, B] = { fst: A, snd: B }
+
+contract Shape {
+  fn area(): Dec
+}
+
+typedef Circle {
+  radius: Dec,
+  center: (Dec, Dec)    // Syntactic sugar for Tuple[Dec, Dec]
+} with Shape, Compare
+
+#Trait(Shape)
+fn (c: Circle) area(): Dec = PI * (c.radius * c.radius)
+
+#Trait(Compare)
+fn (c: Circle) compare(other: Circle): Int =
+  let
+    val cArea = c.area()
+    val otherArea = other.area()
+  in
+    if cArea == otherArea
+    then 0
+    else (
+      if cArea > otherArea
+      then 1
+      else -1
+    )
+
+val circle1 = Circle(radius: 1, center: (0, 0))
+val circle2 = Circle(radius: 1, center: (1, -1))
+
 fn pythagorean(a: Int, b: Int) =
   let
-    aSquared = a * a,
-    bSquared = b * b
+    val aSquared = a * a
+    val bSquared = b * b
   in
     aSquared + bSquared
 
@@ -20,3 +51,14 @@ fn circleArea(diameter: Int) =
   in
     2 * rSquared
 
+typedef Metric { name: String }
+
+#RestController
+#RequestMapping("/api/v1")
+typedef NetworkMonitorController {
+  #Autowired metricDao: MetricDao
+}
+
+#RequestMapping(value: "/monitors/{monitorId}/metrics", method: GET, produces: "application/json")
+fn (NetworkMonitorController c) getAllMetricsForMonitor(monitorId: String): List[Metric] =
+  c.metricDao.getMetricsForMonitor(monitorId)

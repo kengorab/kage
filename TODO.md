@@ -20,19 +20,17 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - ~~Top-level function declaration~~
 - ~~Function invocation (top-level functions)~~
 - ~~Boolean comparisons (>, >=, <, <=, ==, !=)~~
-- If-expression
-- Use Kotlin to make an extension-based wrapper around ASM, easier to use?
+- ~~If-then-else-expression~~
+- Custom types (other than primitives Int, Dec, Bool, and String)
+- Arrays
+- Loops
+- Switch/match expression
 - Warnings/validations
   - No top-level expressions
-- Arrays
-  - Int arrays
-  - Bool arrays
-  - Dec arrays 
 - Make error messages for binary expressions more explicit
     (Currently it does not identify which branch has error)
 - When attributing types, if node has error give it a type of ERROR and don't continue checking
     (This avoids an error being pointed out at each parent expression)
-- Custom types (other than primitives Int, Dec, Bool, and String)
 - Compiler command-line arguments
   - input file
   - output file
@@ -40,3 +38,4 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 
 ## Nice-to-haves
 - Syntax highlighting plugin for IntelliJ? (Good opportunity to learn about IntelliJ plugins?)
+- Use Kotlin to make an extension-based wrapper around ASM, easier to use?
