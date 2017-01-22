@@ -210,7 +210,7 @@ class TypeCheckerAttributorVisitor(
                     handleError(Error("Binding with name $invokeeName not visible in current context", invocation.invokee.position.start))
                 } else {
                     val fnsMatchingParamsSig = fnsForName.filter {
-                        invocation.params.map { it.type } == it.signature.params.map { it.type }
+                        invocation.params.map { it.type } == it.signature.params.map { it.second }
                     }
 
                     if (fnsMatchingParamsSig.size > 1) {
@@ -221,10 +221,10 @@ class TypeCheckerAttributorVisitor(
                         val firstFnForName = fnsForName.first()
                         if (invocation.params.size == firstFnForName.signature.params.size) {
                             invocation.params.zip(firstFnForName.signature.params).forEach { pair ->
-                                val (param, requiredType) = pair
-                                if (param.type != requiredType.type) {
+                                val (param, required) = pair
+                                val (name, requiredType) = required
+                                if (param.type != requiredType)
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
-                                }
                             }
                         } else {
                             if (invocation.params.size < firstFnForName.signature.params.size) {
@@ -302,8 +302,7 @@ class TypeCheckerAttributorVisitor(
         attribExpr(valDecl.expression, data)
 
         if (valDecl.typeAnnotation != null) {
-            val annotatedType = data.getType(valDecl.typeAnnotation)
-                    ?: valDecl.typeAnnotation.asKGType()
+            val annotatedType = data.getType(valDecl.typeAnnotation) ?: valDecl.typeAnnotation.asKGType()
 
             if (annotatedType == null)
                 handleError(Error("Type with name ${valDecl.typeAnnotation} not visible in this context", valDecl.position.start))
@@ -331,9 +330,12 @@ class TypeCheckerAttributorVisitor(
             }
         }
 
-        val vals = fnDecl.params.map {
-            it.name to TCBinding.StaticValBinding(it.name, it.type)
-        }.toMap(HashMap<String, TCBinding.StaticValBinding>())
+        val vals = fnDecl.params
+                .map {
+                    val type = data.getType(it.name) ?: it.type.asKGType()
+                    it.name to TCBinding.StaticValBinding(it.name, type)
+                }
+                .toMap(HashMap<String, TCBinding.StaticValBinding>())
 
         val fnScope = data.createChildScope(vals)
         attribExpr(fnDecl.body, fnScope)
@@ -345,11 +347,20 @@ class TypeCheckerAttributorVisitor(
         }
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
-        if (fnDecl.retTypeAnnotation != null && fnDecl.retTypeAnnotation != fnDecl.body.type) {
-            handleError(Error("Expected return type of ${fnDecl.retTypeAnnotation}, saw ${fnDecl.body.type}", fnDecl.body.position.start))
+        if (fnDecl.retTypeAnnotation != null) {
+            val fnRetType = data.getType(fnDecl.retTypeAnnotation) ?: fnDecl.retTypeAnnotation.asKGType()
+
+            if (fnRetType != fnDecl.body.type)
+                handleError(Error("Expected return type of $fnRetType, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
-        val fnSignature = Signature(params = fnDecl.params, returnType = fnBodyType)
+        val params = fnDecl.params.map {
+            val type = data.getType(it.type) ?: it.type.asKGType()
+            // TODO - Fix this (the `type!!`), in the case when the type isn't there...
+            Pair(it.name, type!!)
+        }
+
+        val fnSignature = Signature(params = params, returnType = fnBodyType)
 
         if (data.types.containsKey(fnDecl.name)) {
             handleError(Error("Binding \"${fnDecl.name}\" conflicts with a type name in this context", fnDecl.position.start))

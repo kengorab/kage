@@ -16,16 +16,14 @@ sealed class ValBinding(val name: String, val type: KGType) {
     class Static(name: String, type: KGType) : ValBinding(name, type)
 }
 
-class CGType(val name: String)
-
 data class FocusedMethod(val writer: MethodVisitor, val start: Label?, val end: Label?)
 class CGScope(
         override val vals: LinkedMap<String, ValBinding> = LinkedMap(),
         override val functions: ArrayListValuedHashMap<String, FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: CGScope? = null,
-        override val types: HashMap<String, CGType> = HashMap(),
+        override val types: HashMap<String, KGType> = HashMap(),
         var method: FocusedMethod? = null
-) : Scope<ValBinding, FunctionBinding, CGType> {
+) : Scope<ValBinding, FunctionBinding> {
     fun createChildScope(vals: LinkedMap<String, ValBinding> = LinkedMap(), method: FocusedMethod? = null) =
             CGScope(vals = vals, functions = ArrayListValuedHashMap(), parent = this, method = method)
 }

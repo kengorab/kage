@@ -181,7 +181,7 @@ abstract class KGTree : Tree {
             val name: String,
             val body: KGTree,
             val params: List<FnParameter> = listOf(),
-            val retTypeAnnotation: KGType? = null
+            val retTypeAnnotation: String? = null
     ) : KGStatement(), FnDeclarationTree {
         override fun params() = params
         override fun body() = body

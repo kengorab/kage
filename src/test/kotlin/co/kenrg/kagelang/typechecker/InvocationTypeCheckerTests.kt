@@ -1,7 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.*
-import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
@@ -23,7 +22,7 @@ class InvocationTypeCheckerTests {
             // fn abc(a: Int, b: Bool): Int
             val abc = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("a", BOOL)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("a", BOOL)), returnType = INT)
             )
 
             val ns = randomTCNamespace()
@@ -40,7 +39,7 @@ class InvocationTypeCheckerTests {
             // fn abc(a: Int, b: Bool): Int
             val abc = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("b", BOOL)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("b", BOOL)), returnType = INT)
             )
 
             val ns = randomTCNamespace()
@@ -61,7 +60,7 @@ class InvocationTypeCheckerTests {
             // fn abc(a: Int, b: Bool): Int
             val abc = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("b", BOOL)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("b", BOOL)), returnType = INT)
             )
 
             val ns = randomTCNamespace()
@@ -81,7 +80,7 @@ class InvocationTypeCheckerTests {
             // fn abc(a: Int, b: Bool): Int
             val abc = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("b", BOOL)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("b", BOOL)), returnType = INT)
             )
 
             val ns = randomTCNamespace()
@@ -102,13 +101,13 @@ class InvocationTypeCheckerTests {
             // fn abc(a: Int, b: Bool): Int
             val abc1 = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("b", BOOL)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("b", BOOL)), returnType = INT)
             )
 
             // fn abc(a: Int, b: Bool, c: Int): Int
             val abc2 = TCBinding.FunctionBinding(
                     "abc",
-                    Signature(params = listOf(FnParameter("a", INT), FnParameter("b", BOOL), FnParameter("c", INT)), returnType = INT)
+                    Signature(params = listOf(Pair("a", INT), Pair("b", BOOL), Pair("c", INT)), returnType = INT)
             )
 
             val ns = randomTCNamespace()
@@ -239,6 +238,6 @@ class InvocationTypeCheckerTests {
         ns.rootScope.types.put("SomeType", KGType("SomeType", ""))
         val invocation = KGInvocation(KGBindingReference("SomeType"))
         val result = TypeChecker.typeCheck(invocation, ns)
-        assertSucceedsAnd(result) { assertEquals(KGType("SomeType", ""), invocation.type)}
+        assertSucceedsAnd(result) { assertEquals(KGType("SomeType", ""), invocation.type) }
     }
 }

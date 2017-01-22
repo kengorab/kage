@@ -4,7 +4,6 @@ import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGFnDeclaration
-import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -24,7 +23,7 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
 
     @Test fun testParseFnDeclaration_returnTypeAnnotation() {
         val kageFile = kageFileFromCode("fn returnSum(): Int = 1 + 2")
-        val expected = kageFileFromLines(KGFnDeclaration("returnSum", KGBinary(intLiteral(1), "+", intLiteral(2)), retTypeAnnotation = KGType.INT))
+        val expected = kageFileFromLines(KGFnDeclaration("returnSum", KGBinary(intLiteral(1), "+", intLiteral(2)), retTypeAnnotation = "Int"))
         assertEquals(expected, kageFile)
     }
 
@@ -34,8 +33,8 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                 KGFnDeclaration(
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
-                        listOf(FnParameter("a", KGType.INT)),
-                        KGType.INT
+                        listOf(FnParameter("a", "Int")),
+                        "Int"
                 )
         )
         assertEquals(expected, kageFile)
@@ -48,11 +47,11 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
                         listOf(
-                                FnParameter("a", KGType.INT),
-                                FnParameter("b", KGType.STRING),
-                                FnParameter("c", KGType.BOOL)
+                                FnParameter("a", "Int"),
+                                FnParameter("b", "String"),
+                                FnParameter("c", "Bool")
                         ),
-                        KGType.INT
+                        "Int"
                 )
         )
         assertEquals(expected, kageFile)

@@ -21,8 +21,7 @@ class TCScope(
         override val functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap(),
         override val types: HashMap<String, KGType> = HashMap(),
         override val parent: TCScope? = null
-) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding, KGType> {
-
+) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding> {
     fun createChildScope(vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
                          functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap()) =
             TCScope(vals, functions, parent = this)

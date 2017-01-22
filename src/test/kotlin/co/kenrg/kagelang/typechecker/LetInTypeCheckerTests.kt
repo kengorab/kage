@@ -163,7 +163,7 @@ class LetInTypeCheckerTests {
                 listOf(KGValDeclaration("a", intLiteral(1)), KGValDeclaration("a", intLiteral(2))),
                 KGPrint(KGBindingReference("a"))
         )
-        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", KGType.STRING)))
+        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", "String")))
         val result = TypeChecker.typeCheck(fnDecl, randomTCNamespace())
         assertFails(result)
     }

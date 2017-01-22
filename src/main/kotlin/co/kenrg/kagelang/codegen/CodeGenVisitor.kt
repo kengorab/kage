@@ -5,6 +5,7 @@ import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.asKGType
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -433,7 +434,7 @@ class CodeGenVisitor(
                 // Grab the first function. At this point, it's already passed typechecking so there
                 // should definitely be a function matching the necessary param signature.
                 val fnForName = data.getFnsForName(invocation.invokee.binding)
-                        ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.type } }
+                        ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.second } }
                         ?.elementAtOrNull(0)
                         ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
 
@@ -595,8 +596,11 @@ class CodeGenVisitor(
         // then place the local variables at their indices, starting at 0.
         fnDecl.params.forEach {
             val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
-            fnScope.vals.put(it.name, ValBinding.Local(it.name, it.type, it.type.size, index))
-            fnWriter.visitLocalVariable(it.name, it.type.jvmDescriptor, null, fnStart, fnEnd, index)
+            val paramType = data.getType(it.name) ?: it.type.asKGType()
+                    ?: throw IllegalStateException("Unknown type ${it.name}")
+
+            fnScope.vals.put(it.name, ValBinding.Local(it.name, paramType, paramType.size, index))
+            fnWriter.visitLocalVariable(it.name, paramType.jvmDescriptor, null, fnStart, fnEnd, index)
         }
 
         fnDecl.body.accept(this, fnScope)
@@ -649,6 +653,8 @@ class CodeGenVisitor(
         toStringWriter.visitEnd()
 
         innerClasses.addAll(visitor.results())
-        data.types.put(typeName, CGType(innerClassName))
+        // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that
+        val type = KGType(innerClassName, "L$innerClassName;", className = innerClassName)
+        data.types.put(typeName, type)
     }
 }
