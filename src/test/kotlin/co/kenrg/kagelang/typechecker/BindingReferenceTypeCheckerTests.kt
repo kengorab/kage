@@ -63,7 +63,7 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckBindingReference_bindingPresentInContext_bindingExpressionTypeUnset_throwsException() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.UNSET))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", null))
 
         val bindingRef = KGBindingReference("a")
         assertThrows<IllegalStateException>(IllegalStateException::class.java) {

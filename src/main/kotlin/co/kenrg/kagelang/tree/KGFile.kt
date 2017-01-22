@@ -9,7 +9,7 @@ class KGFile(var statements: List<KGTree>, var bindings: Map<String, KGType>) : 
 
     override fun kind(): Tree.Kind<*> = Tree.Kind.TopLevel
 
-    override var type: KGType = KGType.UNIT
+    override var type: KGType? = KGType.UNIT
     override var position: Position = Position.DEFAULT
 
     override fun withPosition(pos: Position): KGTree {

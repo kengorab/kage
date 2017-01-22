@@ -53,6 +53,6 @@ interface Tree {
 
     fun kind(): Kind<*>
 
-    var type: KGType
+    var type: KGType?
     var position: Position
 }

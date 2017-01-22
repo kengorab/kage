@@ -8,7 +8,7 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
 sealed class TCBinding(val name: String) {
-    class StaticValBinding(identifier: String, val type: KGType) : TCBinding(identifier)
+    class StaticValBinding(identifier: String, val type: KGType?) : TCBinding(identifier)
 
     class FunctionBinding(
             name: String,

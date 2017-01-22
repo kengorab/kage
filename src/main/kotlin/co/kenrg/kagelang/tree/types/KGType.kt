@@ -18,9 +18,6 @@ data class KGType(
         val STRING = KGType(name = "String", jvmDescriptor = "Ljava/lang/String;", className = "java/lang/String", isComparable = true)
 
         val UNIT = KGType(name = "Unit", jvmDescriptor = "V")
-
-        // Default type for everything, until after typechecking/annotation phase.
-        val UNSET = KGType(name = "???", jvmDescriptor = "V")
     }
 
     fun getLiteralKind(): Tree.Kind<LiteralTree> {

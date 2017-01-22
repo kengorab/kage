@@ -67,6 +67,9 @@ class CodeGenVisitor(
         return listOf(Pair(className, cw.toByteArray())) + innerClasses
     }
 
+    private fun getTypeAssertNotNull(type: KGType?) =
+            type ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
     /*****************************
      *
      *    Expression Visitors
@@ -90,14 +93,14 @@ class CodeGenVisitor(
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit unary with no methodVisitor active")
 
-        if (unary.type == KGType.UNSET)
+        if (unary.type == null)
             throw IllegalStateException("Cannot run codegen on Unary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-
 
         when (unary.kind()) {
             is Tree.Kind.ArithmeticNegation -> {
                 unary.expr.accept(this, data)
-                when (unary.expr.type) {
+                val unaryExprType = getTypeAssertNotNull(unary.expr.type)
+                when (unaryExprType) {
                     KGType.INT -> methodWriter.visitInsn(INEG)
                     KGType.DEC -> methodWriter.visitInsn(DNEG)
                     else -> throw IllegalStateException("Cannot run codegen on arithmetic negation which is not numeric")
@@ -177,9 +180,7 @@ class CodeGenVisitor(
         }
 
         tree.accept(this, data)
-        val treeType = tree.type
-//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-
+        val treeType = getTypeAssertNotNull(tree.type)
         val jvmDesc = treeType.jvmDescriptor
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($jvmDesc)Ljava/lang/StringBuilder;", false)
     }
@@ -265,11 +266,9 @@ class CodeGenVisitor(
         binary.left.accept(this, data)
         binary.right.accept(this, data)
 
-        val leftType = binary.left.type
-//        val rightType = binary.right.type
-
-//        if (leftType == null || rightType == null)
-//            throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+        // Unused rightType kept for symmetry
+        val leftType = getTypeAssertNotNull(binary.left.type)
+        val rightType = getTypeAssertNotNull(binary.right.type)
 
         // TODO - During typechecking, we need to verify that the two types here both implement Comparable.
         val typeDesc = leftType.jvmDescriptor
@@ -317,10 +316,8 @@ class CodeGenVisitor(
     fun pushComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
         // TODO - Consolidate these 3 approaches to comparisons (integers, decimals, and Comparables (Strings))?
 
-        val leftType = binary.left.type
-        val rightType = binary.right.type
-//        if (leftType == null || rightType == null)
-//            throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+        val leftType = getTypeAssertNotNull(binary.left.type)
+        val rightType = getTypeAssertNotNull(binary.right.type)
 
         if (leftType.isNumeric && rightType.isNumeric) {
             if (binary.left.type == KGType.INT && binary.right.type == KGType.INT) {
@@ -341,57 +338,55 @@ class CodeGenVisitor(
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit binary with no methodVisitor active")
 
-        if (binary.type == KGType.UNSET) {
-            throw IllegalStateException("Cannot run codegen on Binary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-        }
+        val binaryType = getTypeAssertNotNull(binary.type)
 
         when (binary.kind()) {
             is Tree.Kind.Plus -> {
-                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
-                when (binary.type) {
+                pushAndCastNumericOperands(binary, binaryType == KGType.DEC, methodWriter, data)
+                when (binaryType) {
                     KGType.INT -> methodWriter.visitInsn(IADD)
                     KGType.DEC -> methodWriter.visitInsn(DADD)
                     else -> throw IllegalStateException("Binary's kind is Plus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Minus -> {
-                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
-                when (binary.type) {
+                pushAndCastNumericOperands(binary, binaryType == KGType.DEC, methodWriter, data)
+                when (binaryType) {
                     KGType.INT -> methodWriter.visitInsn(ISUB)
                     KGType.DEC -> methodWriter.visitInsn(DSUB)
                     else -> throw IllegalStateException("Binary's kind is Minus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Multiply -> {
-                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
-                when (binary.type) {
+                pushAndCastNumericOperands(binary, binaryType == KGType.DEC, methodWriter, data)
+                when (binaryType) {
                     KGType.INT -> methodWriter.visitInsn(IMUL)
                     KGType.DEC -> methodWriter.visitInsn(DMUL)
                     else -> throw IllegalStateException("Binary's kind is Multiply, but type is non-numeric")
                 }
             }
             is Tree.Kind.Divide -> {
-                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
-                when (binary.type) {
+                pushAndCastNumericOperands(binary, binaryType == KGType.DEC, methodWriter, data)
+                when (binaryType) {
                     KGType.INT -> methodWriter.visitInsn(IDIV)
                     KGType.DEC -> methodWriter.visitInsn(DDIV)
                     else -> throw IllegalStateException("Binary's kind is Divide, but type is non-numeric")
                 }
             }
             is Tree.Kind.ConditionalAnd -> {
-                when (binary.type) {
+                when (binaryType) {
                     KGType.BOOL -> pushCondAnd(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalAnd, but type is non-boolean")
                 }
             }
             is Tree.Kind.ConditionalOr -> {
-                when (binary.type) {
+                when (binaryType) {
                     KGType.BOOL -> pushCondOr(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalOr, but type is non-boolean")
                 }
             }
             is Tree.Kind.Concatenation -> {
-                when (binary.type) {
+                when (binaryType) {
                     KGType.STRING -> pushStringConcatenation(binary, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is Concatenation, but type is non-String")
                 }
@@ -517,9 +512,7 @@ class CodeGenVisitor(
         methodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
         print.expr.accept(this, data)
 
-        val printType = print.expr.type
-//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-
+        val printType = getTypeAssertNotNull(print.expr.type)
         val type = printType.jvmDescriptor
         val printlnSignature = "($type)V"
 
@@ -545,9 +538,7 @@ class CodeGenVisitor(
 
         val valDeclExpr = valDecl.expression
 
-        val valDeclExprType = valDeclExpr.type
-//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-
+        val valDeclExprType = getTypeAssertNotNull(valDeclExpr.type)
         val jvmDesc = valDeclExprType.jvmDescriptor
 
         if (data.isRoot()) {
@@ -611,9 +602,8 @@ class CodeGenVisitor(
         fnDecl.body.accept(this, fnScope)
 
         if (isMain) {
-            if (fnDecl.body.type != KGType.UNIT) {
+            if (fnDecl.body.type != KGType.UNIT)
                 throw IllegalStateException("Main method requires return type of Unit, actual: ${fnDecl.body.type}")
-            }
 
             fnWriter.visitInsn(RETURN)
         } else {

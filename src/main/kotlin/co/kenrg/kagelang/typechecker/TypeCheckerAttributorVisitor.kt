@@ -39,9 +39,9 @@ class TypeCheckerAttributorVisitor(
 
     fun isValid() = typeErrors.isEmpty()
 
-    var result: KGType = KGType.UNSET
+    var result: KGType? = null
 
-    fun attribExpr(tree: KGTree, data: TCScope): KGType {
+    fun attribExpr(tree: KGTree, data: TCScope): KGType? {
         tree.accept(this, data)
         return result
     }
@@ -89,16 +89,16 @@ class TypeCheckerAttributorVisitor(
         val leftType = attribExpr(binary.left, data)
         val rightType = attribExpr(binary.right, data)
 
-//        if (leftType == null || rightType == null) {
-//            if (leftType == null)
-//                handleError(Error("Could not determine type", binary.left.position.start))
-//
-//            if (rightType == null)
-//                handleError(Error("Could not determine type", binary.right.position.start))
-//
-//            result = binary.type
-//            return
-//        }
+        if (leftType == null || rightType == null) {
+            if (leftType == null)
+                handleError(Error("Could not determine type for binary left", binary.left.position.start))
+
+            if (rightType == null)
+                handleError(Error("Could not determine type for binary right", binary.right.position.start))
+
+            result = binary.type
+            return
+        }
 
         var ownType = binary.type
         when (binary.kind()) {
@@ -166,9 +166,8 @@ class TypeCheckerAttributorVisitor(
         } else {
             when (binding) {
                 is TCBinding.StaticValBinding -> {
-                    if (binding.type == KGType.UNSET) {
+                    if (binding.type == null)
                         throw IllegalStateException("Binding expression's type is UNSET, somehow...")
-                    }
 
                     bindingReference.type = binding.type
                     result = binding.type
@@ -319,19 +318,19 @@ class TypeCheckerAttributorVisitor(
 
         val fnScope = data.createChildScope(vals)
         attribExpr(fnDecl.body, fnScope)
-//        if (fnDecl.body.type == null) {
-//            handleError(Error("Could not determine type", fnDecl.body.position.start))
-//            fnDecl.body.type = KGType.UNIT
-//            result = KGType.UNIT
-//            return
-//        }
+        val fnBodyType = fnDecl.body.type
+        if (fnBodyType == null) {
+            handleError(Error("Could not determine type", fnDecl.body.position.start))
+            result = KGType.UNIT
+            return
+        }
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
         if (fnDecl.retTypeAnnotation != null && fnDecl.retTypeAnnotation != fnDecl.body.type) {
             handleError(Error("Expected return type of ${fnDecl.retTypeAnnotation}, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
-        val fnSignature = Signature(params = fnDecl.params, returnType = fnDecl.body.type)
+        val fnSignature = Signature(params = fnDecl.params, returnType = fnBodyType)
 
         if (data.functions.containsKey(fnDecl.name)) {
             data.functions[fnDecl.name].forEach {

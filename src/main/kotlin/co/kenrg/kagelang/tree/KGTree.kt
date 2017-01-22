@@ -49,7 +49,7 @@ abstract class KGTree : Tree {
         Expressions
      */
     abstract class KGExpression : KGTree(), ExpressionTree {
-        override var type: KGType = KGType.UNSET
+        override var type: KGType? = null
         override var position: Position = Position.DEFAULT
 
         override fun withPosition(pos: Position): KGExpression {
@@ -150,7 +150,7 @@ abstract class KGTree : Tree {
         Statements
      */
     abstract class KGStatement : KGTree(), StatementTree {
-        override var type: KGType = KGType.UNSET
+        override var type: KGType? = null
         override var position: Position = Position.DEFAULT
 
         override fun withPosition(pos: Position): KGStatement {
