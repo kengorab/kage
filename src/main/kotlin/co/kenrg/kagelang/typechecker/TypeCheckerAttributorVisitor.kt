@@ -29,6 +29,7 @@ import java.util.*
  * @see KGTree.Visitor
  */
 class TypeCheckerAttributorVisitor(
+        val namespaceName: String,
         val errorHandler: VisitorErrorHandler<Error>? = null
 ) : Visitor<TCScope>, VisitorErrorHandler<Error> {
 
@@ -332,7 +333,10 @@ class TypeCheckerAttributorVisitor(
 
         val vals = fnDecl.params
                 .map {
-                    val type = data.getType(it.name) ?: it.type.asKGType()
+                    val type = data.getType(it.type) ?: it.type.asKGType()
+                    if (type == null)
+                        handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", fnDecl.position.start))
+
                     it.name to TCBinding.StaticValBinding(it.name, type)
                 }
                 .toMap(HashMap<String, TCBinding.StaticValBinding>())
@@ -392,8 +396,9 @@ class TypeCheckerAttributorVisitor(
         if (typeName[0].isLowerCase())
             handleError(Error("Naming: Type $typeName should begin with a capital letter", typeDecl.position.start))
 
-        // TODO - Fix the need to specify jvmDescriptor/className during typechecking.
-        val type = KGType(typeName, "")
+        // TODO - Separate out class-specific logic here. There's no reason why any of this needs to be tied to the jvm
+        val innerClassName = "$namespaceName\$$typeName"
+        val type = KGType(typeName, "L$innerClassName;", className = innerClassName)
         data.types.put(typeName, type)
 
         typeDecl.type = KGType.UNIT

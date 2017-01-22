@@ -57,9 +57,13 @@ fun main(args: Array<String>) {
         System.exit(1)
     }
 
-    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
+    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor("MyClass")
     val tcNamespace = TCNamespace.empty("MyClass")
-    parsingResult.root.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
+    try {
+        parsingResult.root.accept(typeCheckAttribVisitor, tcNamespace.rootScope)
+    } catch (e: IllegalStateException) {
+        System.err.println("A fatal error occurred when processing. See errors for more information")
+    }
     if (!typeCheckAttribVisitor.isValid()) {
         printErrors(lines, typeCheckAttribVisitor.typeErrors)
         System.exit(1)

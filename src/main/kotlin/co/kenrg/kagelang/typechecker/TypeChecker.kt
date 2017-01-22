@@ -20,7 +20,7 @@ class TypeChecker : VisitorErrorHandler<Error> {
 
     companion object {
         fun typeCheck(tree: KGTree, namespace: TCNamespace): TypeCheckingResult {
-            val attributor = TypeCheckerAttributorVisitor()
+            val attributor = TypeCheckerAttributorVisitor(namespace.name)
 
             tree.accept(attributor, namespace.rootScope)
 

@@ -1,10 +1,9 @@
-fn hello() = "hello"
-fn world() = "world"
+type Empty
 
-fn func1(c: Int, s: String) =
+fn func1(e: Empty) = print(e)
+
+fn main() =
   let
-    val a = 123
+    val empty = Empty()
   in
-    print((a + c) ++ s)
-
-fn main() = func1(1, "asdf")
+    func1(empty)

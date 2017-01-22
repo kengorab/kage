@@ -423,7 +423,8 @@ class CodeGenVisitor(
                 KGType.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
                 KGType.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
                 KGType.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
-                else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
+                KGType.UNIT -> throw IllegalStateException("Cannot resolve binding $name of type Unit")
+                else -> methodWriter.visitVarInsn(ALOAD, binding.index)
             }
         }
     }
@@ -431,22 +432,30 @@ class CodeGenVisitor(
     override fun visitInvocation(invocation: KGTree.KGInvocation, data: CGScope) {
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                // Grab the first function. At this point, it's already passed typechecking so there
-                // should definitely be a function matching the necessary param signature.
-                val fnForName = data.getFnsForName(invocation.invokee.binding)
-                        ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.second } }
-                        ?.elementAtOrNull(0)
-                        ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
-
                 val methodWriter = data.method?.writer
                         ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
 
-                invocation.params.forEach {
-                    it.accept(this, data)
-                }
+                // If the invocation target is a type name, invoke the constructor for that type. Otherwise, invoke the function.
+                val typeForName = data.getType(invocation.invokee.binding)
+                if (typeForName != null) {
+                    methodWriter.visitTypeInsn(NEW, typeForName.className)
+                    methodWriter.visitInsn(DUP)
+                    methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", "()V", false)
+                } else {
+                    // Grab the first function. At this point, it's already passed typechecking so there
+                    // should definitely be a function matching the necessary param signature.
+                    val fnForName = data.getFnsForName(invocation.invokee.binding)
+                            ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.second } }
+                            ?.elementAtOrNull(0)
+                            ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
 
-                val signature = fnForName.signature.jvmTypeDescriptor()
-                methodWriter.visitMethodInsn(INVOKESTATIC, className, fnForName.name, signature, false)
+                    invocation.params.forEach {
+                        it.accept(this, data)
+                    }
+
+                    val signature = fnForName.signature.jvmTypeDescriptor()
+                    methodWriter.visitMethodInsn(INVOKESTATIC, className, fnForName.name, signature, false)
+                }
             }
             else -> throw IllegalStateException("Expression is not invokable")
         }
@@ -514,8 +523,10 @@ class CodeGenVisitor(
         print.expr.accept(this, data)
 
         val printType = getTypeAssertNotNull(print.expr.type)
-        val type = printType.jvmDescriptor
-        val printlnSignature = "($type)V"
+        val printlnSignature = when (printType) {
+            KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING -> "(${printType.jvmDescriptor})V"
+            else -> "(Ljava/lang/Object;)V"
+        }
 
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", printlnSignature, false)
     }
@@ -567,7 +578,8 @@ class CodeGenVisitor(
                 KGType.DEC -> writer.visitVarInsn(DSTORE, bindingIndex)
                 KGType.BOOL -> writer.visitVarInsn(ISTORE, bindingIndex)
                 KGType.STRING -> writer.visitVarInsn(ASTORE, bindingIndex)
-                else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
+                KGType.UNIT -> throw IllegalStateException("Cannot store variable of type Unit in binding $valName")
+                else -> writer.visitVarInsn(ASTORE, bindingIndex)
             }
 
             // TODO - Fix indexing of local vars with many nested scopes
@@ -596,7 +608,7 @@ class CodeGenVisitor(
         // then place the local variables at their indices, starting at 0.
         fnDecl.params.forEach {
             val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
-            val paramType = data.getType(it.name) ?: it.type.asKGType()
+            val paramType = data.getType(it.type) ?: it.type.asKGType()
                     ?: throw IllegalStateException("Unknown type ${it.name}")
 
             fnScope.vals.put(it.name, ValBinding.Local(it.name, paramType, paramType.size, index))
@@ -654,7 +666,7 @@ class CodeGenVisitor(
 
         innerClasses.addAll(visitor.results())
         // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that
-        val type = KGType(innerClassName, "L$innerClassName;", className = innerClassName)
+        val type = KGType(typeName, "L$innerClassName;", className = innerClassName)
         data.types.put(typeName, type)
     }
 }

@@ -35,7 +35,7 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
         val (stringRepr, tree, expected) = testCase
         dynamicTest("Printing $stringRepr should output $expected") {
             val randomClassName = RandomStringUtils.randomAlphabetic(16)
-            val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
+            val typeCheckAttribVisitor = TypeCheckerAttributorVisitor(randomClassName)
             val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
             val treeWrappedInPrintAndMainMethod = KGTree.KGFnDeclaration("main", KGTree.KGPrint(expr = tree), listOf())
@@ -58,7 +58,7 @@ fun wrapInMainMethod(statementOrExpression: KGTree) =
 
 fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val randomClassName = RandomStringUtils.randomAlphabetic(16)
-    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor()
+    val typeCheckAttribVisitor = TypeCheckerAttributorVisitor(randomClassName)
     val codeGenVisitor = CodeGenVisitor(className = randomClassName)
 
     val tcNamespace = TCNamespace.empty(randomClassName)
