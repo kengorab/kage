@@ -8,6 +8,7 @@ import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
 import org.apache.commons.collections4.map.LinkedMap
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
+import java.util.*
 
 data class FunctionBinding(val name: String, val signature: Signature)
 sealed class ValBinding(val name: String, val type: KGTypeTag) {
@@ -15,11 +16,14 @@ sealed class ValBinding(val name: String, val type: KGTypeTag) {
     class Static(name: String, type: KGTypeTag) : ValBinding(name, type)
 }
 
+class CGType(val name: String)
+
 data class FocusedMethod(val writer: MethodVisitor, val start: Label?, val end: Label?)
 class CGScope(
         override val vals: LinkedMap<String, ValBinding> = LinkedMap(),
         override val functions: ArrayListValuedHashMap<String, FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: CGScope? = null,
+        val types: HashMap<String, CGType> = HashMap(),
         var method: FocusedMethod? = null
 ) : Scope<ValBinding, FunctionBinding> {
     fun createChildScope(vals: LinkedMap<String, ValBinding> = LinkedMap(), method: FocusedMethod? = null) =

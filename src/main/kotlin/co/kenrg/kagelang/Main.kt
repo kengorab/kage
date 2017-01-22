@@ -69,8 +69,10 @@ fun main(args: Array<String>) {
     val cgNamespace = CGNamespace("MyClass", CGScope())
     parsingResult.root.accept(codeGenVisitor, cgNamespace.rootScope)
 
-    val bytes = codeGenVisitor.resultBytes()
-    val fos = FileOutputStream("MyClass.class")
-    fos.write(bytes)
-    fos.close()
+    codeGenVisitor.results().forEach {
+        val (name, bytes) = it
+        val fos = FileOutputStream("$name.class")
+        fos.write(bytes)
+        fos.close()
+    }
 }

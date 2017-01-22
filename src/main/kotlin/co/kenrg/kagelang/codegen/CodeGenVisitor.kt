@@ -27,6 +27,8 @@ import jdk.internal.org.objectweb.asm.Opcodes.*
 class CodeGenVisitor(
         val className: String = "MyClass"
 ) : KGTree.Visitor<CGScope> {
+    val innerClasses = arrayListOf<Pair<String, ByteArray?>>()
+
     val cw: ClassWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
 
     // <clinit> method writer. Static val initializations need to be done in this method.
@@ -57,13 +59,13 @@ class CodeGenVisitor(
      * @see Tree
      * @see KGTree.Visitor
      */
-    fun resultBytes(): ByteArray? {
+    fun results(): List<Pair<String, ByteArray?>> {
         clinitWriter.visitInsn(RETURN)
         clinitWriter.visitMaxs(-1, -1)
         clinitWriter.visitEnd()
 
         cw.visitEnd()
-        return cw.toByteArray()
+        return listOf(Pair(className, cw.toByteArray())) + innerClasses
     }
 
     /*****************************
@@ -629,6 +631,29 @@ class CodeGenVisitor(
     }
 
     override fun visitTypeDeclaration(typeDecl: KGTree.KGTypeDeclaration, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        val typeName = typeDecl.name
+        val innerClassName = "$className\$$typeName"
+        cw.visitInnerClass(innerClassName, className, typeDecl.name, ACC_PUBLIC or ACC_STATIC)
+
+        val visitor = CodeGenVisitor(innerClassName)
+        visitor.cw.visitInnerClass(innerClassName, className, typeDecl.name, ACC_PUBLIC or ACC_STATIC)
+
+        val initWriter = visitor.cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null)
+        initWriter.visitCode()
+        initWriter.visitVarInsn(ALOAD, 0)
+        initWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+        initWriter.visitInsn(RETURN)
+        initWriter.visitMaxs(-1, -1)
+        initWriter.visitEnd()
+
+        val toStringWriter = visitor.cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null)
+        toStringWriter.visitCode()
+        toStringWriter.visitLdcInsn("$typeName()")
+        toStringWriter.visitInsn(ARETURN)
+        toStringWriter.visitMaxs(-1, -1)
+        toStringWriter.visitEnd()
+
+        innerClasses.addAll(visitor.results())
+        data.types.put(typeName, CGType(innerClassName))
     }
 }

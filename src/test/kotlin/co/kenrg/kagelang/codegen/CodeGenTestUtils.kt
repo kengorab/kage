@@ -45,7 +45,7 @@ fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTe
             val ns = CGNamespace(randomClassName, CGScope())
             treeWrappedInPrintAndMainMethod.accept(codeGenVisitor, ns.rootScope)
 
-            writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes()) { output ->
+            writeAndExecClassFileAndThen(codeGenVisitor.results()) { output ->
                 assertEquals(expected, output)
             }
         }
@@ -71,21 +71,27 @@ fun compileAndExecuteFileAnd(file: KGFile, fn: (output: String) -> Unit) {
     val ns = CGNamespace(randomClassName, CGScope())
     file.accept(codeGenVisitor, ns.rootScope)
 
-    writeAndExecClassFileAndThen(randomClassName, codeGenVisitor.resultBytes(), fn)
+    writeAndExecClassFileAndThen(codeGenVisitor.results(), fn)
 }
 
-fun writeAndExecClassFileAndThen(className: String, bytes: ByteArray?, fn: (String) -> Unit) {
-    if (bytes == null) {
-        fail("Cannot write a null bytes-array to class file")
+fun writeAndExecClassFileAndThen(results: List<Pair<String, ByteArray?>>, fn: (String) -> Unit) {
+    if (results.isEmpty())
+        fail("No results returned from codegen, cannot proceed")
+
+    results.forEach {
+        val (name, bytes) = it
+        if (bytes == null) {
+            fail("Cannot write a null bytes-array to class file")
+        }
+
+        val randomClassPath = "$tempClassesPathName/$name.class"
+        if (testLogs) println("Generating class file at $randomClassPath")
+        val fos = FileOutputStream(randomClassPath)
+        fos.write(bytes)
+        fos.close()
     }
 
-    val randomClassPath = "$tempClassesPathName/$className.class"
-    if (testLogs) println("Generating class file at $randomClassPath")
-    val fos = FileOutputStream(randomClassPath)
-    fos.write(bytes)
-    fos.close()
-
-    val process = Runtime.getRuntime().exec("java $className", null, tempClassesPath.toFile())
+    val process = Runtime.getRuntime().exec("java ${results[0].first}", null, tempClassesPath.toFile())
     val execOutput = BufferedReader(InputStreamReader(process.inputStream))
             .lines()
             .collect(joining("\n"))
