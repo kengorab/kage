@@ -16,14 +16,12 @@ sealed class TCBinding(val name: String) {
     ) : TCBinding(name)
 }
 
-class TCType(val name: String)
-
 class TCScope(
         override val vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
         override val functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap(),
-        val types: HashMap<String, TCType> = HashMap(),
+        override val types: HashMap<String, KGType> = HashMap(),
         override val parent: TCScope? = null
-) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding> {
+) : Scope<TCBinding.StaticValBinding, TCBinding.FunctionBinding, KGType> {
 
     fun createChildScope(vals: HashMap<String, TCBinding.StaticValBinding> = HashMap(),
                          functions: ArrayListValuedHashMap<String, TCBinding.FunctionBinding> = ArrayListValuedHashMap()) =

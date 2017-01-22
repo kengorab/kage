@@ -8,6 +8,7 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.asKGType
 import java.util.*
 
 /**
@@ -159,7 +160,9 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitBindingReference(bindingReference: KGTree.KGBindingReference, data: TCScope) {
-        val binding = data.getVal(bindingReference.binding) ?: data.getFnsForName(bindingReference.binding)
+        val binding = data.getVal(bindingReference.binding)
+                ?: data.getFnsForName(bindingReference.binding)
+                ?: data.getType(bindingReference.binding)
 
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
@@ -177,6 +180,10 @@ class TypeCheckerAttributorVisitor(
                     bindingReference.type = binding.signature.returnType
                     result = binding.signature.returnType
                 }
+                is KGType -> {
+                    bindingReference.type = binding
+                    result = binding
+                }
             }
         }
     }
@@ -187,16 +194,27 @@ class TypeCheckerAttributorVisitor(
 
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
-                val fnsForName = data.getFnsForName(invocation.invokee.binding)
+                val invokeeName = invocation.invokee.binding
+
+                // Check to see if invocation target is a type constructor function.
+                val typeForName = data.getType(invokeeName)
+                if (typeForName != null) {
+                    invocation.type = typeForName
+                    result = typeForName
+                    return
+                }
+
+                // If the invocation target is not a type constructor function, carry on with function typechecking.
+                val fnsForName = data.getFnsForName(invokeeName)
                 if (fnsForName == null) {
-                    handleError(Error("Binding with name ${invocation.invokee.binding} not visible in current context", invocation.invokee.position.start))
+                    handleError(Error("Binding with name $invokeeName not visible in current context", invocation.invokee.position.start))
                 } else {
                     val fnsMatchingParamsSig = fnsForName.filter {
                         invocation.params.map { it.type } == it.signature.params.map { it.type }
                     }
 
                     if (fnsMatchingParamsSig.size > 1) {
-                        handleError(Error("Multiple functions available with name ${invocation.invokee.binding} and params signature", invocation.invokee.position.start))
+                        handleError(Error("Multiple functions available with name $invokeeName and params signature", invocation.invokee.position.start))
                     } else if (fnsMatchingParamsSig.isEmpty()) {
                         // To not throw a bunch of errors, only try to compare against the first possible match for the
                         // function's name. In the future, this should probably show all possible matches for function name.
@@ -282,16 +300,16 @@ class TypeCheckerAttributorVisitor(
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: TCScope) {
         attribExpr(valDecl.expression, data)
-//        if (valDecl.expression.type == null) {
-//            handleError(Error("Could not determine type", valDecl.expression.position.start))
-//            result = KGType.UNIT
-//            return
-//        }
 
         if (valDecl.typeAnnotation != null) {
-            if (valDecl.expression.type != valDecl.typeAnnotation) {
-                handleError(Error("Expression not assignable to type ${valDecl.typeAnnotation}", valDecl.position.start))
-            }
+            val annotatedType = data.getType(valDecl.typeAnnotation)
+                    ?: valDecl.typeAnnotation.asKGType()
+
+            if (annotatedType == null)
+                handleError(Error("Type with name ${valDecl.typeAnnotation} not visible in this context", valDecl.position.start))
+
+            if (valDecl.expression.type != annotatedType)
+                handleError(Error("Expression not assignable to type $annotatedType", valDecl.position.start))
         }
 
         if (data.vals.containsKey(valDecl.identifier)) {
@@ -300,6 +318,7 @@ class TypeCheckerAttributorVisitor(
             data.vals.put(valDecl.identifier, TCBinding.StaticValBinding(valDecl.identifier, valDecl.expression.type))
         }
 
+        valDecl.type = KGType.UNIT
         result = KGType.UNIT
     }
 
@@ -332,7 +351,9 @@ class TypeCheckerAttributorVisitor(
 
         val fnSignature = Signature(params = fnDecl.params, returnType = fnBodyType)
 
-        if (data.functions.containsKey(fnDecl.name)) {
+        if (data.types.containsKey(fnDecl.name)) {
+            handleError(Error("Binding \"${fnDecl.name}\" conflicts with a type name in this context", fnDecl.position.start))
+        } else if (data.functions.containsKey(fnDecl.name)) {
             data.functions[fnDecl.name].forEach {
                 if (it.signature.returnType != fnSignature.returnType) {
                     handleError(Error("Binding \"${fnDecl.name}\" conflicts with another in this context", fnDecl.position.start))
@@ -360,7 +381,9 @@ class TypeCheckerAttributorVisitor(
         if (typeName[0].isLowerCase())
             handleError(Error("Naming: Type $typeName should begin with a capital letter", typeDecl.position.start))
 
-        data.types.put(typeName, TCType(typeName))
+        // TODO - Fix the need to specify jvmDescriptor/className during typechecking.
+        val type = KGType(typeName, "")
+        data.types.put(typeName, type)
 
         typeDecl.type = KGType.UNIT
         result = KGType.UNIT

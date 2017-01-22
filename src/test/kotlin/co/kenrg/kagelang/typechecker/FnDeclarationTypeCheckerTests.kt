@@ -259,4 +259,18 @@ class FnDeclarationTypeCheckerTests {
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
+
+    @Test fun typecheckFnDeclaration_fnNameIsSameAsTypeInScope_typecheckingFails() {
+        val ns = randomTCNamespace()
+        ns.rootScope.types.put("TypeName", KGType("TypeName", ""))
+
+        val fnDecl = KGFnDeclaration(
+                "TypeName",
+                trueLiteral(),
+                listOf(FnParameter("b", KGType.BOOL)),
+                KGType.BOOL
+        )
+        val result = TypeChecker.typeCheck(fnDecl, ns)
+        assertFails(result)
+    }
 }

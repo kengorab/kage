@@ -30,11 +30,11 @@ class TypeDeclarationTypeCheckerTests {
         assertFails(result)
     }
 
-    @Test fun typecheckTypeDeclaration_emptyType_nameAlreadyExistsInNamespaceTypes_typecheckingFails() {
+    @Test fun typecheckTypeDeclaration_typeWithNameExistsInNamespace_typecheckingFails() {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
 
         val ns = randomTCNamespace()
-        ns.rootScope.types.put(typeName, TCType(typeName))
+        ns.rootScope.types.put(typeName, KGType(typeName, ""))
 
         val typeDecl = KGTypeDeclaration(typeName)
         val result = TypeChecker.typeCheck(typeDecl, ns)

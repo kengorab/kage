@@ -53,7 +53,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
         // print(a)
         val file = KGFile(
                 statements = listOf(
-                        KGValDeclaration("a", intLiteral(1), KGType.INT),
+                        KGValDeclaration("a", intLiteral(1), "Int"),
                         wrapInMainMethod(KGPrint(KGBindingReference("a")))
                 ),
                 bindings = HashMap()

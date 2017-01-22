@@ -11,6 +11,7 @@ import co.kenrg.kagelang.tree.types.KGType.Companion.DEC
 import co.kenrg.kagelang.tree.types.KGType.Companion.INT
 import co.kenrg.kagelang.tree.types.KGType.Companion.STRING
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 
 class InvocationTypeCheckerTests {
@@ -170,7 +171,7 @@ class InvocationTypeCheckerTests {
                 ns.rootScope.functions.put("abc", TCBinding.FunctionBinding("a", Signature(params = listOf(), returnType = type)))
                 val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("abc")), ns)
                 assertSucceedsAnd(result) {
-                    Assertions.assertEquals(type, it.type)
+                    assertEquals(type, it.type)
                 }
             }
         }
@@ -231,5 +232,13 @@ class InvocationTypeCheckerTests {
     @Test fun typecheckInvocation_targetIsUndefinedBinding_typecheckingFails() {
         val result = TypeChecker.typeCheck(KGInvocation(KGBindingReference("a")), randomTCNamespace())
         assertFails(result)
+    }
+
+    @Test fun typecheckInvocation_targetIsTypeConstructor_passesTypecheckingWithType() {
+        val ns = randomTCNamespace()
+        ns.rootScope.types.put("SomeType", KGType("SomeType", ""))
+        val invocation = KGInvocation(KGBindingReference("SomeType"))
+        val result = TypeChecker.typeCheck(invocation, ns)
+        assertSucceedsAnd(result) { assertEquals(KGType("SomeType", ""), invocation.type)}
     }
 }

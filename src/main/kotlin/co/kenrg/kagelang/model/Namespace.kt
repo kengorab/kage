@@ -2,16 +2,22 @@ package co.kenrg.kagelang.model
 
 import org.apache.commons.collections4.MultiValuedMap
 
-interface Scope<out V, F> {
+interface Scope<out V, F, T> {
     val vals: Map<String, V>
     val functions: MultiValuedMap<String, F>
-    val parent: Scope<V, F>?
+    val types: Map<String, T>
+    val parent: Scope<V, F, T>?
 
     fun isRoot() = parent == null
 
     fun getVal(name: String): V? =
             if (vals.containsKey(name)) vals[name]
             else parent?.getVal(name)
+
+    fun getType(name: String): T? =
+            // As of now, types can only be defined at the root scope.
+            if (!isRoot()) parent!!.getType(name)
+            else types[name]
 
     fun getFnsForName(name: String): List<F>? {
         val fns = functions[name].toList()
@@ -22,4 +28,4 @@ interface Scope<out V, F> {
     }
 }
 
-open class Namespace<out T : Scope<*, *>>(val name: String, val rootScope: T)
+open class Namespace<out T : Scope<*, *, *>>(val name: String, val rootScope: T)

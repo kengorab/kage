@@ -40,7 +40,7 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
                         expression = toTree(statement.valDeclaration().expression()),
-                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimTypeAnnotation()?.asKGType()
+                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimTypeAnnotation()
                 )
             is KageParser.FnDeclarationStatementContext ->
                 KGTree.KGFnDeclaration(

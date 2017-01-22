@@ -23,9 +23,9 @@ class CGScope(
         override val vals: LinkedMap<String, ValBinding> = LinkedMap(),
         override val functions: ArrayListValuedHashMap<String, FunctionBinding> = ArrayListValuedHashMap(),
         override val parent: CGScope? = null,
-        val types: HashMap<String, CGType> = HashMap(),
+        override val types: HashMap<String, CGType> = HashMap(),
         var method: FocusedMethod? = null
-) : Scope<ValBinding, FunctionBinding> {
+) : Scope<ValBinding, FunctionBinding, CGType> {
     fun createChildScope(vals: LinkedMap<String, ValBinding> = LinkedMap(), method: FocusedMethod? = null) =
             CGScope(vals = vals, functions = ArrayListValuedHashMap(), parent = this, method = method)
 }
