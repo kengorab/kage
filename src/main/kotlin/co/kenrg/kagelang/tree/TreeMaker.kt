@@ -91,7 +91,10 @@ class TreeMaker(val considerPosition: Boolean = true) {
             is KageParser.BindingReferenceContext ->
                 KGTree.KGBindingReference(expression.Identifier().text)
             is KageParser.InvocationContext ->
-                KGTree.KGInvocation(toTree(expression.invokee))
+                KGTree.KGInvocation(
+                        invokee = toTree(expression.invokee),
+                        params = expression.params?.expression()?.map { toTree(it) } ?: listOf()
+                )
             is KageParser.LetInExpressionContext ->
                 KGTree.KGLetIn(
                         statements = expression.statements().statement().map { toTree(it) },

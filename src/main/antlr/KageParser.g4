@@ -39,6 +39,10 @@ fnParams
     : fnParam (',' fnParam)*
     ;
 
+arguments
+    : expression (',' expression)?
+    ;
+
 fnDeclaration
     : 'fn' fnName=Identifier '(' params=fnParams? ')' typeAnnotation=TypeAnnotation? '=' NEWLINE* body=statementOrExpression
     ;
@@ -53,7 +57,7 @@ print
 expression
     : '(' NEWLINE* expression NEWLINE* ')'                                              #parenExpression
 
-    | invokee=expression '(' ')'                                                        #invocation
+    | invokee=expression '(' params=arguments? ')'                                      #invocation
 
     | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression            #letInExpression
 

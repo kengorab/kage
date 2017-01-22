@@ -1,28 +1,10 @@
 fn hello() = "hello"
 fn world() = "world"
 
-fn func1() =
+fn func1(c: Int, s: String) =
   let
-    val c = 12
+    val a = 123
   in
-    if hello() == "world"
-      then
-        let
-          val a = 123
-        in
-          print(a + c)
-      else
-        let
-          val b = 456
-        in
-          print(b + c)
+    print((a + c) ++ s)
 
-fn func2() =
-  let
-    val a = if hello() == "world"
-    then 1
-    else 2
-  in
-    print(a)
-
-fn main() = func1()
+fn main() = func1(1, "asdf")

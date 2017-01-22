@@ -173,6 +173,8 @@ class TypeCheckerAttributorVisitor(
 
     override fun visitInvocation(invocation: KGTree.KGInvocation, data: TCScope) {
         invocation.invokee.accept(this, data)
+        invocation.params.forEach { it.accept(this, data) }
+
         when (invocation.invokee) {
             is KGTree.KGBindingReference -> {
                 val fnsForName = data.getFnsForName(invocation.invokee.binding)
