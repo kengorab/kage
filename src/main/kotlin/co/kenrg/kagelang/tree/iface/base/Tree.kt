@@ -3,7 +3,7 @@ package co.kenrg.kagelang.tree.iface.base
 import co.kenrg.kagelang.model.Position
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.iface.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 
 interface Tree {
 
@@ -53,6 +53,6 @@ interface Tree {
 
     fun kind(): Kind<*>
 
-    var type: KGTypeTag
+    var type: KGType
     var position: Position
 }

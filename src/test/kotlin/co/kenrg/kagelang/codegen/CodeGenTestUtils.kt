@@ -4,7 +4,7 @@ import co.kenrg.kagelang.codegen.BaseTest.Companion.testLogs
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGLiteral
-import co.kenrg.kagelang.tree.types.KGTypeTag.*
+import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.typechecker.TCNamespace
 import co.kenrg.kagelang.typechecker.TypeCheckerAttributorVisitor
 import org.apache.commons.lang3.RandomStringUtils
@@ -24,11 +24,11 @@ val tempClassesPath: Path = Paths.get(tempClassesPathName)
 
 data class Case(val stringRepr: String, val tree: KGTree.KGExpression, val expected: String)
 
-fun intLiteral(int: Int) = KGLiteral(INT, int)
-fun decLiteral(dec: Double) = KGLiteral(DEC, dec)
-fun trueLiteral() = KGLiteral(BOOL, true)
-fun falseLiteral() = KGLiteral(BOOL, false)
-fun stringLiteral(s: String) = KGLiteral(STRING, s)
+fun intLiteral(int: Int) = KGLiteral(KGType.INT, int)
+fun decLiteral(dec: Double) = KGLiteral(KGType.DEC, dec)
+fun trueLiteral() = KGLiteral(KGType.BOOL, true)
+fun falseLiteral() = KGLiteral(KGType.BOOL, false)
+fun stringLiteral(s: String) = KGLiteral(KGType.STRING, s)
 
 fun generateTestsToCompileAndExecuteCases(testCases: List<Case>): List<DynamicTest> {
     return testCases.map { testCase ->

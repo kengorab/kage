@@ -2,7 +2,7 @@ package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -47,6 +47,6 @@ class TypeDeclarationTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val typeDecl = KGTypeDeclaration(typeName)
         val result = TypeChecker.typeCheck(typeDecl, ns)
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, typeDecl.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, typeDecl.type) }
     }
 }

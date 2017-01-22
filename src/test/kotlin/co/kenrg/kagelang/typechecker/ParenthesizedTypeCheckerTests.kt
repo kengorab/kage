@@ -1,7 +1,7 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag.INT
+import co.kenrg.kagelang.tree.types.KGType.Companion.INT
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

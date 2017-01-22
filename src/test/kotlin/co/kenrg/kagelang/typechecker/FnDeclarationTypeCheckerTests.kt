@@ -6,7 +6,7 @@ import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -20,19 +20,19 @@ class FnDeclarationTypeCheckerTests {
     // annotations are handled in the tests outside of this inner class.
     inner class FnDeclarationWithReturnTypeAnnotation {
 
-        fun fnBodyAndReprForType(type: KGTypeTag, annotationType: KGTypeTag = type): Pair<KGTree, String> {
+        fun fnBodyAndReprForType(type: KGType, annotationType: KGType = type): Pair<KGTree, String> {
             return when (type) {
-                KGTypeTag.INT,
-                KGTypeTag.DEC,
-                KGTypeTag.BOOL,
-                KGTypeTag.STRING -> {
+                KGType.INT,
+                KGType.DEC,
+                KGType.BOOL,
+                KGType.STRING -> {
                     val fnBody = randomKGLiteralOfType(type)
-                    val repr = "fn abc():${annotationType.typeName} = ${fnBody.value}"
+                    val repr = "fn abc():${annotationType.name} = ${fnBody.value}"
                     Pair(fnBody, repr)
                 }
-                KGTypeTag.UNIT -> {
+                KGType.UNIT -> {
                     val fnBody = KGPrint(intLiteral(123))
-                    val repr = "fn abc():${annotationType.typeName} = print(123)"
+                    val repr = "fn abc():${annotationType.name} = print(123)"
                     Pair(fnBody, repr)
                 }
                 else -> throw IllegalStateException("Invalid type: $type")
@@ -42,7 +42,7 @@ class FnDeclarationTypeCheckerTests {
         @TestFactory
         @DisplayName("FnDeclarations with return type annotations that match their body's type should pass typechecking")
         fun typecheckFnDeclaration_hasReturnTypeAnnotation_annotationMatchesBodyType_passesTypechecking(): List<DynamicTest> {
-            return listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING, KGTypeTag.UNIT).map { type ->
+            return listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT).map { type ->
                 val (fnBody, repr) = fnBodyAndReprForType(type)
 
                 dynamicTest("$repr should pass typechecking, since its body's type is $type") {
@@ -56,7 +56,7 @@ class FnDeclarationTypeCheckerTests {
         @TestFactory
         @DisplayName("FnDeclarations with return type annotations that don't match their body's type should fail typechecking")
         fun typecheckFnDeclaration_hasReturnTypeAnnotation_annotationDoesNotMatchBodyType_failsTypechecking(): List<DynamicTest> {
-            val types = listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING, KGTypeTag.UNIT)
+            val types = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT)
             return types.map { type ->
                 val returnAnnotationType = (types - type)[RandomUtils.nextInt(0, types.size - 1)]
                 val (fnBody, repr) = fnBodyAndReprForType(type, returnAnnotationType)
@@ -75,7 +75,7 @@ class FnDeclarationTypeCheckerTests {
 
         @Test fun typecheckFnDeclaration_duplicateParamsSameType_typecheckingFails() {
             // fn abc(a: Int, a: Int) = 1
-            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", KGTypeTag.INT), FnParameter("a", KGTypeTag.INT)))
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", KGType.INT), FnParameter("a", KGType.INT)))
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertFails(result)
         }
@@ -86,9 +86,9 @@ class FnDeclarationTypeCheckerTests {
                     "abc",
                     intLiteral(1),
                     listOf(
-                            FnParameter("a", KGTypeTag.INT),
-                            FnParameter("b", KGTypeTag.BOOL),
-                            FnParameter("a", KGTypeTag.INT)
+                            FnParameter("a", KGType.INT),
+                            FnParameter("b", KGType.BOOL),
+                            FnParameter("a", KGType.INT)
                     )
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
@@ -97,13 +97,13 @@ class FnDeclarationTypeCheckerTests {
 
         @Test fun typecheckFnDeclaration_oneParamWithTypeAnnotation_passesTypecheckingWithSignatureSet() {
             // fn abc(a: Int) = 1
-            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", KGTypeTag.INT)))
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", KGType.INT)))
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
                 val abc = it.namespace.rootScope.functions["abc"]
                 assertNotNull(abc)
                 assertEquals(
-                        Signature(params = listOf(FnParameter("a", KGTypeTag.INT)), returnType = KGTypeTag.INT),
+                        Signature(params = listOf(FnParameter("a", KGType.INT)), returnType = KGType.INT),
                         abc[0].signature
                 )
             }
@@ -115,8 +115,8 @@ class FnDeclarationTypeCheckerTests {
                     "abc",
                     intLiteral(1),
                     listOf(
-                            FnParameter("a", KGTypeTag.INT), FnParameter("a1", KGTypeTag.INT),
-                            FnParameter("b", KGTypeTag.BOOL), FnParameter("c", KGTypeTag.STRING)
+                            FnParameter("a", KGType.INT), FnParameter("a1", KGType.INT),
+                            FnParameter("b", KGType.BOOL), FnParameter("c", KGType.STRING)
                     )
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
@@ -126,10 +126,10 @@ class FnDeclarationTypeCheckerTests {
                 assertEquals(
                         Signature(
                                 params = listOf(
-                                        FnParameter("a", KGTypeTag.INT), FnParameter("a1", KGTypeTag.INT),
-                                        FnParameter("b", KGTypeTag.BOOL), FnParameter("c", KGTypeTag.STRING)
+                                        FnParameter("a", KGType.INT), FnParameter("a1", KGType.INT),
+                                        FnParameter("b", KGType.BOOL), FnParameter("c", KGType.STRING)
                                 ),
-                                returnType = KGTypeTag.INT
+                                returnType = KGType.INT
                         ),
                         abc[0].signature
                 )
@@ -141,15 +141,15 @@ class FnDeclarationTypeCheckerTests {
             val statement = KGFnDeclaration(
                     "abc",
                     KGBinary(KGBindingReference("a"), "+", intLiteral(1)),
-                    listOf(FnParameter("a", KGTypeTag.INT))
+                    listOf(FnParameter("a", KGType.INT))
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
-                assertEquals(KGTypeTag.INT, statement.body.type)
+                assertEquals(KGType.INT, statement.body.type)
                 val abc = it.namespace.rootScope.functions["abc"]
                 assertNotNull(abc)
                 assertEquals(
-                        Signature(params = listOf(FnParameter("a", KGTypeTag.INT)), returnType = KGTypeTag.INT),
+                        Signature(params = listOf(FnParameter("a", KGType.INT)), returnType = KGType.INT),
                         abc[0].signature
                 )
             }
@@ -160,7 +160,7 @@ class FnDeclarationTypeCheckerTests {
             val statement = KGFnDeclaration(
                     "abc",
                     KGBinary(KGBindingReference("a"), "+", KGBindingReference("b")),
-                    listOf(FnParameter("a", KGTypeTag.INT), FnParameter("b", KGTypeTag.STRING))
+                    listOf(FnParameter("a", KGType.INT), FnParameter("b", KGType.STRING))
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertFails(result)
@@ -170,7 +170,7 @@ class FnDeclarationTypeCheckerTests {
     @TestFactory
     @DisplayName("FnDeclaration statements should have type of Unit, and their inner expressions should be typed")
     fun typecheckFnDeclaration_returnsUnit_innerExpressionHasTypeSet(): List<DynamicTest> {
-        return listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING).map { type ->
+        return listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING).map { type ->
             val fnBody = randomKGLiteralOfType(type)
             val repr = "fn abc() = ${fnBody.value}"
 
@@ -179,7 +179,7 @@ class FnDeclarationTypeCheckerTests {
                 val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                 assertSucceedsAnd(result) {
                     assertEquals(type, statement.body.type)
-                    assertEquals(KGTypeTag.UNIT, it.type)
+                    assertEquals(KGType.UNIT, it.type)
                 }
             }
         }
@@ -189,18 +189,18 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration("abc", KGBinary(intLiteral(3), "+", KGBindingReference("a")))
 
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.INT))
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.INT, fnDecl.body.type)
-            assertEquals(KGTypeTag.UNIT, it.type)
+            assertEquals(KGType.INT, fnDecl.body.type)
+            assertEquals(KGType.UNIT, it.type)
         }
     }
 
     @TestFactory
     @DisplayName("FnDeclaration statements cause the function to be inserted into the bindings, with proper signature")
     fun typecheckFnDeclaration_noParams_fnPresentInBindingsWithProperSignature(): List<DynamicTest> {
-        return listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING).map { type ->
+        return listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING).map { type ->
             val fnBody = randomKGLiteralOfType(type)
             val repr = "fn abc() = ${fnBody.value}"
 
@@ -218,7 +218,7 @@ class FnDeclarationTypeCheckerTests {
     }
 
     @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_differentParamSignature_sameReturnType_typecheckingPasses() {
-        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGType.INT))
 
         val ns = randomTCNamespace()
         ns.rootScope.functions.put("abc", abcFn)
@@ -226,26 +226,26 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration(
                 "abc",
                 intLiteral(3),
-                listOf(FnParameter("b", KGTypeTag.BOOL)),
-                KGTypeTag.INT
+                listOf(FnParameter("b", KGType.BOOL)),
+                KGType.INT
         )
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertSucceeds(result)
     }
 
     @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_sameParamSignature_differentReturnType_typecheckingFails() {
-        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGType.INT))
 
         val ns = randomTCNamespace()
         ns.rootScope.functions.put("abc", abcFn)
 
-        val fnDecl = KGFnDeclaration("abc", trueLiteral(), listOf(), KGTypeTag.BOOL)
+        val fnDecl = KGFnDeclaration("abc", trueLiteral(), listOf(), KGType.BOOL)
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
 
     @Test fun typecheckFnDeclaration_duplicateFnNameDeclaration_differentParamSignature_differentReturnType_typecheckingFails() {
-        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGTypeTag.INT))
+        val abcFn = TCBinding.FunctionBinding("abc", Signature(params = listOf(), returnType = KGType.INT))
 
         val ns = randomTCNamespace()
         ns.rootScope.functions.put("abc", abcFn)
@@ -253,8 +253,8 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration(
                 "abc",
                 trueLiteral(),
-                listOf(FnParameter("b", KGTypeTag.BOOL)),
-                KGTypeTag.BOOL
+                listOf(FnParameter("b", KGType.BOOL)),
+                KGType.BOOL
         )
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)

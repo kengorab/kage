@@ -5,7 +5,7 @@ import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.codegen.trueLiteral
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
@@ -42,7 +42,7 @@ class IfThenElseTypeCheckerTests {
                 KGPrint(stringLiteral("okay"))
         )
         val result = TypeChecker.typeCheck(ifThenExpr, randomTCNamespace())
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, ifThenExpr.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, ifThenExpr.type) }
     }
 
     @Test fun testIfThenElseExpression_conditionIsBool_elseAndThenAreUnit_passesTypecheckingWithTypeUnit() {
@@ -53,14 +53,14 @@ class IfThenElseTypeCheckerTests {
                 KGPrint(stringLiteral("false"))
         )
         val result = TypeChecker.typeCheck(ifThenExpr, randomTCNamespace())
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, ifThenExpr.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, ifThenExpr.type) }
     }
 
     @TestFactory
     fun testIfThenElseExpression_conditionIsBool_elseIsNotSameTypeAsThen_failsTypechecking(): List<DynamicTest> {
-        val types = listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING)
+        val types = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING)
         return types.map { type ->
-            val cond = randomKGLiteralOfType(KGTypeTag.BOOL)
+            val cond = randomKGLiteralOfType(KGType.BOOL)
             val thenBlock = randomKGLiteralOfType(type)
 
             val badType = (types - type)[RandomUtils.nextInt(0, types.size - 1)]
@@ -76,8 +76,8 @@ class IfThenElseTypeCheckerTests {
 
     @TestFactory
     fun testIfThenElseExpression_conditionIsBool_elseIsSameTypeAsThen_passesTypecheckingWithType(): List<DynamicTest> {
-        return listOf(KGTypeTag.INT, KGTypeTag.DEC, KGTypeTag.BOOL, KGTypeTag.STRING).map { type ->
-            val cond = randomKGLiteralOfType(KGTypeTag.BOOL)
+        return listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING).map { type ->
+            val cond = randomKGLiteralOfType(KGType.BOOL)
             val thenBlock = randomKGLiteralOfType(type)
             val elseBlock = randomKGLiteralOfType(type)
 
@@ -107,6 +107,6 @@ class IfThenElseTypeCheckerTests {
                 stringLiteral("hello")
         )
         val result = TypeChecker.typeCheck(ifThenExpr, randomTCNamespace())
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.STRING, ifThenExpr.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.STRING, ifThenExpr.type) }
     }
 }

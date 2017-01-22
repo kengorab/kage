@@ -5,9 +5,11 @@ import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.tree.types.KGTypeTag.BOOL
-import co.kenrg.kagelang.tree.types.KGTypeTag.INT
+import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.KGType.Companion.BOOL
+import co.kenrg.kagelang.tree.types.KGType.Companion.DEC
+import co.kenrg.kagelang.tree.types.KGType.Companion.INT
+import co.kenrg.kagelang.tree.types.KGType.Companion.STRING
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 
@@ -27,7 +29,7 @@ class InvocationTypeCheckerTests {
             ns.rootScope.functions.put("abc", abc)
             val invocation = KGInvocation(
                     KGBindingReference("abc"),
-                    listOf(intLiteral(1).withType(INT))
+                    listOf(intLiteral(1))
             )
             val result = TypeChecker.typeCheck(invocation, ns)
             assertFails(result)
@@ -45,9 +47,9 @@ class InvocationTypeCheckerTests {
             val invocation = KGInvocation(
                     KGBindingReference("abc"),
                     listOf(
-                            intLiteral(1).withType(INT),
-                            trueLiteral().withType(BOOL),
-                            stringLiteral("too many params!").withType(KGTypeTag.STRING)
+                            intLiteral(1),
+                            trueLiteral(),
+                            stringLiteral("too many params!")
                     )
             )
             val result = TypeChecker.typeCheck(invocation, ns)
@@ -66,8 +68,8 @@ class InvocationTypeCheckerTests {
             val invocation = KGInvocation(
                     KGBindingReference("abc"),
                     listOf(
-                            trueLiteral().withType(BOOL),
-                            stringLiteral("wrong type").withType(KGTypeTag.STRING)
+                            trueLiteral(),
+                            stringLiteral("wrong type")
                     )
             )
             val result = TypeChecker.typeCheck(invocation, ns)
@@ -86,8 +88,8 @@ class InvocationTypeCheckerTests {
             val invocation = KGInvocation(
                     KGBindingReference("abc"),
                     listOf(
-                            intLiteral(1).withType(INT),
-                            falseLiteral().withType(BOOL)
+                            intLiteral(1),
+                            falseLiteral()
                     )
             )
             val result = TypeChecker.typeCheck(invocation, ns)
@@ -116,8 +118,8 @@ class InvocationTypeCheckerTests {
             val invocation1 = KGInvocation(
                     KGBindingReference("abc"),
                     listOf(
-                            intLiteral(1).withType(INT),
-                            falseLiteral().withType(BOOL)
+                            intLiteral(1),
+                            falseLiteral()
                     )
             )
             val result1 = TypeChecker.typeCheck(invocation1, ns)
@@ -127,9 +129,9 @@ class InvocationTypeCheckerTests {
             val invocation2 = KGInvocation(
                     KGBindingReference("abc"),
                     listOf(
-                            intLiteral(1).withType(INT),
-                            falseLiteral().withType(BOOL),
-                            intLiteral(2).withType(INT)
+                            intLiteral(1),
+                            falseLiteral(),
+                            intLiteral(2)
                     )
             )
             val result2 = TypeChecker.typeCheck(invocation2, ns)
@@ -138,7 +140,7 @@ class InvocationTypeCheckerTests {
             // Invoking abc(1) should fail
             val invocation3 = KGInvocation(
                     KGBindingReference("abc"),
-                    listOf(intLiteral(1).withType(INT))
+                    listOf(intLiteral(1))
             )
             val result3 = TypeChecker.typeCheck(invocation3, ns)
             assertFails(result3)
@@ -148,18 +150,18 @@ class InvocationTypeCheckerTests {
     @TestFactory
     @DisplayName("Invoking invokable binding should pass typechecking, and have type of signature's returnType")
     fun typecheckInvocation_targetIsInvokableBinding_typecheckingPassesAndInvocationExprHasProperType(): List<DynamicTest> {
-        data class Case(val repr: String, val expr: KGTree.KGExpression, val type: KGTypeTag)
+        data class Case(val repr: String, val expr: KGTree.KGExpression, val type: KGType)
 
         return listOf(
                 Case("1", intLiteral(1), INT),
-                Case("3.14", decLiteral(3.14), KGTypeTag.DEC),
+                Case("3.14", decLiteral(3.14), DEC),
                 Case("true", trueLiteral(), BOOL),
-                Case("\"some string\"", stringLiteral("some string"), KGTypeTag.STRING),
+                Case("\"some string\"", stringLiteral("some string"), STRING),
 
                 Case("(1 + 1)", KGParenthesized(KGBinary(intLiteral(1), "+", intLiteral(1))), INT),
-                Case("(1.0 - -2.14)", KGParenthesized(KGBinary(decLiteral(1.0), "-", KGUnary("-", decLiteral(2.14)))), KGTypeTag.DEC),
+                Case("(1.0 - -2.14)", KGParenthesized(KGBinary(decLiteral(1.0), "-", KGUnary("-", decLiteral(2.14)))), DEC),
                 Case("(true || false)", KGParenthesized(KGBinary(trueLiteral(), "||", falseLiteral())), BOOL),
-                Case("(\"hello \" ++ \"world\")", KGParenthesized(KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))), KGTypeTag.STRING)
+                Case("(\"hello \" ++ \"world\")", KGParenthesized(KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))), STRING)
         ).map { testCase ->
             val (repr, expr, type) = testCase
 
@@ -206,14 +208,14 @@ class InvocationTypeCheckerTests {
 
         return listOf(
                 Case("1", intLiteral(1).withType(INT)),
-                Case("3.14", decLiteral(3.14).withType(KGTypeTag.DEC)),
+                Case("3.14", decLiteral(3.14).withType(DEC)),
                 Case("true", trueLiteral().withType(BOOL)),
-                Case("\"some string\"", stringLiteral("some string").withType(KGTypeTag.STRING)),
+                Case("\"some string\"", stringLiteral("some string").withType(STRING)),
 
                 Case("(1 + 1)", KGParenthesized(KGBinary(intLiteral(1), "+", intLiteral(1))).withType(INT)),
-                Case("(1.0 - -2.14)", KGParenthesized(KGBinary(decLiteral(1.0), "-", KGUnary("-", decLiteral(2.14)))).withType(KGTypeTag.DEC)),
+                Case("(1.0 - -2.14)", KGParenthesized(KGBinary(decLiteral(1.0), "-", KGUnary("-", decLiteral(2.14)))).withType(DEC)),
                 Case("(true || false)", KGParenthesized(KGBinary(trueLiteral(), "||", falseLiteral())).withType(BOOL)),
-                Case("(\"hello \" ++ \"world\")", KGParenthesized(KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))).withType(KGTypeTag.STRING))
+                Case("(\"hello \" ++ \"world\")", KGParenthesized(KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))).withType(STRING))
         ).map { testCase ->
             val (repr, expr) = testCase
 

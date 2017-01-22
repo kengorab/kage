@@ -1,8 +1,11 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.tree.KGTree.KGBinary
-import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.tree.types.KGTypeTag.*
+import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.KGType.Companion.BOOL
+import co.kenrg.kagelang.tree.types.KGType.Companion.DEC
+import co.kenrg.kagelang.tree.types.KGType.Companion.INT
+import co.kenrg.kagelang.tree.types.KGType.Companion.STRING
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
@@ -19,7 +22,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("(+, -, *) should determine the correct type for its inputs' types")
         fun testStandardBinaryOps_withNumericTypes(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag, val expected: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType, val expected: KGType)
 
             return listOf(
                     Case(left = INT, right = INT, expected = INT), Case(left = INT, right = DEC, expected = DEC),
@@ -56,7 +59,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("(/) should always yield the DEC type, regardless of numeric input type")
         fun testDivisionBinaryOp_withNumericTypes(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType)
 
             return listOf(
                     Case(left = INT, right = INT), Case(left = INT, right = DEC),
@@ -91,7 +94,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("(+, -, *, /) should not typecheck if either input is non-numeric (BOOL, STRING)")
         fun testNumericBinaryOps_withBoolInputs_failsTypecheck(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType)
 
             return listOf(
                     Case(left = INT, right = BOOL), Case(left = DEC, right = BOOL),
@@ -154,7 +157,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("Conditional Binary operations (&&, ||) should fail to typecheck if given non-BOOL input")
         fun testBinaryConditionalOps_nonBoolInputs_failsTypecheck(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType)
 
             return listOf(
                     Case(left = INT, right = INT), Case(left = INT, right = DEC), Case(left = INT, right = BOOL), Case(left = INT, right = STRING),
@@ -179,7 +182,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("Boolean comparisons (>, >=, <, <=, ==, !=) should pass typechecking, with type BOOL, if given comparable inputs")
         fun testBooleanComparison_comparableInputs_passesTypecheckWithTypeBool(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType)
 
             return listOf(
                     Case(left = INT, right = INT), Case(left = INT, right = DEC),
@@ -205,7 +208,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("Boolean comparisons (>, >=, <, <=, ==, !=) should fail typechecking, if given non-comparable inputs")
         fun testBooleanComparison_nonComparableInputs_failsTypechecking(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType)
 
             return listOf(
                     Case(left = INT, right = BOOL), Case(left = INT, right = STRING),
@@ -235,7 +238,7 @@ class BinaryTypeCheckerTests {
         @TestFactory
         @DisplayName("(++) with Strings should be String")
         fun testConcatenationOfStrings(): List<DynamicTest> {
-            data class Case(val left: KGTypeTag, val right: KGTypeTag, val expected: KGTypeTag)
+            data class Case(val left: KGType, val right: KGType, val expected: KGType)
 
             return listOf(
                     Case(left = STRING, right = STRING, expected = STRING),

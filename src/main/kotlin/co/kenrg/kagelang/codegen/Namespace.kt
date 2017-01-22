@@ -3,7 +3,7 @@ package co.kenrg.kagelang.codegen
 import co.kenrg.kagelang.model.Namespace
 import co.kenrg.kagelang.model.Scope
 import co.kenrg.kagelang.model.Signature
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
 import org.apache.commons.collections4.map.LinkedMap
@@ -11,9 +11,9 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
 data class FunctionBinding(val name: String, val signature: Signature)
-sealed class ValBinding(val name: String, val type: KGTypeTag) {
-    class Local(name: String, type: KGTypeTag, val size: Int = 1, val index: Int) : ValBinding(name, type)
-    class Static(name: String, type: KGTypeTag) : ValBinding(name, type)
+sealed class ValBinding(val name: String, val type: KGType) {
+    class Local(name: String, type: KGType, val size: Int = 1, val index: Int) : ValBinding(name, type)
+    class Static(name: String, type: KGType) : ValBinding(name, type)
 }
 
 class CGType(val name: String)

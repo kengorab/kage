@@ -2,7 +2,7 @@ package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
@@ -53,7 +53,7 @@ class ValDeclarationAndBindingReferenceCodeGenTests : BaseTest() {
         // print(a)
         val file = KGFile(
                 statements = listOf(
-                        KGValDeclaration("a", intLiteral(1), KGTypeTag.INT),
+                        KGValDeclaration("a", intLiteral(1), KGType.INT),
                         wrapInMainMethod(KGPrint(KGBindingReference("a")))
                 ),
                 bindings = HashMap()

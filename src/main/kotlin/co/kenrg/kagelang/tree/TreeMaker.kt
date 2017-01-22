@@ -4,8 +4,8 @@ import co.kenrg.kagelang.KageParser
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Point
 import co.kenrg.kagelang.model.Position
-import co.kenrg.kagelang.tree.types.KGTypeTag
-import co.kenrg.kagelang.tree.types.asKGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.asKGType
 import org.antlr.v4.runtime.ParserRuleContext
 
 class TreeMaker(val considerPosition: Boolean = true) {
@@ -30,6 +30,8 @@ class TreeMaker(val considerPosition: Boolean = true) {
         return KGFile(statements, bindings = mapOf())
     }
 
+    private fun String.trimTypeAnnotation() = this.trimStart(':', ' ').trimEnd(' ')
+
     fun toTree(statement: KageParser.StatementContext): KGTree.KGStatement {
         val statementTree = when (statement) {
             is KageParser.PrintStatementContext ->
@@ -38,16 +40,17 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
                         expression = toTree(statement.valDeclaration().expression()),
-                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.asKGTypeTag()
+                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimTypeAnnotation()?.asKGType()
                 )
             is KageParser.FnDeclarationStatementContext ->
                 KGTree.KGFnDeclaration(
                         name = statement.fnDeclaration().fnName.text,
                         body = statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression()),
                         params = statement.fnDeclaration().params?.fnParam()?.map {
-                            FnParameter(it.Identifier().text, it.TypeAnnotation().text.asKGTypeTag())
+                            // TODO - The asKGType call will fail when type is not recognized; fix when using custom types
+                            FnParameter(it.Identifier().text, it.TypeAnnotation().text.trimTypeAnnotation().asKGType()!!)
                         } ?: listOf(),
-                        retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.text?.asKGTypeTag()
+                        retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.text?.trimTypeAnnotation()?.asKGType()
                 )
             is KageParser.TypeDeclarationStatementContext ->
                 KGTree.KGTypeDeclaration(
@@ -76,14 +79,14 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         right = toTree(expression.right)
                 )
             is KageParser.IntLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.INT, expression.IntLiteral().text.toInt())
+                KGTree.KGLiteral(KGType.INT, expression.IntLiteral().text.toInt())
             is KageParser.DecLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.DEC, expression.DecimalLiteral().text.toDouble())
+                KGTree.KGLiteral(KGType.DEC, expression.DecimalLiteral().text.toDouble())
             is KageParser.BoolLiteralContext ->
-                KGTree.KGLiteral(KGTypeTag.BOOL, expression.BooleanLiteral().text.toBoolean())
+                KGTree.KGLiteral(KGType.BOOL, expression.BooleanLiteral().text.toBoolean())
             is KageParser.StringLiteralContext ->
                 KGTree.KGLiteral(
-                        KGTypeTag.STRING,
+                        KGType.STRING,
                         expression.StringLiteral().text
                                 .trimStart('\"')
                                 .trimEnd('\"')

@@ -3,12 +3,12 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.model.Namespace
 import co.kenrg.kagelang.model.Scope
 import co.kenrg.kagelang.model.Signature
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap
 import java.util.*
 
 sealed class TCBinding(val name: String) {
-    class StaticValBinding(identifier: String, val type: KGTypeTag) : TCBinding(identifier)
+    class StaticValBinding(identifier: String, val type: KGType) : TCBinding(identifier)
 
     class FunctionBinding(
             name: String,

@@ -3,7 +3,7 @@ package co.kenrg.kagelang.codegen
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -18,8 +18,8 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
             // fn main(...) = abc(1)
             val file = KGFile(
                     statements = listOf(
-                            KGFnDeclaration("abc", KGPrint(KGBinary(KGBindingReference("a"), "+", intLiteral(2))), listOf(FnParameter("a", KGTypeTag.INT)), KGTypeTag.UNIT),
-                            wrapInMainMethod(KGInvocation(KGBindingReference("abc"), listOf(intLiteral(1).withType(KGTypeTag.INT))))
+                            KGFnDeclaration("abc", KGPrint(KGBinary(KGBindingReference("a"), "+", intLiteral(2))), listOf(FnParameter("a", KGType.INT)), KGType.UNIT),
+                            wrapInMainMethod(KGInvocation(KGBindingReference("abc"), listOf(intLiteral(1))))
                     ),
                     bindings = HashMap()
             )
@@ -37,14 +37,14 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                             KGFnDeclaration(
                                     "abc",
                                     KGBinary(KGBindingReference("a"), "+", KGBindingReference("b")),
-                                    listOf(FnParameter("a", KGTypeTag.INT), FnParameter("b", KGTypeTag.INT)),
-                                    KGTypeTag.INT
+                                    listOf(FnParameter("a", KGType.INT), FnParameter("b", KGType.INT)),
+                                    KGType.INT
                             ),
                             wrapInMainMethod(KGPrint(KGInvocation(
                                     KGBindingReference("abc"),
                                     listOf(
-                                            intLiteral(1).withType(KGTypeTag.INT),
-                                            intLiteral(3).withType(KGTypeTag.INT)
+                                            intLiteral(1),
+                                            intLiteral(3)
                                     )))
                             )
                     ),
@@ -64,14 +64,14 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                             KGFnDeclaration(
                                     "abc",
                                     KGBinary(KGBindingReference("a"), "+", intLiteral(1)),
-                                    listOf(FnParameter("a", KGTypeTag.INT), FnParameter("b", KGTypeTag.INT)),
-                                    KGTypeTag.INT
+                                    listOf(FnParameter("a", KGType.INT), FnParameter("b", KGType.INT)),
+                                    KGType.INT
                             ),
                             wrapInMainMethod(KGPrint(KGInvocation(
                                     KGBindingReference("abc"),
                                     listOf(
-                                            intLiteral(1).withType(KGTypeTag.INT),
-                                            intLiteral(1000).withType(KGTypeTag.INT)
+                                            intLiteral(1),
+                                            intLiteral(1000)
                                     )))
                             )
                     ),
@@ -91,17 +91,13 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                             KGFnDeclaration(
                                     "exclaim",
                                     KGBinary(KGBindingReference("str"), "++", stringLiteral("!")),
-                                    listOf(FnParameter("str", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    listOf(FnParameter("str", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             wrapInMainMethod(KGPrint(KGInvocation(
                                     KGBindingReference("exclaim"),
                                     listOf(
-                                            KGBinary(
-                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
-                                                    "++",
-                                                    stringLiteral(" World").withType(KGTypeTag.STRING)
-                                            ).withType(KGTypeTag.STRING)
+                                            KGBinary(stringLiteral("Hello"), "++", stringLiteral(" World"))
                                     )))
                             )
                     ),
@@ -120,9 +116,9 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                     statements = listOf(
                             KGFnDeclaration(
                                     "exclaim",
-                                    KGBinary(KGBindingReference("str"), "++", stringLiteral("!").withType(KGTypeTag.STRING)),
-                                    listOf(FnParameter("str", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    KGBinary(KGBindingReference("str"), "++", stringLiteral("!")),
+                                    listOf(FnParameter("str", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             wrapInMainMethod(KGPrint(
                                     KGInvocation(
@@ -130,10 +126,8 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                                             listOf(
                                                     KGInvocation(
                                                             KGBindingReference("exclaim"),
-                                                            listOf(
-                                                                    stringLiteral("Hello World").withType(KGTypeTag.STRING)
-                                                            )
-                                                    ).withType(KGTypeTag.STRING)
+                                                            listOf(stringLiteral("Hello World"))
+                                                    )
                                             )
                                     ))
                             )
@@ -152,18 +146,16 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
             // fn main(...) = print(exclaim("Hello"))
             val file = KGFile(
                     statements = listOf(
-                            KGValDeclaration("a", stringLiteral("Static val").withType(KGTypeTag.STRING)),
+                            KGValDeclaration("a", stringLiteral("Static val")),
                             KGFnDeclaration(
                                     "exclaim",
-                                    KGBinary(KGBindingReference("a"), "++", stringLiteral("!").withType(KGTypeTag.STRING)),
-                                    listOf(FnParameter("a", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    KGBinary(KGBindingReference("a"), "++", stringLiteral("!")),
+                                    listOf(FnParameter("a", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             wrapInMainMethod(KGPrint(KGInvocation(
                                     KGBindingReference("exclaim"),
-                                    listOf(
-                                            stringLiteral("Hello").withType(KGTypeTag.STRING)
-                                    )))
+                                    listOf(stringLiteral("Hello"))))
                             )
                     ),
                     bindings = HashMap()
@@ -182,30 +174,24 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                     statements = listOf(
                             KGFnDeclaration(
                                     "exclaim",
-                                    stringLiteral("String, Int\n").withType(KGTypeTag.STRING),
-                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.INT)),
-                                    KGTypeTag.STRING
+                                    stringLiteral("String, Int\n"),
+                                    listOf(FnParameter("a", KGType.STRING), FnParameter("b", KGType.INT)),
+                                    KGType.STRING
                             ),
                             KGFnDeclaration(
                                     "exclaim",
-                                    stringLiteral("String, String\n").withType(KGTypeTag.STRING),
-                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    stringLiteral("String, String\n"),
+                                    listOf(FnParameter("a", KGType.STRING), FnParameter("b", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             wrapInMainMethod(KGPrint(KGBinary(
                                     KGInvocation(
                                             KGBindingReference("exclaim"),
-                                            listOf(
-                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
-                                                    intLiteral(1).withType(KGTypeTag.INT)
-                                            )),
+                                            listOf(stringLiteral("Hello"), intLiteral(1))),
                                     "++",
                                     KGInvocation(
                                             KGBindingReference("exclaim"),
-                                            listOf(
-                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
-                                                    stringLiteral("World").withType(KGTypeTag.STRING)
-                                            ))
+                                            listOf(stringLiteral("Hello"), stringLiteral("World")))
                             )))
                     ),
                     bindings = HashMap()
@@ -224,29 +210,24 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
                     statements = listOf(
                             KGFnDeclaration(
                                     "exclaim",
-                                    stringLiteral("String\n").withType(KGTypeTag.STRING),
-                                    listOf(FnParameter("a", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    stringLiteral("String\n"),
+                                    listOf(FnParameter("a", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             KGFnDeclaration(
                                     "exclaim",
-                                    stringLiteral("String, String\n").withType(KGTypeTag.STRING),
-                                    listOf(FnParameter("a", KGTypeTag.STRING), FnParameter("b", KGTypeTag.STRING)),
-                                    KGTypeTag.STRING
+                                    stringLiteral("String, String\n"),
+                                    listOf(FnParameter("a", KGType.STRING), FnParameter("b", KGType.STRING)),
+                                    KGType.STRING
                             ),
                             wrapInMainMethod(KGPrint(KGBinary(
                                     KGInvocation(
                                             KGBindingReference("exclaim"),
-                                            listOf(
-                                                    stringLiteral("Hello").withType(KGTypeTag.STRING)
-                                            )),
+                                            listOf(stringLiteral("Hello"))),
                                     "++",
                                     KGInvocation(
                                             KGBindingReference("exclaim"),
-                                            listOf(
-                                                    stringLiteral("Hello").withType(KGTypeTag.STRING),
-                                                    stringLiteral("World").withType(KGTypeTag.STRING)
-                                            ))
+                                            listOf(stringLiteral("Hello"), stringLiteral("World")))
                             )))
                     ),
                     bindings = HashMap()

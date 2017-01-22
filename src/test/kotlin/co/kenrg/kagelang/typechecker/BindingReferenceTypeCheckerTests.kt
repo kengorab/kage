@@ -4,27 +4,27 @@ import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGBindingReference
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 
 class BindingReferenceTypeCheckerTests {
-    data class Case(val repr: String, val expr: KGTree.KGExpression, val exprType: KGTypeTag)
+    data class Case(val repr: String, val expr: KGTree.KGExpression, val exprType: KGType)
 
     @TestFactory
     @DisplayName("A BindingReferenceExpression's type should be that of its inner expression")
     fun typecheckBindingReference_bindingPresentInContext_bindingExprTypeIsInnerExprType(): List<DynamicTest> {
         return listOf(
-                Case("1", intLiteral(1), KGTypeTag.INT),
-                Case("1.12", decLiteral(1.12), KGTypeTag.DEC),
-                Case("true", trueLiteral(), KGTypeTag.BOOL),
-                Case("\"hello world\"", stringLiteral("hello world"), KGTypeTag.STRING),
+                Case("1", intLiteral(1), KGType.INT),
+                Case("1.12", decLiteral(1.12), KGType.DEC),
+                Case("true", trueLiteral(), KGType.BOOL),
+                Case("\"hello world\"", stringLiteral("hello world"), KGType.STRING),
 
-                Case("1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), KGTypeTag.INT),
-                Case("1.4 - 3.1", KGBinary(decLiteral(1.4), "-", decLiteral(3.1)), KGTypeTag.DEC),
-                Case("true || false", KGBinary(trueLiteral(), "||", falseLiteral()), KGTypeTag.BOOL)
+                Case("1 + 3", KGBinary(intLiteral(1), "+", intLiteral(3)), KGType.INT),
+                Case("1.4 - 3.1", KGBinary(decLiteral(1.4), "-", decLiteral(3.1)), KGType.DEC),
+                Case("true || false", KGBinary(trueLiteral(), "||", falseLiteral()), KGType.BOOL)
 
         ).map { testCase ->
             val (repr, innerExpr, exprType) = testCase
@@ -44,13 +44,13 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckingBindingReference_inBinaryExpression_binaryExpressionTypeBasedOnBindingType() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.DEC))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.DEC))
 
         val binaryExprUsingBinding = KGBinary(intLiteral(2), "+", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(binaryExprUsingBinding, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.DEC, it.namespace.rootScope.vals["a"]?.type)
-            assertEquals(KGTypeTag.DEC, it.type)
+            assertEquals(KGType.DEC, it.namespace.rootScope.vals["a"]?.type)
+            assertEquals(KGType.DEC, it.type)
         }
     }
 
@@ -63,7 +63,7 @@ class BindingReferenceTypeCheckerTests {
 
     @Test fun typecheckBindingReference_bindingPresentInContext_bindingExpressionTypeUnset_throwsException() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.UNSET))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.UNSET))
 
         val bindingRef = KGBindingReference("a")
         assertThrows<IllegalStateException>(IllegalStateException::class.java) {

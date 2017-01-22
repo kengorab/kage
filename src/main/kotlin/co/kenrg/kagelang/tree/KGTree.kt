@@ -7,7 +7,7 @@ import co.kenrg.kagelang.tree.iface.*
 import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
 import co.kenrg.kagelang.tree.iface.base.Tree
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.apache.commons.lang3.builder.EqualsBuilder
 import org.apache.commons.lang3.builder.HashCodeBuilder
 
@@ -40,7 +40,6 @@ abstract class KGTree : Tree {
     }
 
     abstract fun <D> accept(visitor: Visitor<D>, data: D)
-    abstract fun withType(type: KGTypeTag): KGTree
     abstract fun withPosition(pos: Position): KGTree
 
     override fun equals(other: Any?) = EqualsBuilder.reflectionEquals(this, other)
@@ -50,13 +49,8 @@ abstract class KGTree : Tree {
         Expressions
      */
     abstract class KGExpression : KGTree(), ExpressionTree {
-        override var type: KGTypeTag = KGTypeTag.UNSET
+        override var type: KGType = KGType.UNSET
         override var position: Position = Position.DEFAULT
-
-        override fun withType(type: KGTypeTag): KGExpression {
-            this.type = type
-            return this
-        }
 
         override fun withPosition(pos: Position): KGExpression {
             this.position = pos
@@ -64,10 +58,10 @@ abstract class KGTree : Tree {
         }
     }
 
-    class KGLiteral(val typeTag: KGTypeTag, val value: Any) : KGExpression(), LiteralTree {
+    class KGLiteral(val litType: KGType, val value: Any) : KGExpression(), LiteralTree {
         override fun value() = value
 
-        override fun kind(): Tree.Kind<LiteralTree> = typeTag.getLiteralKind()
+        override fun kind(): Tree.Kind<LiteralTree> = litType.getLiteralKind()
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitLiteral(this, data)
     }
@@ -156,13 +150,8 @@ abstract class KGTree : Tree {
         Statements
      */
     abstract class KGStatement : KGTree(), StatementTree {
-        override var type: KGTypeTag = KGTypeTag.UNIT
+        override var type: KGType = KGType.UNSET
         override var position: Position = Position.DEFAULT
-
-        override fun withType(type: KGTypeTag): KGStatement {
-            // Cannot set type on statement; statement type is always UNIT
-            return this
-        }
 
         override fun withPosition(pos: Position): KGStatement {
             this.position = pos
@@ -178,7 +167,7 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitPrint(this, data)
     }
 
-    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: KGTypeTag? = null) : KGStatement(), ValDeclarationTree {
+    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: KGType? = null) : KGStatement(), ValDeclarationTree {
         override fun expression(): ExpressionTree = expression
         override fun identifier() = identifier
         override fun typeAnnotation() = typeAnnotation
@@ -192,7 +181,7 @@ abstract class KGTree : Tree {
             val name: String,
             val body: KGTree,
             val params: List<FnParameter> = listOf(),
-            val retTypeAnnotation: KGTypeTag? = null
+            val retTypeAnnotation: KGType? = null
     ) : KGStatement(), FnDeclarationTree {
         override fun params() = params
         override fun body() = body

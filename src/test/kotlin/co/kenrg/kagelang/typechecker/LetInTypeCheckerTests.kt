@@ -5,7 +5,7 @@ import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -20,7 +20,7 @@ class LetInTypeCheckerTests {
                 KGPrint(KGBindingReference("a"))
         )
         val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, it.type) }
     }
 
     @Test fun testLetInExpression_bindingUsesNamespaceVal_passesTypechecking() {
@@ -29,9 +29,9 @@ class LetInTypeCheckerTests {
                 KGPrint(KGBindingReference("a"))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", KGTypeTag.INT))
+        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", KGType.INT))
         val result = TypeChecker.typeCheck(letInExpr, ns)
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, it.type) }
     }
 
     @Test fun testLetInExpression_bodyUsesNamespaceVal_passesTypechecking() {
@@ -40,9 +40,9 @@ class LetInTypeCheckerTests {
                 KGPrint(KGBinary(KGBindingReference("a"), "+", KGBindingReference("outerVal")))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", KGTypeTag.INT))
+        ns.rootScope.vals.put("outerVal", TCBinding.StaticValBinding("outerVal", KGType.INT))
         val result = TypeChecker.typeCheck(letInExpr, ns)
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, it.type) }
     }
 
     @Test fun testLetInExpression_bindingUsesNamespaceFn_passesTypechecking() {
@@ -51,9 +51,9 @@ class LetInTypeCheckerTests {
                 KGPrint(KGBindingReference("a"))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", Signature(returnType = KGTypeTag.INT)))
+        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", Signature(returnType = KGType.INT)))
         val result = TypeChecker.typeCheck(letInExpr, ns)
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, it.type) }
     }
 
     @Test fun testLetInExpression_bodyUsesNamespaceFn_passesTypechecking() {
@@ -62,9 +62,9 @@ class LetInTypeCheckerTests {
                 KGPrint(KGBinary(KGBindingReference("a"), "+", KGInvocation(KGBindingReference("outerFn"))))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", Signature(returnType = KGTypeTag.INT)))
+        ns.rootScope.functions.put("outerFn", TCBinding.FunctionBinding("outerFn", Signature(returnType = KGType.INT)))
         val result = TypeChecker.typeCheck(letInExpr, ns)
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.UNIT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.UNIT, it.type) }
     }
 
     @Test fun testLetInExpression_valBindingReusesNameFromOuterScope_bodyUsesLocalBindingInsteadOfOuterScope() {
@@ -73,11 +73,11 @@ class LetInTypeCheckerTests {
                 KGBinary(KGBindingReference("a"), "+", intLiteral(1))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.DEC))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.DEC))
         val result = TypeChecker.typeCheck(letInExpr, ns)
 
         // Assert type is INT, because if it used the outer `a` instead of the local `a`, it'd be DEC.
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.INT, it.type) }
     }
 
     @Test fun testLetInExpression_fnBindingReusesNameFromOuterScope_bodyUsesLocalBindingInsteadOfOuterScope() {
@@ -86,37 +86,37 @@ class LetInTypeCheckerTests {
                 KGBinary(KGInvocation(KGBindingReference("a")), "+", intLiteral(1))
         )
         val ns = randomTCNamespace()
-        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", Signature(returnType = KGTypeTag.DEC)))
+        ns.rootScope.functions.put("a", TCBinding.FunctionBinding("a", Signature(returnType = KGType.DEC)))
         val result = TypeChecker.typeCheck(letInExpr, ns)
 
         // Assert type is INT, because if it used the outer `a` instead of the local `a`, it'd be DEC.
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.INT, it.type) }
     }
 
     @TestFactory
     fun testLetInExpression_testBindings_bodyIsBinaryExpression_exprHasCorrectType(): List<DynamicTest> {
-        data class Case(val repr: String, val expr: KGTree.KGExpression, val exprType: KGTypeTag)
+        data class Case(val repr: String, val expr: KGTree.KGExpression, val exprType: KGType)
 
         return listOf(
                 Case(
                         "let\nval a = 1\nin\na + 1",
                         KGLetIn(listOf(KGValDeclaration("a", intLiteral(1))), KGBinary(KGBindingReference("a"), "+", intLiteral(1))),
-                        KGTypeTag.INT
+                        KGType.INT
                 ),
                 Case(
                         "let\nval a = 1.1\nin\na + 1",
                         KGLetIn(listOf(KGValDeclaration("a", decLiteral(1.0))), KGBinary(KGBindingReference("a"), "+", intLiteral(1))),
-                        KGTypeTag.DEC
+                        KGType.DEC
                 ),
                 Case(
                         "let\nval t = true\nin\na || false",
                         KGLetIn(listOf(KGValDeclaration("a", trueLiteral())), KGBinary(KGBindingReference("a"), "||", falseLiteral())),
-                        KGTypeTag.BOOL
+                        KGType.BOOL
                 ),
                 Case(
                         "let\nval a = \"hello\"\nin\na ++ \" world\"",
                         KGLetIn(listOf(KGValDeclaration("a", stringLiteral("hello"))), KGBinary(KGBindingReference("a"), "++", stringLiteral(" world"))),
-                        KGTypeTag.STRING
+                        KGType.STRING
                 )
         ).map { testCase ->
             val (repr, innerExpr, exprType) = testCase
@@ -137,7 +137,7 @@ class LetInTypeCheckerTests {
                 KGBindingReference("b")
         )
         val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
-        assertSucceedsAnd(result) { assertEquals(KGTypeTag.INT, it.type) }
+        assertSucceedsAnd(result) { assertEquals(KGType.INT, it.type) }
     }
 
     @Test fun testLetInExpression_bodyUsesUndefinedBinding_failsTypecheck() {
@@ -163,7 +163,7 @@ class LetInTypeCheckerTests {
                 listOf(KGValDeclaration("a", intLiteral(1)), KGValDeclaration("a", intLiteral(2))),
                 KGPrint(KGBindingReference("a"))
         )
-        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", KGTypeTag.STRING)))
+        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", KGType.STRING)))
         val result = TypeChecker.typeCheck(fnDecl, randomTCNamespace())
         assertFails(result)
     }

@@ -1,11 +1,10 @@
 package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.ext.pairwiseEq
-import co.kenrg.kagelang.model.Signature
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -78,11 +77,11 @@ class CodeGenVisitor(
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit literal with no methodVisitor active")
 
-        when (literal.typeTag) {
-            KGTypeTag.INT -> methodWriter.visitLdcInsn(literal.value as java.lang.Integer)
-            KGTypeTag.DEC -> methodWriter.visitLdcInsn(literal.value as java.lang.Double)
-            KGTypeTag.BOOL -> methodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
-            KGTypeTag.STRING -> methodWriter.visitLdcInsn(literal.value as java.lang.String)
+        when (literal.type) {
+            KGType.INT -> methodWriter.visitLdcInsn(literal.value as java.lang.Integer)
+            KGType.DEC -> methodWriter.visitLdcInsn(literal.value as java.lang.Double)
+            KGType.BOOL -> methodWriter.visitLdcInsn(literal.value as java.lang.Boolean)
+            KGType.STRING -> methodWriter.visitLdcInsn(literal.value as java.lang.String)
             else -> throw UnsupportedOperationException("Literal $literal is not a literal")
         }
     }
@@ -91,16 +90,16 @@ class CodeGenVisitor(
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit unary with no methodVisitor active")
 
-        if (unary.type == KGTypeTag.UNSET) {
+        if (unary.type == KGType.UNSET)
             throw IllegalStateException("Cannot run codegen on Unary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
-        }
+
 
         when (unary.kind()) {
             is Tree.Kind.ArithmeticNegation -> {
                 unary.expr.accept(this, data)
                 when (unary.expr.type) {
-                    KGTypeTag.INT -> methodWriter.visitInsn(INEG)
-                    KGTypeTag.DEC -> methodWriter.visitInsn(DNEG)
+                    KGType.INT -> methodWriter.visitInsn(INEG)
+                    KGType.DEC -> methodWriter.visitInsn(DNEG)
                     else -> throw IllegalStateException("Cannot run codegen on arithmetic negation which is not numeric")
                 }
             }
@@ -158,12 +157,12 @@ class CodeGenVisitor(
 
     fun pushAndCastNumericOperands(binary: KGTree.KGBinary, shouldCast: Boolean, methodWriter: MethodVisitor, data: CGScope) {
         binary.left.accept(this, data)
-        if (binary.left.type == KGTypeTag.INT && shouldCast) {
+        if (binary.left.type == KGType.INT && shouldCast) {
             methodWriter.visitInsn(I2D)
         }
 
         binary.right.accept(this, data)
-        if (binary.right.type == KGTypeTag.INT && shouldCast) {
+        if (binary.right.type == KGType.INT && shouldCast) {
             methodWriter.visitInsn(I2D)
         }
     }
@@ -178,8 +177,11 @@ class CodeGenVisitor(
         }
 
         tree.accept(this, data)
-        val treeType = jvmTypeDescriptorForType(tree.type)
-        methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($treeType)Ljava/lang/StringBuilder;", false)
+        val treeType = tree.type
+//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
+        val jvmDesc = treeType.jvmDescriptor
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($jvmDesc)Ljava/lang/StringBuilder;", false)
     }
 
     fun pushStringConcatenation(binary: KGTree.KGBinary, methodWriter: MethodVisitor, data: CGScope) {
@@ -263,11 +265,15 @@ class CodeGenVisitor(
         binary.left.accept(this, data)
         binary.right.accept(this, data)
 
-        // TODO - Solve this when dealing with types; shouldn't have to manually remove the L and ; from the descriptor
-        // It works now because we're only dealing with Strings, but will need to be addressed later. Also, during the
-        // typechecking, we need to verify that the two types here both implement Comparable.
-        val typeDesc = jvmTypeDescriptorForType(binary.left.type)
-        val type = typeDesc.trimStart('L').trimEnd(';')
+        val leftType = binary.left.type
+//        val rightType = binary.right.type
+
+//        if (leftType == null || rightType == null)
+//            throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
+        // TODO - During typechecking, we need to verify that the two types here both implement Comparable.
+        val typeDesc = leftType.jvmDescriptor
+        val type = leftType.className
 
         val trueLbl = Label()
         val endLbl = Label()
@@ -311,15 +317,20 @@ class CodeGenVisitor(
     fun pushComparison(kind: Tree.Kind<*>, binary: KGTree.KGBinary, data: CGScope, methodWriter: MethodVisitor) {
         // TODO - Consolidate these 3 approaches to comparisons (integers, decimals, and Comparables (Strings))?
 
-        if (binary.left.type.isNumeric() && binary.right.type.isNumeric()) {
-            if (binary.left.type == KGTypeTag.INT && binary.right.type == KGTypeTag.INT) {
+        val leftType = binary.left.type
+        val rightType = binary.right.type
+//        if (leftType == null || rightType == null)
+//            throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
+        if (leftType.isNumeric && rightType.isNumeric) {
+            if (binary.left.type == KGType.INT && binary.right.type == KGType.INT) {
                 pushIntegerComparison(kind, binary, data, methodWriter)
             } else {
-                val shouldCast = listOf(binary.left.type, binary.right.type).pairwiseEq(KGTypeTag.INT, KGTypeTag.DEC)
+                val shouldCast = listOf(binary.left.type, binary.right.type).pairwiseEq(KGType.INT, KGType.DEC)
                 pushAndCastNumericOperands(binary, shouldCast, methodWriter, data)
                 pushDecimalComparison(kind, methodWriter)
             }
-        } else if (binary.left.type == KGTypeTag.STRING && binary.right.type == KGTypeTag.STRING) {
+        } else if (binary.left.type == KGType.STRING && binary.right.type == KGType.STRING) {
             pushComparableComparison(kind, binary, data, methodWriter)
         } else {
             throw IllegalStateException("Cannot compare types ${binary.left.type} and ${binary.right.type}")
@@ -330,58 +341,58 @@ class CodeGenVisitor(
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit binary with no methodVisitor active")
 
-        if (binary.type == KGTypeTag.UNSET) {
+        if (binary.type == KGType.UNSET) {
             throw IllegalStateException("Cannot run codegen on Binary subtree with UNSET type; was the tree successfully run through TypeCheckerAttributorVisitor?")
         }
 
         when (binary.kind()) {
             is Tree.Kind.Plus -> {
-                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> methodWriter.visitInsn(IADD)
-                    KGTypeTag.DEC -> methodWriter.visitInsn(DADD)
+                    KGType.INT -> methodWriter.visitInsn(IADD)
+                    KGType.DEC -> methodWriter.visitInsn(DADD)
                     else -> throw IllegalStateException("Binary's kind is Plus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Minus -> {
-                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> methodWriter.visitInsn(ISUB)
-                    KGTypeTag.DEC -> methodWriter.visitInsn(DSUB)
+                    KGType.INT -> methodWriter.visitInsn(ISUB)
+                    KGType.DEC -> methodWriter.visitInsn(DSUB)
                     else -> throw IllegalStateException("Binary's kind is Minus, but type is non-numeric")
                 }
             }
             is Tree.Kind.Multiply -> {
-                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> methodWriter.visitInsn(IMUL)
-                    KGTypeTag.DEC -> methodWriter.visitInsn(DMUL)
+                    KGType.INT -> methodWriter.visitInsn(IMUL)
+                    KGType.DEC -> methodWriter.visitInsn(DMUL)
                     else -> throw IllegalStateException("Binary's kind is Multiply, but type is non-numeric")
                 }
             }
             is Tree.Kind.Divide -> {
-                pushAndCastNumericOperands(binary, binary.type == KGTypeTag.DEC, methodWriter, data)
+                pushAndCastNumericOperands(binary, binary.type == KGType.DEC, methodWriter, data)
                 when (binary.type) {
-                    KGTypeTag.INT -> methodWriter.visitInsn(IDIV)
-                    KGTypeTag.DEC -> methodWriter.visitInsn(DDIV)
+                    KGType.INT -> methodWriter.visitInsn(IDIV)
+                    KGType.DEC -> methodWriter.visitInsn(DDIV)
                     else -> throw IllegalStateException("Binary's kind is Divide, but type is non-numeric")
                 }
             }
             is Tree.Kind.ConditionalAnd -> {
                 when (binary.type) {
-                    KGTypeTag.BOOL -> pushCondAnd(binary.left, binary.right, methodWriter, data)
+                    KGType.BOOL -> pushCondAnd(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalAnd, but type is non-boolean")
                 }
             }
             is Tree.Kind.ConditionalOr -> {
                 when (binary.type) {
-                    KGTypeTag.BOOL -> pushCondOr(binary.left, binary.right, methodWriter, data)
+                    KGType.BOOL -> pushCondOr(binary.left, binary.right, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is ConditionalOr, but type is non-boolean")
                 }
             }
             is Tree.Kind.Concatenation -> {
                 when (binary.type) {
-                    KGTypeTag.STRING -> pushStringConcatenation(binary, methodWriter, data)
+                    KGType.STRING -> pushStringConcatenation(binary, methodWriter, data)
                     else -> throw IllegalStateException("Binary's kind is Concatenation, but type is non-String")
                 }
             }
@@ -410,12 +421,12 @@ class CodeGenVisitor(
 
         when (binding) {
             is ValBinding.Static ->
-                methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, jvmTypeDescriptorForType(binding.type))
+                methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, binding.type.jvmDescriptor)
             is ValBinding.Local -> when (binding.type) {
-                KGTypeTag.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
-                KGTypeTag.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
-                KGTypeTag.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
-                KGTypeTag.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
+                KGType.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                KGType.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
+                KGType.BOOL -> methodWriter.visitVarInsn(ILOAD, binding.index)
+                KGType.STRING -> methodWriter.visitVarInsn(ALOAD, binding.index)
                 else -> throw IllegalStateException("Cannot resolve binding $name of type ${binding.type}")
             }
         }
@@ -438,7 +449,7 @@ class CodeGenVisitor(
                     it.accept(this, data)
                 }
 
-                val signature = jvmTypeDescriptorForSignature(fnForName.signature)
+                val signature = fnForName.signature.jvmTypeDescriptor()
                 methodWriter.visitMethodInsn(INVOKESTATIC, className, fnForName.name, signature, false)
             }
             else -> throw IllegalStateException("Expression is not invokable")
@@ -499,19 +510,6 @@ class CodeGenVisitor(
      *
      *****************************/
 
-    private fun jvmTypeDescriptorForType(type: KGTypeTag) = when (type) {
-        KGTypeTag.INT -> "I"
-        KGTypeTag.DEC -> "D"
-        KGTypeTag.BOOL -> "Z"
-        KGTypeTag.STRING -> "Ljava/lang/String;"
-        KGTypeTag.UNIT -> "V"
-        else -> throw IllegalStateException("JVM descriptor for type $type not yet implemented")
-    }
-
-    private fun jvmTypeDescriptorForSignature(signature: Signature): String {
-        return "(${signature.params.map { jvmTypeDescriptorForType(it.type) }.joinToString("")})${jvmTypeDescriptorForType(signature.returnType)}"
-    }
-
     override fun visitPrint(print: KGTree.KGPrint, data: CGScope) {
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit print with no methodVisitor active")
@@ -519,7 +517,10 @@ class CodeGenVisitor(
         methodWriter.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
         print.expr.accept(this, data)
 
-        val type = jvmTypeDescriptorForType(print.expr.type)
+        val printType = print.expr.type
+//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
+        val type = printType.jvmDescriptor
         val printlnSignature = "($type)V"
 
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", printlnSignature, false)
@@ -543,15 +544,19 @@ class CodeGenVisitor(
         }
 
         val valDeclExpr = valDecl.expression
-        val typeDesc = jvmTypeDescriptorForType(valDeclExpr.type)
+
+        val valDeclExprType = valDeclExpr.type
+//                ?: throw IllegalStateException("Cannot run codegen on subtree with null type; was the tree successfully run through TypeCheckerAttributorVisitor?")
+
+        val jvmDesc = valDeclExprType.jvmDescriptor
 
         if (data.isRoot()) {
             // If we're at the root scope, declare val as static val in the class
-            cw.visitField(ACC_PUBLIC or ACC_STATIC, valName, typeDesc, null, null)
+            cw.visitField(ACC_PUBLIC or ACC_STATIC, valName, jvmDesc, null, null)
             valDeclExpr.accept(this, data)
-            clinitWriter.visitFieldInsn(PUTSTATIC, className, valName, typeDesc)
+            clinitWriter.visitFieldInsn(PUTSTATIC, className, valName, jvmDesc)
 
-            data.vals.put(valName, ValBinding.Static(valName, valDeclExpr.type))
+            data.vals.put(valName, ValBinding.Static(valName, valDeclExprType))
         } else {
             val bindingIndex = getIndexForNextLocalVariable(data, startIndex = 0)
 
@@ -566,15 +571,15 @@ class CodeGenVisitor(
 
             valDeclExpr.accept(this, data)
             when (valDeclExpr.type) {
-                KGTypeTag.INT -> writer.visitVarInsn(ISTORE, bindingIndex)
-                KGTypeTag.DEC -> writer.visitVarInsn(DSTORE, bindingIndex)
-                KGTypeTag.BOOL -> writer.visitVarInsn(ISTORE, bindingIndex)
-                KGTypeTag.STRING -> writer.visitVarInsn(ASTORE, bindingIndex)
+                KGType.INT -> writer.visitVarInsn(ISTORE, bindingIndex)
+                KGType.DEC -> writer.visitVarInsn(DSTORE, bindingIndex)
+                KGType.BOOL -> writer.visitVarInsn(ISTORE, bindingIndex)
+                KGType.STRING -> writer.visitVarInsn(ASTORE, bindingIndex)
                 else -> throw IllegalStateException("Cannot store variable of type ${valDeclExpr.type} in binding $valName")
             }
 
             // TODO - Fix indexing of local vars with many nested scopes
-            data.vals.put(valName, ValBinding.Local(valName, valDeclExpr.type, valDeclExpr.type.getSize(), bindingIndex))
+            data.vals.put(valName, ValBinding.Local(valName, valDeclExprType, valDeclExprType.size, bindingIndex))
         }
     }
 
@@ -586,7 +591,7 @@ class CodeGenVisitor(
 
         val isMain = fnDecl.name == "main"
 
-        val signature = if (isMain) "([Ljava/lang/String;)V" else jvmTypeDescriptorForSignature(fnDecl.signature)
+        val signature = if (isMain) "([Ljava/lang/String;)V" else fnDecl.signature.jvmTypeDescriptor()
         val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, signature, null, null)
         val fnStart = Label()
         val fnEnd = Label()
@@ -599,25 +604,25 @@ class CodeGenVisitor(
         // then place the local variables at their indices, starting at 0.
         fnDecl.params.forEach {
             val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
-            fnScope.vals.put(it.name, ValBinding.Local(it.name, it.type, it.type.getSize(), index))
-            fnWriter.visitLocalVariable(it.name, jvmTypeDescriptorForType(it.type), null, fnStart, fnEnd, index)
+            fnScope.vals.put(it.name, ValBinding.Local(it.name, it.type, it.type.size, index))
+            fnWriter.visitLocalVariable(it.name, it.type.jvmDescriptor, null, fnStart, fnEnd, index)
         }
 
         fnDecl.body.accept(this, fnScope)
 
         if (isMain) {
-            if (fnDecl.body.type != KGTypeTag.UNIT) {
+            if (fnDecl.body.type != KGType.UNIT) {
                 throw IllegalStateException("Main method requires return type of Unit, actual: ${fnDecl.body.type}")
             }
 
             fnWriter.visitInsn(RETURN)
         } else {
             when (fnDecl.signature.returnType) {
-                KGTypeTag.INT -> fnWriter.visitInsn(IRETURN)
-                KGTypeTag.DEC -> fnWriter.visitInsn(DRETURN)
-                KGTypeTag.BOOL -> fnWriter.visitInsn(IRETURN)
-                KGTypeTag.STRING -> fnWriter.visitInsn(ARETURN)
-                KGTypeTag.UNIT -> fnWriter.visitInsn(RETURN)
+                KGType.INT -> fnWriter.visitInsn(IRETURN)
+                KGType.DEC -> fnWriter.visitInsn(DRETURN)
+                KGType.BOOL -> fnWriter.visitInsn(IRETURN)
+                KGType.STRING -> fnWriter.visitInsn(ARETURN)
+                KGType.UNIT -> fnWriter.visitInsn(RETURN)
                 else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
             }
         }

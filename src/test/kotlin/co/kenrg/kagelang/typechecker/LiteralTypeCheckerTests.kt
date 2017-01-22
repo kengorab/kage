@@ -1,6 +1,6 @@
 package co.kenrg.kagelang.typechecker
 
-import co.kenrg.kagelang.tree.types.KGTypeTag.*
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
@@ -12,7 +12,7 @@ class LiteralTypeCheckerTests {
     @TestFactory
     @DisplayName("Literals should be evaluated to their intrinsic type")
     fun typecheckLiterals(): List<DynamicTest> {
-        return listOf(INT, DEC, BOOL, STRING).flatMap { litType ->
+        return listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING).flatMap { litType ->
             listOf(
                     dynamicTest("Literal of type $litType should typecheck to type $litType") {
                         val literal = randomKGLiteralOfType(litType)

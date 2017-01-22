@@ -3,7 +3,7 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
@@ -12,16 +12,16 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
 class ValDeclarationTypeCheckerTests {
-    data class Case(val repr: String, val stmt: KGTree.KGValDeclaration, val exprType: KGTypeTag)
+    data class Case(val repr: String, val stmt: KGTree.KGValDeclaration, val exprType: KGType)
 
     val cases = listOf(
-            Case("val a = 1", KGValDeclaration("a", intLiteral(1)), KGTypeTag.INT),
-            Case("val a = 1.123", KGValDeclaration("a", decLiteral(1.123)), KGTypeTag.DEC),
-            Case("val a = true", KGValDeclaration("a", trueLiteral()), KGTypeTag.BOOL),
-            Case("val a = \"hello world\"", KGValDeclaration("a", stringLiteral("hello world")), KGTypeTag.STRING),
-            Case("val a = 1 + 2", KGValDeclaration("a", KGBinary(intLiteral(1), "+", intLiteral(2))), KGTypeTag.INT),
-            Case("val a = 1.2 - 4.2", KGValDeclaration("a", KGBinary(decLiteral(1.2), "-", decLiteral(4.2))), KGTypeTag.DEC),
-            Case("val a = true || false", KGValDeclaration("a", KGBinary(trueLiteral(), "||", falseLiteral())), KGTypeTag.BOOL)
+            Case("val a = 1", KGValDeclaration("a", intLiteral(1)), KGType.INT),
+            Case("val a = 1.123", KGValDeclaration("a", decLiteral(1.123)), KGType.DEC),
+            Case("val a = true", KGValDeclaration("a", trueLiteral()), KGType.BOOL),
+            Case("val a = \"hello world\"", KGValDeclaration("a", stringLiteral("hello world")), KGType.STRING),
+            Case("val a = 1 + 2", KGValDeclaration("a", KGBinary(intLiteral(1), "+", intLiteral(2))), KGType.INT),
+            Case("val a = 1.2 - 4.2", KGValDeclaration("a", KGBinary(decLiteral(1.2), "-", decLiteral(4.2))), KGType.DEC),
+            Case("val a = true || false", KGValDeclaration("a", KGBinary(trueLiteral(), "||", falseLiteral())), KGType.BOOL)
     )
 
     @TestFactory
@@ -34,7 +34,7 @@ class ValDeclarationTypeCheckerTests {
                 val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                 assertSucceedsAnd(result) {
                     assertEquals(exprType, statement.expression.type)
-                    assertEquals(KGTypeTag.UNIT, it.type)
+                    assertEquals(KGType.UNIT, it.type)
                 }
             }
         }
@@ -57,18 +57,18 @@ class ValDeclarationTypeCheckerTests {
 
     @Test fun typecheckValDeclaration_assignValToBinding_newValHasTypeOfBinding() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.INT))
 
         val valDeclOfBinding = KGValDeclaration("b", KGBindingReference("a"))
         val result = TypeChecker.typeCheck(valDeclOfBinding, ns)
         assertSucceedsAnd(result) {
-            assertEquals(KGTypeTag.INT, it.namespace.rootScope.vals["b"]?.type)
+            assertEquals(KGType.INT, it.namespace.rootScope.vals["b"]?.type)
         }
     }
 
     @Test fun typecheckValDeclaration_duplicateValDeclaration_typecheckingFails() {
         val ns = randomTCNamespace()
-        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGTypeTag.INT))
+        ns.rootScope.vals.put("a", TCBinding.StaticValBinding("a", KGType.INT))
 
         val valDecl = KGValDeclaration("a", trueLiteral())
         val result = TypeChecker.typeCheck(valDecl, ns)

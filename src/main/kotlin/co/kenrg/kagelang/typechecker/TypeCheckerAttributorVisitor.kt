@@ -7,7 +7,7 @@ import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 import java.util.*
 
 /**
@@ -39,9 +39,9 @@ class TypeCheckerAttributorVisitor(
 
     fun isValid() = typeErrors.isEmpty()
 
-    var result: KGTypeTag = KGTypeTag.UNSET
+    var result: KGType = KGType.UNSET
 
-    fun attribExpr(tree: KGTree, data: TCScope): KGTypeTag {
+    fun attribExpr(tree: KGTree, data: TCScope): KGType {
         tree.accept(this, data)
         return result
     }
@@ -53,7 +53,7 @@ class TypeCheckerAttributorVisitor(
     // Expression visitors
 
     override fun visitLiteral(literal: KGTree.KGLiteral, data: TCScope) {
-        literal.type = literal.typeTag
+        literal.type = literal.litType
         result = literal.type
     }
 
@@ -69,13 +69,13 @@ class TypeCheckerAttributorVisitor(
         var ownType = unary.type
         when (unary.kind()) {
             is Tree.Kind.ArithmeticNegation ->
-                if (exprType == KGTypeTag.INT || exprType == KGTypeTag.DEC) {
+                if (exprType == KGType.INT || exprType == KGType.DEC) {
                     ownType = exprType
                 } else {
                     handleError(Error(error = "Numeric type expected for arithmetic negation", position = unary.position.start))
                 }
             is Tree.Kind.BooleanNegation ->
-                if (exprType == KGTypeTag.BOOL) {
+                if (exprType == KGType.BOOL) {
                     ownType = exprType
                 } else {
                     handleError(Error(error = "Boolean type expected for boolean negation", position = unary.position.start))
@@ -89,54 +89,65 @@ class TypeCheckerAttributorVisitor(
         val leftType = attribExpr(binary.left, data)
         val rightType = attribExpr(binary.right, data)
 
+//        if (leftType == null || rightType == null) {
+//            if (leftType == null)
+//                handleError(Error("Could not determine type", binary.left.position.start))
+//
+//            if (rightType == null)
+//                handleError(Error("Could not determine type", binary.right.position.start))
+//
+//            result = binary.type
+//            return
+//        }
+
         var ownType = binary.type
         when (binary.kind()) {
             is Tree.Kind.ConditionalAnd,
             is Tree.Kind.ConditionalOr ->
-                if (leftType == KGTypeTag.BOOL && rightType == KGTypeTag.BOOL) {
-                    ownType = KGTypeTag.BOOL
+                if (leftType == KGType.BOOL && rightType == KGType.BOOL) {
+                    ownType = KGType.BOOL
                 } else {
                     handleError(Error(error = "Booleans expected", position = binary.position.start))
                 }
             is Tree.Kind.Plus,
             is Tree.Kind.Minus,
             is Tree.Kind.Multiply ->
-                if (!leftType.isNumeric()) {
+                if (!leftType.isNumeric) {
                     handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
-                } else if (!rightType.isNumeric()) {
+                } else if (!rightType.isNumeric) {
                     handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
-                } else if (leftType == KGTypeTag.INT && rightType == KGTypeTag.INT) {
-                    ownType = KGTypeTag.INT
-                } else if (leftType == KGTypeTag.DEC && rightType == KGTypeTag.DEC) {
-                    ownType = KGTypeTag.DEC
+                } else if (leftType == KGType.INT && rightType == KGType.INT) {
+                    ownType = KGType.INT
+                } else if (leftType == KGType.DEC && rightType == KGType.DEC) {
+                    ownType = KGType.DEC
                 } else {
-                    ownType = KGTypeTag.DEC
+                    ownType = KGType.DEC
                 }
             is Tree.Kind.Divide ->
-                if (!leftType.isNumeric()) {
+                if (!leftType.isNumeric) {
                     handleError(Error(error = "Numeric type expected for left expression", position = binary.position.start))
-                } else if (!rightType.isNumeric()) {
+                } else if (!rightType.isNumeric) {
                     handleError(Error(error = "Numeric type expected for right expression", position = binary.position.start))
                 } else {
-                    ownType = KGTypeTag.DEC
+                    ownType = KGType.DEC
                 }
             is Tree.Kind.Concatenation ->
-                ownType = KGTypeTag.STRING
+                ownType = KGType.STRING
             is Tree.Kind.GreaterThan,
             is Tree.Kind.LessThan,
             is Tree.Kind.GreaterThanOrEqualTo,
             is Tree.Kind.LessThanOrEqualTo,
             is Tree.Kind.Equals,
             is Tree.Kind.NotEquals ->
-                if (!KGTypeTag.comparableTypes.contains(leftType)) {
+                if (!leftType.isComparable) {
                     handleError(Error(error = "Comparable type expected for left expression", position = binary.position.start))
-                } else if (!KGTypeTag.comparableTypes.contains(rightType)) {
+                } else if (!rightType.isComparable) {
                     handleError(Error(error = "Comparable type expected for right expression", position = binary.position.start))
                 } else {
-                    if (leftType.isNumeric() && !rightType.isNumeric() || rightType.isNumeric() && !leftType.isNumeric()) {
+                    if (leftType.isNumeric && !rightType.isNumeric || rightType.isNumeric && !leftType.isNumeric) {
                         handleError(Error(error = "Cannot compare unlike types", position = binary.position.start))
                     } else {
-                        ownType = KGTypeTag.BOOL
+                        ownType = KGType.BOOL
                     }
                 }
             else ->
@@ -155,7 +166,7 @@ class TypeCheckerAttributorVisitor(
         } else {
             when (binding) {
                 is TCBinding.StaticValBinding -> {
-                    if (binding.type == KGTypeTag.UNSET) {
+                    if (binding.type == KGType.UNSET) {
                         throw IllegalStateException("Binding expression's type is UNSET, somehow...")
                     }
 
@@ -235,18 +246,18 @@ class TypeCheckerAttributorVisitor(
 
     override fun visitIfThenElse(ifElse: KGTree.KGIfThenElse, data: TCScope) {
         attribExpr(ifElse.condition, data)
-        if (ifElse.condition.type != KGTypeTag.BOOL)
+        if (ifElse.condition.type != KGType.BOOL)
             handleError(Error("If expression's condition must be Bool", ifElse.position.start))
 
         ifElse.thenBody.accept(this, data)
         val thenBodyType = ifElse.thenBody.type
 
         if (ifElse.elseBody == null) {
-            if (thenBodyType != KGTypeTag.UNIT)
+            if (thenBodyType != KGType.UNIT)
                 handleError(Error("If expression returning a value must have `then` and `else` branches", ifElse.position.start))
             else {
-                ifElse.type = KGTypeTag.UNIT
-                result = KGTypeTag.UNIT
+                ifElse.type = KGType.UNIT
+                result = KGType.UNIT
             }
         } else {
             ifElse.elseBody.accept(this, data)
@@ -266,11 +277,17 @@ class TypeCheckerAttributorVisitor(
     override fun visitPrint(print: KGTree.KGPrint, data: TCScope) {
         // Typecheck the internal expression; type of print statement will always be Unit
         attribExpr(print.expr, data)
-        result = KGTypeTag.UNIT
+        print.type = KGType.UNIT
+        result = KGType.UNIT
     }
 
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: TCScope) {
         attribExpr(valDecl.expression, data)
+//        if (valDecl.expression.type == null) {
+//            handleError(Error("Could not determine type", valDecl.expression.position.start))
+//            result = KGType.UNIT
+//            return
+//        }
 
         if (valDecl.typeAnnotation != null) {
             if (valDecl.expression.type != valDecl.typeAnnotation) {
@@ -284,7 +301,7 @@ class TypeCheckerAttributorVisitor(
             data.vals.put(valDecl.identifier, TCBinding.StaticValBinding(valDecl.identifier, valDecl.expression.type))
         }
 
-        result = KGTypeTag.UNIT
+        result = KGType.UNIT
     }
 
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: TCScope) {
@@ -302,6 +319,12 @@ class TypeCheckerAttributorVisitor(
 
         val fnScope = data.createChildScope(vals)
         attribExpr(fnDecl.body, fnScope)
+//        if (fnDecl.body.type == null) {
+//            handleError(Error("Could not determine type", fnDecl.body.position.start))
+//            fnDecl.body.type = KGType.UNIT
+//            result = KGType.UNIT
+//            return
+//        }
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
         if (fnDecl.retTypeAnnotation != null && fnDecl.retTypeAnnotation != fnDecl.body.type) {
@@ -324,7 +347,7 @@ class TypeCheckerAttributorVisitor(
 
         fnDecl.signature = fnSignature
         data.functions.put(fnDecl.name, TCBinding.FunctionBinding(fnDecl.name, fnSignature))
-        result = KGTypeTag.UNIT
+        result = KGType.UNIT
     }
 
     override fun visitTypeDeclaration(typeDecl: KGTree.KGTypeDeclaration, data: TCScope) {
@@ -340,6 +363,7 @@ class TypeCheckerAttributorVisitor(
 
         data.types.put(typeName, TCType(typeName))
 
-        result = KGTypeTag.UNIT
+        typeDecl.type = KGType.UNIT
+        result = KGType.UNIT
     }
 }

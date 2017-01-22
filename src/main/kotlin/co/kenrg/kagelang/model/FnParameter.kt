@@ -1,5 +1,5 @@
 package co.kenrg.kagelang.model
 
-import co.kenrg.kagelang.tree.types.KGTypeTag
+import co.kenrg.kagelang.tree.types.KGType
 
-data class FnParameter(val name: String, val type: KGTypeTag)
+data class FnParameter(val name: String, val type: KGType)
