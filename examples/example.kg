@@ -1,9 +1,6 @@
 type Empty
 
-fn func1(e: Empty) = print(e)
+fn func1(e1: Empty, e2: Empty): Bool = e1 == e2
 
 fn main() =
-  let
-    val empty = Empty()
-  in
-    func1(empty)
+  print(func1(Empty(), Empty()))

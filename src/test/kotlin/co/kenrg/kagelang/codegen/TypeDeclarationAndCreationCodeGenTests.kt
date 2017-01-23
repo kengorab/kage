@@ -70,5 +70,32 @@ class TypeDeclarationAndCreationCodeGenTests : BaseTest() {
             assertEquals("Empty()", output)
         }
     }
+
+    @Test fun testTypeDeclarationAndInstantiation_emptyType_equalsMethod() {
+        // type Empty
+        // fn main(...) =
+        //   let
+        //     val e1 = Empty()
+        //     val e2 = Empty()
+        //   in
+        //     print(e1 == e2)
+        val file = KGFile(
+                statements = listOf(
+                        KGTypeDeclaration("Empty"),
+                        wrapInMainMethod(KGLetIn(
+                                listOf(
+                                        KGValDeclaration("e1", KGInvocation(KGBindingReference("Empty"))),
+                                        KGValDeclaration("e2", KGInvocation(KGBindingReference("Empty")))
+                                ),
+                                KGPrint(KGBinary(KGBindingReference("e1"), "==", KGBindingReference("e2")))
+                        ))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("true", output)
+        }
+    }
 }
 

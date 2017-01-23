@@ -328,7 +328,7 @@ class CodeGenVisitor(
                 pushAndCastNumericOperands(binary, shouldCast, methodWriter, data)
                 pushDecimalComparison(kind, methodWriter)
             }
-        } else if (binary.left.type == KGType.STRING && binary.right.type == KGType.STRING) {
+        } else if (binary.left.type == binary.right.type) {
             pushComparableComparison(kind, binary, data, methodWriter)
         } else {
             throw IllegalStateException("Cannot compare types ${binary.left.type} and ${binary.right.type}")
@@ -663,6 +663,31 @@ class CodeGenVisitor(
         toStringWriter.visitInsn(ARETURN)
         toStringWriter.visitMaxs(-1, -1)
         toStringWriter.visitEnd()
+
+        val equalsWriter = visitor.cw.visitMethod(ACC_PUBLIC, "equals", "(Ljava/lang/Object;)Z", null, null)
+        val equalsTrueLbl = Label()
+        val equalsFalseLbl = Label()
+
+        equalsWriter.visitVarInsn(ALOAD, 0)
+        equalsWriter.visitVarInsn(ALOAD, 1)
+        equalsWriter.visitJumpInsn(IF_ACMPEQ, equalsTrueLbl)
+
+        equalsWriter.visitVarInsn(ALOAD, 1)
+        equalsWriter.visitTypeInsn(INSTANCEOF, innerClassName)
+        equalsWriter.visitJumpInsn(IFEQ, equalsFalseLbl)
+
+        // Compare properties here
+
+        equalsWriter.visitLabel(equalsTrueLbl)
+        equalsWriter.visitInsn(ICONST_1)
+        equalsWriter.visitInsn(IRETURN)
+
+        equalsWriter.visitLabel(equalsFalseLbl)
+        equalsWriter.visitInsn(ICONST_0)
+        equalsWriter.visitInsn(IRETURN)
+
+        equalsWriter.visitMaxs(-1, -1)
+        equalsWriter.visitEnd()
 
         innerClasses.addAll(visitor.results())
         // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that

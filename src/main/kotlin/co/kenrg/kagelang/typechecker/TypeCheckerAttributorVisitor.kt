@@ -138,9 +138,7 @@ class TypeCheckerAttributorVisitor(
             is Tree.Kind.GreaterThan,
             is Tree.Kind.LessThan,
             is Tree.Kind.GreaterThanOrEqualTo,
-            is Tree.Kind.LessThanOrEqualTo,
-            is Tree.Kind.Equals,
-            is Tree.Kind.NotEquals ->
+            is Tree.Kind.LessThanOrEqualTo ->
                 if (!leftType.isComparable) {
                     handleError(Error(error = "Comparable type expected for left expression", position = binary.position.start))
                 } else if (!rightType.isComparable) {
@@ -151,6 +149,14 @@ class TypeCheckerAttributorVisitor(
                     } else {
                         ownType = KGType.BOOL
                     }
+                }
+            is Tree.Kind.Equals,
+            is Tree.Kind.NotEquals ->
+                // Cannot compare unlike types, unless they're numeric. This should be handled better.
+                if (!((leftType == rightType) || (leftType.isNumeric && rightType.isNumeric))) {
+                    handleError(Error(error = "Cannot compare unlike types $leftType and $rightType", position = binary.position.start))
+                } else {
+                    ownType = KGType.BOOL
                 }
             else ->
                 throw UnsupportedOperationException("${binary.kind().javaClass.canonicalName} is not a BinaryTree")
