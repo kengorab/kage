@@ -4,6 +4,7 @@ import co.kenrg.kagelang.KageParser
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Point
 import co.kenrg.kagelang.model.Position
+import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.types.KGType
 import org.antlr.v4.runtime.ParserRuleContext
 
@@ -52,7 +53,12 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 )
             is KageParser.TypeDeclarationStatementContext ->
                 KGTree.KGTypeDeclaration(
-                        name = statement.name.text
+                        name = statement.name.text,
+                        props = statement.props?.props?.typeProp()
+                                ?.map {
+                                    TypedName(it.prop.text, it.typeAnnotation.text.trimTypeAnnotation())
+                                }
+                                ?: listOf()
                 )
             else -> throw UnsupportedOperationException("toTree(Statement) not yet implemented for ${statement.javaClass.canonicalName}...")
         }

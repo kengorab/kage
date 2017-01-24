@@ -398,6 +398,27 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseTypeDeclaration_oneProp() {
+        assertEquals(
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                tokens(lexerForCode("type OneProp { count: Int }"))
+        )
+    }
+
+    @Test fun parseTypeDeclaration_twoPropsSameLine() {
+        assertEquals(
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                tokens(lexerForCode("type TwoProps { count: Int, label: String }"))
+        )
+    }
+
+    @Test fun parseTypeDeclaration_twoPropsWithNewlines() {
+        assertEquals(
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "COMMA", "NEWLINE", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                tokens(lexerForCode("type TwoProps { count: Int,\nlabel: String }"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

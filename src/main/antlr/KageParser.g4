@@ -21,11 +21,23 @@ statements
 
 // Statements
 
+typeProp
+    : prop=Identifier typeAnnotation=TypeAnnotation
+    ;
+
+typeProps
+    : typeProp (',' NEWLINE* typeProp)*
+    ;
+
+typePropsBlock
+    : '{' NEWLINE* props=typeProps NEWLINE* '}'
+    ;
+
 statement
-    : valDeclaration            #valDeclarationStatement
-    | fnDeclaration             #fnDeclarationStatement
-    | 'type' name=Identifier    #typeDeclarationStatement
-    | print                     #printStatement
+    : valDeclaration                                                                    #valDeclarationStatement
+    | fnDeclaration                                                                     #fnDeclarationStatement
+    | 'type' name=Identifier props=typePropsBlock?                                      #typeDeclarationStatement
+    | print                                                                             #printStatement
     ;
 
 valDeclaration
