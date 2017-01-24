@@ -9,7 +9,8 @@ data class KGType(
         val className: String? = null,
         val isNumeric: Boolean = false,
         val isComparable: Boolean = false,
-        val size: Int = 1
+        val size: Int = 1,
+        val props: Map<String, KGType> = hashMapOf()
 ) {
     companion object {
         val INT = KGType(name = "Int", jvmDescriptor = "I", isNumeric = true, isComparable = true)

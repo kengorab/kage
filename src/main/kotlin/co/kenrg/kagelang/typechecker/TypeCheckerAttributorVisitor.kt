@@ -206,6 +206,17 @@ class TypeCheckerAttributorVisitor(
                 // Check to see if invocation target is a type constructor function.
                 val typeForName = data.getType(invokeeName)
                 if (typeForName != null) {
+                    if (invocation.params.size == typeForName.props.size) {
+                        invocation.params.zip(typeForName.props.values).forEach { pair ->
+                            val (param, requiredType) = pair
+
+                            if (param.type != requiredType)
+                                handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
+                        }
+                    } else {
+                        handleError(Error("Not enough arguments provided to constructor for $invokeeName", invocation.position.start))
+                    }
+
                     invocation.type = typeForName
                     result = typeForName
                     return
@@ -230,6 +241,7 @@ class TypeCheckerAttributorVisitor(
                             invocation.params.zip(firstFnForName.signature.params).forEach { pair ->
                                 val (param, required) = pair
                                 val (name, requiredType) = required
+
                                 if (param.type != requiredType)
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                             }
@@ -366,7 +378,8 @@ class TypeCheckerAttributorVisitor(
 
         val params = fnDecl.params.map {
             val type = data.getType(it.type) ?: it.type.asKGType()
-            // TODO - Fix this (the `type!!`), in the case when the type isn't there...
+            if (type == null)
+                handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", fnDecl.position.start))
             Pair(it.name, type!!)
         }
 
@@ -402,9 +415,18 @@ class TypeCheckerAttributorVisitor(
         if (typeName[0].isLowerCase())
             handleError(Error("Naming: Type $typeName should begin with a capital letter", typeDecl.position.start))
 
+        val typeProps = typeDecl.props
+                .map {
+                    val type = data.getType(it.type) ?: it.type.asKGType()
+                    if (type == null)
+                        handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", typeDecl.position.start))
+                    it.name to type!!
+                }
+                .toMap()
+
         // TODO - Separate out class-specific logic here. There's no reason why any of this needs to be tied to the jvm
         val innerClassName = "$namespaceName\$$typeName"
-        val type = KGType(typeName, "L$innerClassName;", className = innerClassName)
+        val type = KGType(typeName, "L$innerClassName;", className = innerClassName, props = typeProps)
         data.types.put(typeName, type)
 
         typeDecl.type = KGType.UNIT

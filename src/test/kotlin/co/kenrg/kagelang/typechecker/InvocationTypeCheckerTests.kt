@@ -9,6 +9,7 @@ import co.kenrg.kagelang.tree.types.KGType.Companion.BOOL
 import co.kenrg.kagelang.tree.types.KGType.Companion.DEC
 import co.kenrg.kagelang.tree.types.KGType.Companion.INT
 import co.kenrg.kagelang.tree.types.KGType.Companion.STRING
+import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -239,5 +240,59 @@ class InvocationTypeCheckerTests {
         val invocation = KGInvocation(KGBindingReference("SomeType"))
         val result = TypeChecker.typeCheck(invocation, ns)
         assertSucceedsAnd(result) { assertEquals(KGType("SomeType", ""), invocation.type) }
+    }
+
+    @Test fun typecheckInvocation_targetIsConstructorForTypeWithProps_notAllPropsPassed_typecheckingFails() {
+        val ns = randomTCNamespace()
+        val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
+        val type = KGType(
+                typeName,
+                "L${ns.name}\$$typeName;",
+                className = "${ns.name}\$$typeName",
+                props = mapOf(
+                        "someStr" to KGType.STRING
+                )
+        )
+        ns.rootScope.types.put(typeName, type)
+
+        val invocation = KGInvocation(KGBindingReference(typeName), listOf())
+        val result = TypeChecker.typeCheck(invocation, ns)
+        assertFails(result)
+    }
+
+    @Test fun typecheckInvocation_targetIsConstructorForTypeWithProps_incorrectlyTypedPropsPassed_typecheckingFails() {
+        val ns = randomTCNamespace()
+        val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
+        val type = KGType(
+                typeName,
+                "L${ns.name}\$$typeName;",
+                className = "${ns.name}\$$typeName",
+                props = mapOf(
+                        "someStr" to KGType.STRING
+                )
+        )
+        ns.rootScope.types.put(typeName, type)
+
+        val invocation = KGInvocation(KGBindingReference(typeName), listOf(intLiteral(2)))
+        val result = TypeChecker.typeCheck(invocation, ns)
+        assertFails(result)
+    }
+
+    @Test fun typecheckInvocation_targetIsConstructorForTypeWithProps_correctlyTypedPropsPassed_passesTypechecking() {
+        val ns = randomTCNamespace()
+        val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
+        val type = KGType(
+                typeName,
+                "L${ns.name}\$$typeName;",
+                className = "${ns.name}\$$typeName",
+                props = mapOf(
+                        "someStr" to KGType.STRING
+                )
+        )
+        ns.rootScope.types.put(typeName, type)
+
+        val invocation = KGInvocation(KGBindingReference(typeName), listOf(stringLiteral("Hello")))
+        val result = TypeChecker.typeCheck(invocation, ns)
+        assertSucceedsAnd(result) { assertEquals(type, invocation.type) }
     }
 }
