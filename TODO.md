@@ -28,6 +28,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - Type with props
     - `toString` method
     - `equals` method
+- Pairs
 - Arrays
 - Loops
 - Switch/match expression
