@@ -22,6 +22,12 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - ~~Boolean comparisons (>, >=, <, <=, ==, !=)~~
 - ~~If-then-else-expression~~
 - Custom types (other than primitives Int, Dec, Bool, and String)
+  - ~~Empty type (no props)~~
+    - ~~`toString` method~~
+    - ~~`equals` method~~
+  - Type with props
+    - `toString` method
+    - `equals` method
 - Arrays
 - Loops
 - Switch/match expression
