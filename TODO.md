@@ -26,9 +26,10 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
     - ~~`toString` method~~
     - ~~`equals` method~~
   - Type with props
-    - `toString` method
-    - `equals` method
+    - ~~`toString` method~~
+    - ~~`equals` method~~
     - Accessor methods for type props
+  - `hashCode` method
 - Pairs
 - Arrays
 - Loops
