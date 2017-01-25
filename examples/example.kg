@@ -2,4 +2,9 @@ type Name { firstName: String, lastName: String }
 type Person { name: Name, age: Int }
 
 fn main() =
-  print(Person(Name("Meg", "Muccilli"), 24))
+  let
+    val ken = Person(Name("Ken", "Gorab"), 25)
+    val meg = Person(Name("Meg", "Muccilli"), 24)
+    val meg2 = Person(Name("Meg", "Muccilli"), 24)
+  in
+    print(meg2 == meg)
