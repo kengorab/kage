@@ -30,6 +30,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
     - ~~`equals` method~~
     - Accessor methods for type props
   - `hashCode` method
+- Method calls
 - Pairs
 - Arrays
 - Loops
