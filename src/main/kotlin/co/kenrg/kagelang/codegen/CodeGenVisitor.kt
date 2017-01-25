@@ -440,7 +440,13 @@ class CodeGenVisitor(
                 if (typeForName != null) {
                     methodWriter.visitTypeInsn(NEW, typeForName.className)
                     methodWriter.visitInsn(DUP)
-                    methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", "()V", false)
+
+                    invocation.params.forEach {
+                        it.accept(this, data)
+                    }
+
+                    val constructorSignature = "(${typeForName.props.values.map { it.jvmDescriptor }.joinToString("")})V"
+                    methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", constructorSignature, false)
                 } else {
                     // Grab the first function. At this point, it's already passed typechecking so there
                     // should definitely be a function matching the necessary param signature.
@@ -649,49 +655,26 @@ class CodeGenVisitor(
         val visitor = CodeGenVisitor(innerClassName)
         visitor.cw.visitInnerClass(innerClassName, className, typeDecl.name, ACC_PUBLIC or ACC_STATIC)
 
-        val initWriter = visitor.cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null)
-        initWriter.visitCode()
-        initWriter.visitVarInsn(ALOAD, 0)
-        initWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
-        initWriter.visitInsn(RETURN)
-        initWriter.visitMaxs(-1, -1)
-        initWriter.visitEnd()
+        // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that.
+        val type = KGType(
+                typeName,
+                "L$innerClassName;",
+                className = innerClassName,
+                props = typeDecl.props
+                        .map {
+                            val type = data.getType(it.type)
+                                    ?: it.type.asKGType()
+                                    ?: throw IllegalStateException("Unknown type ${it.type}")
+                            it.name to type
+                        }
+                        .toMap()
+        )
 
-        val toStringWriter = visitor.cw.visitMethod(ACC_PUBLIC, "toString", "()Ljava/lang/String;", null, null)
-        toStringWriter.visitCode()
-        toStringWriter.visitLdcInsn("$typeName()")
-        toStringWriter.visitInsn(ARETURN)
-        toStringWriter.visitMaxs(-1, -1)
-        toStringWriter.visitEnd()
-
-        val equalsWriter = visitor.cw.visitMethod(ACC_PUBLIC, "equals", "(Ljava/lang/Object;)Z", null, null)
-        val equalsTrueLbl = Label()
-        val equalsFalseLbl = Label()
-
-        equalsWriter.visitVarInsn(ALOAD, 0)
-        equalsWriter.visitVarInsn(ALOAD, 1)
-        equalsWriter.visitJumpInsn(IF_ACMPEQ, equalsTrueLbl)
-
-        equalsWriter.visitVarInsn(ALOAD, 1)
-        equalsWriter.visitTypeInsn(INSTANCEOF, innerClassName)
-        equalsWriter.visitJumpInsn(IFEQ, equalsFalseLbl)
-
-        // Compare properties here
-
-        equalsWriter.visitLabel(equalsTrueLbl)
-        equalsWriter.visitInsn(ICONST_1)
-        equalsWriter.visitInsn(IRETURN)
-
-        equalsWriter.visitLabel(equalsFalseLbl)
-        equalsWriter.visitInsn(ICONST_0)
-        equalsWriter.visitInsn(IRETURN)
-
-        equalsWriter.visitMaxs(-1, -1)
-        equalsWriter.visitEnd()
-
-        innerClasses.addAll(visitor.results())
-        // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that
-        val type = KGType(typeName, "L$innerClassName;", className = innerClassName)
+        val typeClassWriter = TypeClassWriter(visitor, type, innerClassName)
+        typeClassWriter.writeConstructor()
+        typeClassWriter.writeToStringMethod()
+        typeClassWriter.writeEqualsMethod()
+        innerClasses.addAll(typeClassWriter.getResultingBytecode())
         data.types.put(typeName, type)
     }
 }

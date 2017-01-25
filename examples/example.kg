@@ -1,6 +1,5 @@
-type Empty
-
-fn func1(e1: Empty, e2: Empty): Bool = e1 == e2
+type Name { firstName: String, lastName: String }
+type Person { name: Name, age: Int }
 
 fn main() =
-  print(func1(Empty(), Empty()))
+  print(Person(Name("Meg", "Muccilli"), 24))

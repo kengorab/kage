@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.codegen
 
 import co.kenrg.kagelang.model.FnParameter
+import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -97,5 +98,63 @@ class TypeDeclarationAndCreationCodeGenTests : BaseTest() {
             assertEquals("true", output)
         }
     }
-}
 
+    @Test fun testTypeDeclarationAndInstantiation_typeWithProps_toString() {
+        // type Person { name: String, age: Int }
+        // fn main(...) =
+        //   print(Person("Meg", 24))
+        val file = KGFile(
+                statements = listOf(
+                        KGTypeDeclaration("Person", listOf(TypedName("name", "String"), TypedName("age", "Int"))),
+                        wrapInMainMethod(
+                                KGPrint(KGInvocation(KGBindingReference("Person"), listOf(stringLiteral("Meg"), intLiteral(24))))
+                        )
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("""Person(name: "Meg", age: 24)""", output)
+        }
+    }
+
+    @Test fun testTypeDeclarationAndInstantiation_typeWithProps_propIsCustomType_toStringCallsToStringOnCustomType() {
+        // type Name { firstName: String, lastName: String }
+        // type Person { name: Name, age: Int, married: Bool }
+        // fn main(...) =
+        //   print(Person(Name("Meg", "Muccilli"), 24, true))
+        val file = KGFile(
+                statements = listOf(
+                        KGTypeDeclaration(
+                                "Name",
+                                listOf(TypedName("firstName", "String"), TypedName("lastName", "String"))
+                        ),
+                        KGTypeDeclaration(
+                                "Person",
+                                listOf(TypedName("name", "Name"), TypedName("age", "Int"), TypedName("married", "Bool"))
+                        ),
+                        wrapInMainMethod(KGPrint(
+                                KGInvocation(
+                                        KGBindingReference("Person"),
+                                        listOf(
+                                                KGInvocation(
+                                                        KGBindingReference("Name"),
+                                                        listOf(
+                                                                stringLiteral("Meg"),
+                                                                stringLiteral("Ryan")
+                                                        )
+                                                ),
+                                                intLiteral(24),
+                                                trueLiteral()
+                                        )
+                                )
+                        ))
+                ),
+                bindings = HashMap()
+        )
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("""Person(name: Name(firstName: "Meg", lastName: "Ryan"), age: 24, married: true)""", output)
+        }
+    }
+}
