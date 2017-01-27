@@ -28,8 +28,9 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - Type with props
     - ~~`toString` method~~
     - ~~`equals` method~~
-    - Accessor methods for type props
+    - ~~Accessor methods for type props (class-level getters)~~
   - `hashCode` method
+  - Property accessors
 - Method calls
 - Pairs
 - Arrays
