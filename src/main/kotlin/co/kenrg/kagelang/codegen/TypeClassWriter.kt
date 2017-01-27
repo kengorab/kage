@@ -148,4 +148,21 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
         equalsWriter.visitMaxs(-1, -1)
         equalsWriter.visitEnd()
     }
+
+    fun writePropertyAccessorMethods() {
+        typeProps.forEach {
+            val (index, name, type) = it
+
+            val accessorName = "get${name.capitalize()}"
+            val accessorSignature = "()${type.jvmDescriptor}"
+            val propAccessorWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, accessorName, accessorSignature, null, null)
+
+            propAccessorWriter.visitVarInsn(ALOAD, 0)
+            propAccessorWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor)
+            propAccessorWriter.visitInsn(type.getReturnInsn())
+
+            propAccessorWriter.visitMaxs(-1, -1)
+            propAccessorWriter.visitEnd()
+        }
+    }
 }

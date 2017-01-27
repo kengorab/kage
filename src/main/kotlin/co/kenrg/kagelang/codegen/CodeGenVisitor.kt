@@ -629,14 +629,7 @@ class CodeGenVisitor(
 
             fnWriter.visitInsn(RETURN)
         } else {
-            when (fnDecl.signature.returnType) {
-                KGType.INT -> fnWriter.visitInsn(IRETURN)
-                KGType.DEC -> fnWriter.visitInsn(DRETURN)
-                KGType.BOOL -> fnWriter.visitInsn(IRETURN)
-                KGType.STRING -> fnWriter.visitInsn(ARETURN)
-                KGType.UNIT -> fnWriter.visitInsn(RETURN)
-                else -> throw UnsupportedOperationException("Cannot perform return for type ${fnDecl.signature.returnType}")
-            }
+            fnWriter.visitInsn(fnDecl.signature.returnType.getReturnInsn())
         }
 
         fnWriter.visitMaxs(-1, -1)
@@ -674,6 +667,8 @@ class CodeGenVisitor(
         typeClassWriter.writeConstructor()
         typeClassWriter.writeToStringMethod()
         typeClassWriter.writeEqualsMethod()
+        typeClassWriter.writePropertyAccessorMethods()
+
         innerClasses.addAll(typeClassWriter.getResultingBytecode())
         data.types.put(typeName, type)
     }

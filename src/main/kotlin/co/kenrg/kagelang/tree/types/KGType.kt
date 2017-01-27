@@ -2,6 +2,7 @@ package co.kenrg.kagelang.tree.types
 
 import co.kenrg.kagelang.tree.iface.LiteralTree
 import co.kenrg.kagelang.tree.iface.base.Tree
+import jdk.internal.org.objectweb.asm.Opcodes
 
 data class KGType(
         val name: String,
@@ -28,6 +29,21 @@ data class KGType(
             BOOL -> Tree.Kind.BoolLiteral
             STRING -> Tree.Kind.StringLiteral
             else -> throw UnsupportedOperationException("$this is not a literal, and has no literal kind")
+        }
+    }
+
+    fun getReturnInsn(): Int {
+        return when (this) {
+            KGType.INT -> Opcodes.IRETURN
+            KGType.DEC -> Opcodes.DRETURN
+            KGType.BOOL -> Opcodes.IRETURN
+            KGType.STRING -> Opcodes.ARETURN
+            KGType.UNIT -> Opcodes.RETURN
+            else ->
+                if (this.className != null)
+                    Opcodes.ARETURN
+                else
+                    throw UnsupportedOperationException("Cannot perform return for type: $this")
         }
     }
 }
