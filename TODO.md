@@ -12,7 +12,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - Add tests for TreeMaker (with and without positioning)
   - With positioning
   - ~~Without positioning~~
-- String Literals
+- ~~String Literals~~
   - ~~Declaration and referencing~~
   - ~~Concatenation of Strings (++)~~
   - ~~Concatenation of Strings and non-Strings~~
@@ -30,9 +30,9 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
     - ~~`equals` method~~
     - ~~Accessor methods for type props (class-level getters)~~
   - `hashCode` method
-  - Property accessors
+  - ~~Property accessors~~
+- Tuples (begin stdlib?)
 - Method calls
-- Pairs
 - Arrays
 - Loops
 - Switch/match expression
