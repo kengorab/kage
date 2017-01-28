@@ -20,7 +20,7 @@ class BinaryExpressionTreeMakerTests {
                 Case("1 + 1", KGBinary(intLiteral(1), "+", intLiteral(1))),
                 Case("1 - 1", KGBinary(intLiteral(1), "-", intLiteral(1))),
                 Case("1.1 + 1.3", KGBinary(decLiteral(1.1), "+", decLiteral(1.3))),
-                Case("1.3 - 1.1", KGBinary(decLiteral(1.3), "-", decLiteral(1.1))),
+                Case("1.3 - 0.1", KGBinary(decLiteral(1.3), "-", decLiteral(0.1))),
                 Case("1 * 1", KGBinary(intLiteral(1), "*", intLiteral(1))),
                 Case("1 / 1", KGBinary(intLiteral(1), "/", intLiteral(1))),
                 Case("-1 / 2", KGBinary(KGUnary("-", intLiteral(1)), "/", intLiteral(2))),
