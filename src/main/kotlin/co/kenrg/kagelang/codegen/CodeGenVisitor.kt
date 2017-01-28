@@ -516,7 +516,21 @@ class CodeGenVisitor(
     }
 
     override fun visitDot(dot: KGTree.KGDot, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        val methodWriter = data.method?.writer
+                ?: throw IllegalStateException("Attempted to visit dotExpression with no methodVisitor active")
+
+        dot.target.accept(this, data)
+        val dotType = getTypeAssertNotNull(dot.target.type)
+
+        if (dotType.props.containsKey(dot.prop)) {
+            val propType = dotType.props[dot.prop]!!
+
+            val accessorName = "get${dot.prop.capitalize()}"
+            val accessorSignature = "()${propType.jvmDescriptor}"
+            methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
+        } else {
+            throw IllegalStateException("Prop ${dot.prop} is not available on dot target")
+        }
     }
 
     /*****************************
