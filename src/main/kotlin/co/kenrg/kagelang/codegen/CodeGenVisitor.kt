@@ -515,6 +515,10 @@ class CodeGenVisitor(
         methodWriter.visitFrame(F_SAME, 0, null, 0, null)
     }
 
+    override fun visitDot(dot: KGTree.KGDot, data: CGScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     /*****************************
      *
      *     Statement Visitors

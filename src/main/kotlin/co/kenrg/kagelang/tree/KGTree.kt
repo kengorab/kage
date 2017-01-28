@@ -27,6 +27,7 @@ abstract class KGTree : Tree {
         fun visitInvocation(invocation: KGInvocation, data: D)
         fun visitLetIn(letIn: KGLetIn, data: D)
         fun visitIfThenElse(ifElse: KGIfThenElse, data: D)
+        fun visitDot(dot: KGDot, data: D)
 
         // Statement visitors
 
@@ -145,6 +146,15 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.IfElse
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitIfThenElse(this, data)
+    }
+
+    class KGDot(val target: KGExpression, val prop: String) : KGExpression(), DotTree {
+        override fun target() = target
+        override fun prop() = prop
+
+        override fun kind() = Tree.Kind.Dot
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitDot(this, data)
     }
 
     /*

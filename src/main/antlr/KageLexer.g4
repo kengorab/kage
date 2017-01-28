@@ -82,6 +82,7 @@ LBRACE          : '{' ;
 RBRACE          : '}' ;
 COLON           : ':' ;
 COMMA           : ',' ;
+DOT             : '.' ;
 
 // Operators
 PLUS            : '+' ;

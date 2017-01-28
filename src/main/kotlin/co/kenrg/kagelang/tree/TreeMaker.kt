@@ -117,6 +117,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         thenBody = statementOrExpressionToTree(expression.thenBody),
                         elseBody = nullableStatementOrExpressionToTree(expression.elseBody)
                 )
+            is KageParser.DotExpressionContext ->
+                KGTree.KGDot(
+                        target = toTree(expression.target),
+                        prop = expression.prop.text
+                )
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 

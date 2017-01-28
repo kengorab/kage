@@ -43,6 +43,7 @@ interface Tree {
         // Other Expression Kinds
         object LetIn : Kind<LetInTree>(LetInTree::class.java)
         object IfElse : Kind<IfThenElseTree>(IfThenElseTree::class.java)
+        object Dot : Kind<DotTree>(DotTree::class.java)
 
         // Statement Kinds
         object Print : Kind<PrintTree>(PrintTree::class.java)

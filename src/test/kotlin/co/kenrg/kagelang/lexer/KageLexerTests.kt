@@ -419,6 +419,27 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parsePropAccessor_oneLevel() {
+        assertEquals(
+                listOf("Identifier", "DOT", "Identifier", "EOF"),
+                tokens(lexerForCode("a.b"))
+        )
+    }
+
+    @Test fun parsePropAccessor_twoLevels() {
+        assertEquals(
+                listOf("Identifier", "DOT", "Identifier", "DOT", "Identifier", "EOF"),
+                tokens(lexerForCode("a.b.c"))
+        )
+    }
+
+    @Test fun parsePropAccessor_threeLevelsAndInvocation() {
+        assertEquals(
+                listOf("Identifier", "DOT", "Identifier", "DOT", "Identifier", "DOT", "Identifier", "LPAREN", "RPAREN", "EOF"),
+                tokens(lexerForCode("a.b.c.d()"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
