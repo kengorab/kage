@@ -1,6 +1,8 @@
 package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.codegen.intLiteral
+import co.kenrg.kagelang.kageFileFromCode
+import co.kenrg.kagelang.kageFileFromLines
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGFnDeclaration

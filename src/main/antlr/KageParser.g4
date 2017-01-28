@@ -53,7 +53,7 @@ fnParams
     ;
 
 arguments
-    : expression (',' expression)?
+    : expression (',' expression)*
     ;
 
 fnDeclaration
@@ -80,10 +80,10 @@ expression
 
     | left=expression operator=('/'|'*') right=expression                               #binaryOperation
     | left=expression operator=('+'|'-') right=expression                               #binaryOperation
+    | left=expression operator='++' right=expression                                    #binaryOperation
     | left=expression operator=('<'|'<='|'>'|'>=') right=expression                     #binaryOperation
     | left=expression operator=('=='|'!=') right=expression                             #binaryOperation
     | left=expression operator=('||'|'&&') right=expression                             #binaryOperation
-    | left=expression operator='++' right=expression                                    #binaryOperation
 
     | 'if' cond=expression NEWLINE* 'then' NEWLINE* thenBody=statementOrExpression
         (NEWLINE* 'else' NEWLINE* elseBody=statementOrExpression)?                      #ifThenElseExpression

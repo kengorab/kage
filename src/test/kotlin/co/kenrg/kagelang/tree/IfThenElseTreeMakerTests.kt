@@ -2,6 +2,8 @@ package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.stringLiteral
+import co.kenrg.kagelang.kageFileFromCode
+import co.kenrg.kagelang.kageFileFromLines
 import co.kenrg.kagelang.tree.KGTree.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
