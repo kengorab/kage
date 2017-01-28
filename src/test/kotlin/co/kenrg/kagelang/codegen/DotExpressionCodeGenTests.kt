@@ -20,7 +20,7 @@ class DotExpressionCodeGenTests : BaseTest() {
                   val p = Person("Ken")
                 in
                   print(p.name)
-            """.trimMargin("|")
+            """
             val file = kageFileFromCode(code)
 
             compileAndExecuteFileAnd(file) { output ->
@@ -37,7 +37,7 @@ class DotExpressionCodeGenTests : BaseTest() {
                   val p = Person(Name("Ken", "Gorab"))
                 in
                   print(p.name.first)
-            """.trimMargin("|")
+            """
             val file = kageFileFromCode(code)
 
             compileAndExecuteFileAnd(file) { output ->
@@ -56,7 +56,7 @@ class DotExpressionCodeGenTests : BaseTest() {
                     val l = Language("kage", Person(Name("Ken", "Gorab"), 25))
                   in
                     print(l.creator.name.lastName)
-            """.trimMargin("|")
+            """
             val file = kageFileFromCode(code)
 
             compileAndExecuteFileAnd(file) { output ->
@@ -90,7 +90,7 @@ class DotExpressionCodeGenTests : BaseTest() {
                             val p2 = Person(Name("Zack", "Gorab"), 22)
                           in
                             print($printArg)
-                    """.trimMargin("|")
+                    """
                     val file = kageFileFromCode(code)
                     compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
                 }

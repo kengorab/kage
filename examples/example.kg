@@ -1,9 +1,7 @@
-type Name { firstName: String, lastName: String }
-type Person { name: Name, age: Int }
+type Person { name: String }
 
 fn main() =
   let
-    val ken = Person(Name("Ken", "Gorab"), 25)
-    val meg = Person(Name("Meg", "Muccilli"), 24)
+    val p = Person("Ken")
   in
-    print(ken.age >= meg.age)
+    print(p.name)

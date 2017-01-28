@@ -1,9 +1,10 @@
 package co.kenrg.kagelang.codegen
 
-import co.kenrg.kagelang.tree.KGTree
-import co.kenrg.kagelang.tree.KGTree.KGBinary
+import co.kenrg.kagelang.kageFileFromCode
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.DynamicTest
+import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.TestFactory
 
@@ -16,69 +17,97 @@ class ComparisonCodeGenTests : BaseTest() {
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric greater-than (>) expressions")
         fun testGreaterThan_numericLiterals(): List<DynamicTest> {
-            val cases = listOf(
-                    // Test false, because of equivalence
-                    Case("1 > 1", KGBinary(intLiteral(1), ">", intLiteral(1)), "false"),
-                    Case("1.0 > 1", KGBinary(decLiteral(1.0), ">", intLiteral(1)), "false"),
-                    Case("1 > 1.0", KGBinary(intLiteral(1), ">", decLiteral(1.0)), "false"),
-                    Case("1.0 > 1.0", KGBinary(decLiteral(1.0), ">", decLiteral(1.0)), "false"),
+            return listOf(
+                    // Cover the case of equivalence
+                    Pair("1 > 1", "false"),
+                    Pair("1.0 > 1", "false"),
+                    Pair("1 > 1.0", "false"),
+                    Pair("1.0 > 1.0", "false"),
 
-                    Case("1 > 0", KGBinary(intLiteral(1), ">", intLiteral(0)), "true"),
-                    Case("-4 > -1", KGBinary(intLiteral(-4), ">", intLiteral(-1)), "false"),
-                    Case("100 > 1.0", KGBinary(intLiteral(100), ">", decLiteral(1.0)), "true"),
-                    Case("-5.42 > 100", KGBinary(decLiteral(-5.42), ">", intLiteral(100)), "false"),
-                    Case("-5.42 > 100.43", KGBinary(decLiteral(-5.42), ">", decLiteral(100.43)), "false"),
+                    Pair("1 > 0", "true"),
+                    Pair("-4 > -1", "false"),
+                    Pair("100 > 1.0", "true"),
+                    Pair("-5.42 > 100", "false"),
+                    Pair("-5.42 > 100.43", "false"),
 
-                    Case("1 + 2 > 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), ">", KGBinary(intLiteral(0), "-", intLiteral(1))), "true"),
-                    Case("-1 / 2 > 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), ">", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 > 0 - 1", "true"),
+                    Pair("-1 / 2 > 5 * 100.43", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric greater-than-or-equal-to (>=) expressions")
         fun testGreaterThanOrEqualTo_numericLiterals(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("1 >= 1", KGBinary(intLiteral(1), ">=", intLiteral(1)), "true"),
-                    Case("1.0 >= 1", KGBinary(decLiteral(1.0), ">=", intLiteral(1)), "true"),
-                    Case("1 >= 1.0", KGBinary(intLiteral(1), ">=", decLiteral(1.0)), "true"),
-                    Case("1.0 >= 1.0", KGBinary(decLiteral(1.0), ">=", decLiteral(1.0)), "true"),
+            return listOf(
+                    Pair("1 >= 1", "true"),
+                    Pair("1.0 >= 1", "true"),
+                    Pair("1 >= 1.0", "true"),
+                    Pair("1.0 >= 1.0", "true"),
 
-                    Case("1 >= 0", KGBinary(intLiteral(1), ">=", intLiteral(0)), "true"),
-                    Case("-4 >= -1", KGBinary(intLiteral(-4), ">=", intLiteral(-1)), "false"),
-                    Case("100 >= 1.0", KGBinary(intLiteral(100), ">=", decLiteral(1.0)), "true"),
-                    Case("-5.42 >= 100", KGBinary(decLiteral(-5.42), ">=", intLiteral(100)), "false"),
-                    Case("-5.42 >= 100.43", KGBinary(decLiteral(-5.42), ">=", decLiteral(100.43)), "false"),
+                    Pair("1 >= 0", "true"),
+                    Pair("-4 >= -1", "false"),
+                    Pair("100 >= 1.0", "true"),
+                    Pair("-5.42 >= 100", "false"),
+                    Pair("-5.42 >= 100.43", "false"),
 
-                    Case("1 + 2 >= 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), ">=", KGBinary(intLiteral(0), "-", intLiteral(1))), "true"),
-                    Case("-1 / 2 >= 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), ">=", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 >= 0 - 1", "true"),
+                    Pair("-1 / 2 >= 5 * 100.43", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) greater-than (>) expressions")
         fun testGreaterThan_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    // Test false, because of equivalence
-                    Case("\"hello\" > \"hello\"", KGBinary(stringLiteral("hello"), ">", stringLiteral("hello")), "false"),
+            return listOf(
+                    // Cover the case of equivalence
+                    Pair("\"hello\" > \"hello\"", "false"),
 
-                    Case("\"Hello\" > \"hello\"", KGBinary(stringLiteral("Hello"), ">", stringLiteral("hello")), "false"),
-                    Case("\"abc\" ++ \"d\" > \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), ">", stringLiteral("abc")), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" > \"hello\"", "false"),
+                    Pair("\"abc\" ++ \"d\" > \"abc\"", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) greater-than-or-equal-to (>=) expressions")
         fun testGreaterThanOrEqualTo_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("\"hello\" >= \"hello\"", KGBinary(stringLiteral("hello"), ">=", stringLiteral("hello")), "true"),
+            return listOf(
+                    Pair("\"hello\" >= \"hello\"", "true"),
 
-                    Case("\"Hello\" >= \"hello\"", KGBinary(stringLiteral("Hello"), ">=", stringLiteral("hello")), "false"),
-                    Case("\"abc\" ++ \"d\" >= \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), ">=", stringLiteral("abc")), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" >= \"hello\"", "false"),
+                    Pair("\"abc\" ++ \"d\" >= \"abc\"", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
     }
 
@@ -89,70 +118,98 @@ class ComparisonCodeGenTests : BaseTest() {
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric less-than (<) expressions")
         fun testLessThan_simpleNonNested_numericLiteralsOnly(): List<DynamicTest> {
-            val cases = listOf(
-                    // Test false, because of equivalence
-                    Case("1 < 1", KGBinary(intLiteral(1), "<", intLiteral(1)), "false"),
-                    Case("1.0 < 1", KGBinary(decLiteral(1.0), "<", intLiteral(1)), "false"),
-                    Case("1 < 1.0", KGBinary(intLiteral(1), "<", decLiteral(1.0)), "false"),
-                    Case("1.0 < 1.0", KGBinary(decLiteral(1.0), "<", decLiteral(1.0)), "false"),
+            return listOf(
+                    // Cover the case of equivalence
+                    Pair("1 < 1", "false"),
+                    Pair("1.0 < 1", "false"),
+                    Pair("1 < 1.0", "false"),
+                    Pair("1.0 < 1.0", "false"),
 
-                    Case("1 < 0", KGBinary(intLiteral(1), "<", intLiteral(0)), "false"),
-                    Case("-4 < -1", KGBinary(intLiteral(-4), "<", intLiteral(-1)), "true"),
-                    Case("100 < 1.0", KGBinary(intLiteral(100), "<", decLiteral(1.0)), "false"),
-                    Case("-5.42 < 100", KGBinary(decLiteral(-5.42), "<", intLiteral(100)), "true"),
-                    Case("-5.42 < 100.43", KGBinary(decLiteral(-5.42), "<", decLiteral(100.43)), "true"),
+                    Pair("1 < 0", "false"),
+                    Pair("-4 < -1", "true"),
+                    Pair("100 < 1.0", "false"),
+                    Pair("-5.42 < 100", "true"),
+                    Pair("-5.42 < 100.43", "true"),
 
-                    Case("1 + 2 < 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), "<", KGBinary(intLiteral(0), "-", intLiteral(1))), "false"),
-                    Case("-1 / 2 < 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), "<", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 < 0 - 1", "false"),
+                    Pair("-1 / 2 < 5 * 100.43", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric less-than-or-equal-to (<=) expressions")
         fun testLessThanOrEqualTo_simpleNonNested_numericLiteralsOnly(): List<DynamicTest> {
-            val cases = listOf(
-                    // Test false, because of equivalence
-                    Case("1 <= 1", KGBinary(intLiteral(1), "<=", intLiteral(1)), "true"),
-                    Case("1.0 <= 1", KGBinary(decLiteral(1.0), "<=", intLiteral(1)), "true"),
-                    Case("1 <= 1.0", KGBinary(intLiteral(1), "<=", decLiteral(1.0)), "true"),
-                    Case("1.0 <= 1.0", KGBinary(decLiteral(1.0), "<=", decLiteral(1.0)), "true"),
+            return listOf(
+                    // Cover the case of equivalence
+                    Pair("1 <= 1", "true"),
+                    Pair("1.0 <= 1", "true"),
+                    Pair("1 <= 1.0", "true"),
+                    Pair("1.0 <= 1.0", "true"),
 
-                    Case("1 <= 0", KGBinary(intLiteral(1), "<=", intLiteral(0)), "false"),
-                    Case("-4 <= -1", KGBinary(intLiteral(-4), "<=", intLiteral(-1)), "true"),
-                    Case("100 <= 1.0", KGBinary(intLiteral(100), "<=", decLiteral(1.0)), "false"),
-                    Case("-5.42 <= 100", KGBinary(decLiteral(-5.42), "<=", intLiteral(100)), "true"),
-                    Case("-5.42 <= 100.43", KGBinary(decLiteral(-5.42), "<=", decLiteral(100.43)), "true"),
+                    Pair("1 <= 0", "false"),
+                    Pair("-4 <= -1", "true"),
+                    Pair("100 <= 1.0", "false"),
+                    Pair("-5.42 <= 100", "true"),
+                    Pair("-5.42 <= 100.43", "true"),
 
-                    Case("1 + 2 <= 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), "<=", KGBinary(intLiteral(0), "-", intLiteral(1))), "false"),
-                    Case("-1 / 2 <= 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), "<=", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 <= 0 - 1", "false"),
+                    Pair("-1 / 2 <= 5 * 100.43", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) less-than (<) expressions")
         fun testLessThan_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    // Test false, because of equivalence
-                    Case("\"hello\" < \"hello\"", KGBinary(stringLiteral("hello"), "<", stringLiteral("hello")), "false"),
+            return listOf(
+                    // Cover the case of equivalence
+                    Pair("\"hello\" < \"hello\"", "false"),
 
-                    Case("\"Hello\" < \"hello\"", KGBinary(stringLiteral("Hello"), "<", stringLiteral("hello")), "true"),
-                    Case("\"abc\" ++ \"d\" < \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), "<", stringLiteral("abc")), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" < \"hello\"", "true"),
+                    Pair("\"abc\" ++ \"d\" < \"abc\"", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) less-than-or-equal-to (<=) expressions")
         fun testLessThanOrEqualTo_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("\"hello\" <= \"hello\"", KGBinary(stringLiteral("hello"), "<=", stringLiteral("hello")), "true"),
+            return listOf(
+                    Pair("\"hello\" <= \"hello\"", "true"),
 
-                    Case("\"Hello\" <= \"hello\"", KGBinary(stringLiteral("Hello"), "<=", stringLiteral("hello")), "true"),
-                    Case("\"abc\" ++ \"d\" <= \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), "<=", stringLiteral("abc")), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" <= \"hello\"", "true"),
+                    Pair("\"abc\" ++ \"d\" <= \"abc\"", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
     }
 
@@ -163,67 +220,95 @@ class ComparisonCodeGenTests : BaseTest() {
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric equals (==) expressions")
         fun testEquals_simpleNonNested_numericLiteralsOnly(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("1 == 1", KGBinary(intLiteral(1), "==", intLiteral(1)), "true"),
-                    Case("1.0 == 1", KGBinary(decLiteral(1.0), "==", intLiteral(1)), "true"),
-                    Case("1 == 1.0", KGBinary(intLiteral(1), "==", decLiteral(1.0)), "true"),
-                    Case("1.0 == 1.0", KGBinary(decLiteral(1.0), "==", decLiteral(1.0)), "true"),
+            return listOf(
+                    Pair("1 == 1", "true"),
+                    Pair("1.0 == 1", "true"),
+                    Pair("1 == 1.0", "true"),
+                    Pair("1.0 == 1.0", "true"),
 
-                    Case("1 == 0", KGBinary(intLiteral(1), "==", intLiteral(0)), "false"),
-                    Case("-4 == -1", KGBinary(intLiteral(-4), "==", intLiteral(-1)), "false"),
-                    Case("100 == 1.0", KGBinary(intLiteral(100), "==", decLiteral(1.0)), "false"),
-                    Case("-5.42 == 100", KGBinary(decLiteral(-5.42), "==", intLiteral(100)), "false"),
-                    Case("-5.42 == 100.43", KGBinary(decLiteral(-5.42), "==", decLiteral(100.43)), "false"),
+                    Pair("1 == 0", "false"),
+                    Pair("-4 == -1", "false"),
+                    Pair("100 == 1.0", "false"),
+                    Pair("-5.42 == 100", "false"),
+                    Pair("-5.42 == 100.43", "false"),
 
-                    Case("1 + 2 == 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), "==", KGBinary(intLiteral(0), "-", intLiteral(1))), "false"),
-                    Case("-1 / 2 == 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), "==", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 == 0 - 1", "false"),
+                    Pair("-1 / 2 == 5 * 100.43", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) equals (==) expressions")
         fun testEquals_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("\"hello\" == \"hello\"", KGBinary(stringLiteral("hello"), "==", stringLiteral("hello")), "true"),
+            return listOf(
+                    Pair("\"hello\" == \"hello\"", "true"),
 
-                    Case("\"Hello\" == \"hello\"", KGBinary(stringLiteral("Hello"), "==", stringLiteral("hello")), "false"),
-                    Case("\"abc\" ++ \"d\" == \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), "==", stringLiteral("abc")), "false")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" == \"hello\"", "false"),
+                    Pair("\"abc\" ++ \"d\" == \"abc\"", "false")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of numeric not-equals (!=) expressions")
         fun testNotEquals_simpleNonNested_numericLiteralsOnly(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("1 != 1", KGBinary(intLiteral(1), "!=", intLiteral(1)), "false"),
-                    Case("1.0 != 1", KGBinary(decLiteral(1.0), "!=", intLiteral(1)), "false"),
-                    Case("1 != 1.0", KGBinary(intLiteral(1), "!=", decLiteral(1.0)), "false"),
-                    Case("1.0 != 1.0", KGBinary(decLiteral(1.0), "!=", decLiteral(1.0)), "false"),
+            return listOf(
+                    Pair("1 != 1", "false"),
+                    Pair("1.0 != 1", "false"),
+                    Pair("1 != 1.0", "false"),
+                    Pair("1.0 != 1.0", "false"),
 
-                    Case("1 != 0", KGBinary(intLiteral(1), "!=", intLiteral(0)), "true"),
-                    Case("-4 != -1", KGBinary(intLiteral(-4), "!=", intLiteral(-1)), "true"),
-                    Case("100 != 1.0", KGBinary(intLiteral(100), "!=", decLiteral(1.0)), "true"),
-                    Case("-5.42 != 100", KGBinary(decLiteral(-5.42), "!=", intLiteral(100)), "true"),
-                    Case("-5.42 != 100.43", KGBinary(decLiteral(-5.42), "!=", decLiteral(100.43)), "true"),
+                    Pair("1 != 0", "true"),
+                    Pair("-4 != -1", "true"),
+                    Pair("100 != 1.0", "true"),
+                    Pair("-5.42 != 100", "true"),
+                    Pair("-5.42 != 100.43", "true"),
 
-                    Case("1 + 2 != 0 - 1", KGBinary(KGBinary(intLiteral(1), "+", intLiteral(2)), "!=", KGBinary(intLiteral(0), "-", intLiteral(1))), "true"),
-                    Case("-1 / 2 != 5 * 100.43", KGBinary(KGBinary(KGTree.KGUnary("-", intLiteral(1)), "/", intLiteral(2)), "!=", KGBinary(intLiteral(5), "*", decLiteral(100.43))), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("1 + 2 != 0 - 1", "true"),
+                    Pair("-1 / 2 != 5 * 100.43", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
 
         @TestFactory
         @DisplayName("Compiling and executing a print of Comparable (only String, for now) not-equals (!=) expressions")
         fun testNotEquals_Comparables(): List<DynamicTest> {
-            val cases = listOf(
-                    Case("\"hello\" != \"hello\"", KGBinary(stringLiteral("hello"), "!=", stringLiteral("hello")), "false"),
+            return listOf(
+                    Pair("\"hello\" != \"hello\"", "false"),
 
-                    Case("\"Hello\" != \"hello\"", KGBinary(stringLiteral("Hello"), "!=", stringLiteral("hello")), "true"),
-                    Case("\"abc\" ++ \"d\" != \"abc\"", KGBinary(KGBinary(stringLiteral("abc"), "++", stringLiteral("d")), "!=", stringLiteral("abc")), "true")
-            )
-            return generateTestsToCompileAndExecuteCases(cases)
+                    Pair("\"Hello\" != \"hello\"", "true"),
+                    Pair("\"abc\" ++ \"d\" != \"abc\"", "true")
+            ).map { testCase ->
+                val (expr, expected) = testCase
+
+                dynamicTest("Printing $expr should output $expected") {
+                    val code = "fn main() = print($expr)"
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(expected, output) }
+                }
+            }
         }
     }
 }

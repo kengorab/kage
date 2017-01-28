@@ -1,21 +1,17 @@
 package co.kenrg.kagelang.codegen
 
-import co.kenrg.kagelang.tree.KGFile
-import co.kenrg.kagelang.tree.KGTree.*
+import co.kenrg.kagelang.kageFileFromCode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import java.util.*
 
 class ConcatenationCodeGenTests : BaseTest() {
 
     @Test fun testConcatenatingTwoStringLiterals() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("a", KGBinary(stringLiteral("hello "), "++", stringLiteral("world"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("a")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val a = "hello " ++ "world"
+          fn main() = print(a)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("hello world", output)
@@ -23,15 +19,13 @@ class ConcatenationCodeGenTests : BaseTest() {
     }
 
     @Test fun testConcatenatingTwoStringBindings() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("hello", stringLiteral("hello ")),
-                        KGValDeclaration("world", stringLiteral("world")),
-                        KGValDeclaration("helloWorld", KGBinary(KGBindingReference("hello"), "++", KGBindingReference("world"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("helloWorld")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val hello = "hello "
+          val world = "world"
+          val helloWorld = hello ++ world
+          fn main() = print(helloWorld)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("hello world", output)
@@ -39,15 +33,13 @@ class ConcatenationCodeGenTests : BaseTest() {
     }
 
     @Test fun testConcatenatingStringBindingsAndLiteral() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("hello", stringLiteral("hello")),
-                        KGValDeclaration("world", stringLiteral("world")),
-                        KGValDeclaration("helloWorld", KGBinary(KGBinary(KGBindingReference("hello"), "++", stringLiteral(" ")), "++", KGBindingReference("world"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("helloWorld")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val hello = "hello"
+          val world = "world"
+          val helloWorld = hello ++ " " ++ world
+          fn main() = print(helloWorld)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("hello world", output)
@@ -55,15 +47,13 @@ class ConcatenationCodeGenTests : BaseTest() {
     }
 
     @Test fun testConcatenatingStringBindingsAndTwoLiterals() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("hello", stringLiteral("hello")),
-                        KGValDeclaration("world", stringLiteral("world")),
-                        KGValDeclaration("helloWorld", KGBinary(KGBinary(KGBinary(KGBindingReference("hello"), "++", stringLiteral(" ")), "++", KGBindingReference("world")), "++", stringLiteral("!"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("helloWorld")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val hello = "hello"
+          val world = "world"
+          val helloWorld = hello ++ " " ++ world ++ "!"
+          fn main() = print(helloWorld)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("hello world!", output)
@@ -71,14 +61,12 @@ class ConcatenationCodeGenTests : BaseTest() {
     }
 
     @Test fun testConcatenatingStringWithOtherType() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("trueVal", trueLiteral()),
-                        KGValDeclaration("string", KGBinary(KGBinary(stringLiteral("Hello, "), "++", KGBindingReference("trueVal")), "++", stringLiteral("!"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("string")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val trueVal = true
+          val string = "Hello, " ++ trueVal ++ "!"
+          fn main() = print(string)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("Hello, true!", output)
@@ -86,16 +74,14 @@ class ConcatenationCodeGenTests : BaseTest() {
     }
 
     @Test fun testConcatenatingStringWithOtherTypes() {
-        val file = KGFile(
-                statements = listOf(
-                        KGValDeclaration("true", trueLiteral()),
-                        KGValDeclaration("three", intLiteral(3)),
-                        KGValDeclaration("pi", KGBinary(intLiteral(3), "+", decLiteral(0.14))),
-                        KGValDeclaration("string", KGBinary(KGBinary(KGBinary(KGBinary(stringLiteral("Hello, "), "++", KGBindingReference("three")), "++", stringLiteral(" ")), "++", KGBindingReference("pi")), "++", KGBindingReference("true"))),
-                        wrapInMainMethod(KGPrint(KGBindingReference("string")))
-                ),
-                bindings = HashMap()
-        )
+        val code = """
+          val trueVal = true
+          val three = 3
+          val pi = 3 + 0.14
+          val string = "Hello, " ++ three ++ " " ++ pi ++ trueVal
+          fn main() = print(string)
+        """
+        val file = kageFileFromCode(code)
 
         compileAndExecuteFileAnd(file) { output ->
             assertEquals("Hello, 3 3.14true", output)
