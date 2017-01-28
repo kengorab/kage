@@ -308,6 +308,33 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
+    override fun visitDot(dot: KGTree.KGDot, data: TCScope) {
+        val targetType = attribExpr(dot.target, data)
+        if (targetType == null) {
+            handleError(Error("Could not determine type for dot target", dot.target.position.start))
+            dot.type = null
+            result = null
+            return
+        }
+
+        if (targetType.props.isEmpty()) {
+            handleError(Error("No available props for dot target", dot.position.start))
+            dot.type = null
+            result = null
+            return
+        }
+
+        if (!targetType.props.keys.contains(dot.prop)) {
+            handleError(Error("Prop ${dot.prop} not available on dot target", dot.position.start))
+            dot.type = null
+            result = null
+        } else {
+            val dotType = targetType.props[dot.prop]
+            dot.type = dotType
+            result = dotType
+        }
+    }
+
     // Statement visitors
 
     override fun visitPrint(print: KGTree.KGPrint, data: TCScope) {

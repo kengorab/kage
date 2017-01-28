@@ -70,6 +70,8 @@ print
 expression
     : '(' NEWLINE* expression NEWLINE* ')'                                              #parenExpression
 
+    | target=expression '.' prop=Identifier                                             #dotExpression
+
     | invokee=expression '(' params=arguments? ')'                                      #invocation
 
     | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression            #letInExpression

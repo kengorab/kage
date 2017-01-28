@@ -5,6 +5,5 @@ fn main() =
   let
     val ken = Person(Name("Ken", "Gorab"), 25)
     val meg = Person(Name("Meg", "Muccilli"), 24)
-    val meg2 = Person(Name("Meg", "Muccilli"), 24)
   in
-    print(meg2 == meg)
+    print(ken.age >= meg.age)
