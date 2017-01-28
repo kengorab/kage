@@ -1,7 +1,6 @@
 language: java
 jdk:
   - oraclejdk8
-  - oraclejdk7
 
 # Handle gradle cache issues (recommended in travis docs)
 before_cache:
