@@ -91,7 +91,23 @@ fun writeAndExecClassFileAndThen(results: List<Pair<String, ByteArray?>>, fn: (S
         fos.close()
     }
 
-    val process = Runtime.getRuntime().exec("java ${results[0].first}", null, tempClassesPath.toFile())
+    val stdlibJar = Paths.get("stdlib/build/libs/stdlib.jar")
+    if (!stdlibJar.toFile().exists()) {
+        System.err.println()
+        System.err.println("Cannot find stdlib.jar at expected path (${stdlibJar.toFile().absolutePath}")
+        System.err.println("Has the stdlib project been build? (run `./gradlew :stdlib:build` from project root)")
+        System.exit(1)
+    }
+
+    val classpath = "${tempClassesPath.toFile().absolutePath}:${stdlibJar.toFile().absolutePath}"
+    val process = Runtime.getRuntime().exec("java -cp $classpath ${results[0].first}", null, tempClassesPath.toFile())
+
+    val errOutput = BufferedReader(InputStreamReader(process.errorStream))
+            .lines()
+            .collect(joining("\n"))
+    if (errOutput.isNotEmpty())
+        println(errOutput)
+
     val execOutput = BufferedReader(InputStreamReader(process.inputStream))
             .lines()
             .collect(joining("\n"))
