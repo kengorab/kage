@@ -1,5 +1,7 @@
 package co.kenrg.kagelang.tree
 
+import co.kenrg.kagelang.kageFileFromCode
+import co.kenrg.kagelang.kageFileFromLines
 import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGTree.KGTypeDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
