@@ -62,7 +62,6 @@ class TypeDeclarationTypeCheckerTests {
 
             val expectedType = KGType(
                     typeName,
-                    "L${ns.name}\$$typeName;",
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
                             "prop1" to KGType.STRING,
@@ -79,7 +78,6 @@ class TypeDeclarationTypeCheckerTests {
         val otherTypeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val otherType = KGType(
                 otherTypeName,
-                "L${ns.name}\$$otherTypeName;",
                 className = "${ns.name}\$$otherTypeName",
                 props = mapOf(
                         "someStr" to KGType.STRING
@@ -95,7 +93,6 @@ class TypeDeclarationTypeCheckerTests {
 
             val expectedType = KGType(
                     typeName,
-                    "L${ns.name}\$$typeName;",
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
                             "prop1" to otherType

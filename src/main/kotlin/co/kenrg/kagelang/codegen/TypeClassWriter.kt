@@ -17,11 +17,11 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
     fun getResultingBytecode() = codeGenVisitor.results()
 
     fun writeConstructor() {
-        val constructorSignature = "(${type.props.values.map { it.jvmDescriptor }.joinToString("")})V"
+        val constructorSignature = "(${type.props.values.map { it.jvmDescriptor() }.joinToString("")})V"
 
         typeProps.forEach {
             val (index, name, type) = it
-            codeGenVisitor.cw.visitField(ACC_PRIVATE, name, type.jvmDescriptor, null, null)
+            codeGenVisitor.cw.visitField(ACC_PRIVATE, name, type.jvmDescriptor(), null, null)
         }
 
         val initWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, "<init>", constructorSignature, null, null)
@@ -39,7 +39,7 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
                 KGType.BOOL -> initWriter.visitVarInsn(ILOAD, index)
                 else -> initWriter.visitVarInsn(ALOAD, index)   // Including KGType.STRING
             }
-            initWriter.visitFieldInsn(PUTFIELD, innerClassName, name, type.jvmDescriptor)
+            initWriter.visitFieldInsn(PUTFIELD, innerClassName, name, type.jvmDescriptor())
         }
 
         initWriter.visitInsn(RETURN)
@@ -60,36 +60,36 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
             typeProps.forEach {
                 val (index, name, type) = it
                 val jvmDesc = when (type) {
-                    KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING -> type.jvmDescriptor
+                    KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING -> type.jvmDescriptor()
                     else -> "Ljava/lang/Object;"
                 }
 
                 if (index == 1) toStringWriter.visitLdcInsn("${this.type.name}($name: ")
                 else toStringWriter.visitLdcInsn("$name: ")
-                toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor})Ljava/lang/StringBuilder;", false)
+                toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor()})Ljava/lang/StringBuilder;", false)
 
                 if (type == KGType.STRING) {
                     toStringWriter.visitLdcInsn("\"")
-                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor})Ljava/lang/StringBuilder;", false)
+                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor()})Ljava/lang/StringBuilder;", false)
                 }
 
                 toStringWriter.visitVarInsn(ALOAD, 0)
-                toStringWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor)
+                toStringWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor())
                 toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($jvmDesc)Ljava/lang/StringBuilder;", false)
 
                 if (type == KGType.STRING) {
                     toStringWriter.visitLdcInsn("\"")
-                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor})Ljava/lang/StringBuilder;", false)
+                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor()})Ljava/lang/StringBuilder;", false)
                 }
 
                 if (index < typeProps.size) {
                     toStringWriter.visitLdcInsn(", ")
-                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor})Ljava/lang/StringBuilder;", false)
+                    toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor()})Ljava/lang/StringBuilder;", false)
                 }
             }
 
             toStringWriter.visitLdcInsn(")")
-            toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor})Ljava/lang/StringBuilder;", false)
+            toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "(${KGType.STRING.jvmDescriptor()})Ljava/lang/StringBuilder;", false)
             toStringWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "toString", "()Ljava/lang/String;", false)
         }
 
@@ -118,10 +118,10 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
         typeProps.forEach {
             val (index, name, type) = it
             equalsWriter.visitVarInsn(ALOAD, 0)
-            equalsWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor)
+            equalsWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor())
 
             equalsWriter.visitVarInsn(ALOAD, 2)
-            equalsWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor)
+            equalsWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor())
 
             when (type) {
                 KGType.INT -> equalsWriter.visitJumpInsn(IF_ICMPNE, equalsFalseLbl)
@@ -131,7 +131,7 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
                 }
                 KGType.BOOL -> equalsWriter.visitJumpInsn(IF_ICMPNE, equalsFalseLbl)
                 else -> {
-                    equalsWriter.visitMethodInsn(INVOKEVIRTUAL, type.jvmDescriptor, "equals", "(Ljava/lang/Object;)Z", false)
+                    equalsWriter.visitMethodInsn(INVOKEVIRTUAL, type.jvmDescriptor(), "equals", "(Ljava/lang/Object;)Z", false)
                     equalsWriter.visitJumpInsn(IFEQ, equalsFalseLbl)
                 }
             }
@@ -154,11 +154,11 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
             val (index, name, type) = it
 
             val accessorName = "get${name.capitalize()}"
-            val accessorSignature = "()${type.jvmDescriptor}"
+            val accessorSignature = "()${type.jvmDescriptor()}"
             val propAccessorWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, accessorName, accessorSignature, null, null)
 
             propAccessorWriter.visitVarInsn(ALOAD, 0)
-            propAccessorWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor)
+            propAccessorWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor())
             propAccessorWriter.visitInsn(type.getReturnInsn())
 
             propAccessorWriter.visitMaxs(-1, -1)

@@ -17,7 +17,6 @@ class DotExpressionTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val otherType = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf()
         )
@@ -39,7 +38,6 @@ class DotExpressionTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val otherType = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
                         "someProp" to KGType.STRING
@@ -63,7 +61,6 @@ class DotExpressionTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val otherType = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
                         "someProp" to KGType.STRING

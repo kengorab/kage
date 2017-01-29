@@ -6,19 +6,19 @@ import jdk.internal.org.objectweb.asm.Opcodes
 
 data class KGType(
         val name: String,
-        val jvmDescriptor: String,
         val className: String? = null,
         val isNumeric: Boolean = false,
         val isComparable: Boolean = false,
         val size: Int = 1,
-        val props: Map<String, KGType> = hashMapOf()
+        val props: Map<String, KGType> = hashMapOf(),
+        val typeParams: List<KGType>? = null
 ) {
     companion object {
-        val INT = KGType(name = "Int", jvmDescriptor = "I", isNumeric = true, isComparable = true)
-        val DEC = KGType(name = "Dec", jvmDescriptor = "D", isNumeric = true, isComparable = true, size = 2)
-        val BOOL = KGType(name = "Bool", jvmDescriptor = "Z")
-        val STRING = KGType(name = "String", jvmDescriptor = "Ljava/lang/String;", className = "java/lang/String", isComparable = true)
-        val UNIT = KGType(name = "Unit", jvmDescriptor = "V")
+        val INT = KGType(name = "Int", isNumeric = true, isComparable = true)
+        val DEC = KGType(name = "Dec", isNumeric = true, isComparable = true, size = 2)
+        val BOOL = KGType(name = "Bool")
+        val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
+        val UNIT = KGType(name = "Unit")
 
         fun fromClass(className: String): KGType {
             val clazz = Class.forName(className)
@@ -26,13 +26,22 @@ data class KGType(
 
             return KGType(
                     name = clazz.simpleName,
-                    jvmDescriptor = "L$slashedClassName;",
                     className = slashedClassName,
 
                     // TODO - Replace with declaredFields that have public getters
                     props = mapOf()
             )
         }
+    }
+
+    fun jvmDescriptor() = when (this) {
+        INT -> "I"
+        DEC -> "D"
+        BOOL -> "Z"
+        UNIT -> "V"
+        else ->
+            if (className != null) "L$className;"
+            else null
     }
 
     fun getLiteralKind(): Tree.Kind<LiteralTree> {

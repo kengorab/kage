@@ -247,7 +247,6 @@ class InvocationTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val type = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
                         "someStr" to KGType.STRING
@@ -265,7 +264,6 @@ class InvocationTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val type = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
                         "someStr" to KGType.STRING
@@ -283,7 +281,6 @@ class InvocationTypeCheckerTests {
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
         val type = KGType(
                 typeName,
-                "L${ns.name}\$$typeName;",
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
                         "someStr" to KGType.STRING

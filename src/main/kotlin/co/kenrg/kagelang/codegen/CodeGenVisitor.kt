@@ -182,7 +182,7 @@ class CodeGenVisitor(
 
         tree.accept(this, data)
         val treeType = getTypeAssertNotNull(tree.type)
-        val jvmDesc = treeType.jvmDescriptor
+        val jvmDesc = treeType.jvmDescriptor()
         methodWriter.visitMethodInsn(INVOKEVIRTUAL, "java/lang/StringBuilder", "append", "($jvmDesc)Ljava/lang/StringBuilder;", false)
     }
 
@@ -272,7 +272,7 @@ class CodeGenVisitor(
         val rightType = getTypeAssertNotNull(binary.right.type)
 
         // TODO - During typechecking, we need to verify that the two types here both implement Comparable.
-        val typeDesc = leftType.jvmDescriptor
+        val typeDesc = leftType.jvmDescriptor()
         val type = leftType.className
 
         val trueLbl = Label()
@@ -417,7 +417,7 @@ class CodeGenVisitor(
 
         when (binding) {
             is ValBinding.Static ->
-                methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, binding.type.jvmDescriptor)
+                methodWriter.visitFieldInsn(GETSTATIC, className, binding.name, binding.type.jvmDescriptor())
             is ValBinding.Local -> when (binding.type) {
                 KGType.INT -> methodWriter.visitVarInsn(ILOAD, binding.index)
                 KGType.DEC -> methodWriter.visitVarInsn(DLOAD, binding.index)
@@ -445,7 +445,7 @@ class CodeGenVisitor(
                         it.accept(this, data)
                     }
 
-                    val constructorSignature = "(${typeForName.props.values.map { it.jvmDescriptor }.joinToString("")})V"
+                    val constructorSignature = "(${typeForName.props.values.map { it.jvmDescriptor() }.joinToString("")})V"
                     methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", constructorSignature, false)
                 } else {
                     // Grab the first function. At this point, it's already passed typechecking so there
@@ -526,7 +526,7 @@ class CodeGenVisitor(
             val propType = dotType.props[dot.prop]!!
 
             val accessorName = "get${dot.prop.capitalize()}"
-            val accessorSignature = "()${propType.jvmDescriptor}"
+            val accessorSignature = "()${propType.jvmDescriptor()}"
             methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
         } else {
             throw IllegalStateException("Prop ${dot.prop} is not available on dot target")
@@ -552,7 +552,7 @@ class CodeGenVisitor(
 
         val printType = getTypeAssertNotNull(print.expr.type)
         val printlnSignature = when (printType) {
-            KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING -> "(${printType.jvmDescriptor})V"
+            KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING -> "(${printType.jvmDescriptor()})V"
             else -> "(Ljava/lang/Object;)V"
         }
 
@@ -579,7 +579,7 @@ class CodeGenVisitor(
         val valDeclExpr = valDecl.expression
 
         val valDeclExprType = getTypeAssertNotNull(valDeclExpr.type)
-        val jvmDesc = valDeclExprType.jvmDescriptor
+        val jvmDesc = valDeclExprType.jvmDescriptor()
 
         if (data.isRoot()) {
             // If we're at the root scope, declare val as static val in the class
@@ -640,7 +640,7 @@ class CodeGenVisitor(
                     ?: throw IllegalStateException("Unknown type ${it.name}")
 
             fnScope.vals.put(it.name, ValBinding.Local(it.name, paramType, paramType.size, index))
-            fnWriter.visitLocalVariable(it.name, paramType.jvmDescriptor, null, fnStart, fnEnd, index)
+            fnWriter.visitLocalVariable(it.name, paramType.jvmDescriptor(), null, fnStart, fnEnd, index)
         }
 
         fnDecl.body.accept(this, fnScope)
@@ -670,10 +670,8 @@ class CodeGenVisitor(
         val visitor = CodeGenVisitor(innerClassName)
         visitor.cw.visitInnerClass(innerClassName, className, typeDecl.name, ACC_PUBLIC or ACC_STATIC)
 
-        // TODO - I shouldn't have to manually add the `L` and `;` for the jvmDescriptor; if className exists it should use that.
         val type = KGType(
                 typeName,
-                "L$innerClassName;",
                 className = innerClassName,
                 props = typeDecl.props
                         .map {

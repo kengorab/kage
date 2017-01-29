@@ -8,6 +8,6 @@ data class Signature(val params: List<Pair<String, KGType>> = listOf(), val retu
     }
 
     fun jvmTypeDescriptor(): String {
-        return "(${params.map { it.second.jvmDescriptor }.joinToString("")})${returnType.jvmDescriptor}"
+        return "(${params.map { it.second.jvmDescriptor() }.joinToString("")})${returnType.jvmDescriptor()}"
     }
 }

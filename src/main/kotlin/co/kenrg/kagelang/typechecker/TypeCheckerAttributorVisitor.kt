@@ -336,7 +336,7 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {
-        throw UnsupportedOperationException("not implemented")
+        val itemTypes = tuple.items.map { attribExpr(it, data) }
     }
 
     // Statement visitors
@@ -455,9 +455,8 @@ class TypeCheckerAttributorVisitor(
                 }
                 .toMap()
 
-        // TODO - Separate out class-specific logic here. There's no reason why any of this needs to be tied to the jvm
         val innerClassName = "$namespaceName\$$typeName"
-        val type = KGType(typeName, "L$innerClassName;", className = innerClassName, props = typeProps)
+        val type = KGType(typeName, className = innerClassName, props = typeProps)
         data.types.put(typeName, type)
 
         typeDecl.type = KGType.UNIT
