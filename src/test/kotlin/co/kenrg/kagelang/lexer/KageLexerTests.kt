@@ -440,6 +440,27 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseTuple_pair() {
+        assertEquals(
+                listOf("LPAREN", "IntLiteral", "COMMA", "IntLiteral", "RPAREN", "EOF"),
+                tokens(lexerForCode("(1, 3)"))
+        )
+    }
+
+    @Test fun parseTuple_pair_nestedTuple() {
+        assertEquals(
+                listOf("LPAREN", "IntLiteral", "COMMA", "LPAREN", "IntLiteral", "COMMA", "IntLiteral", "RPAREN", "RPAREN", "EOF"),
+                tokens(lexerForCode("(1, (2, 3))"))
+        )
+    }
+
+    @Test fun parseTuple_triple() {
+        assertEquals(
+                listOf("LPAREN", "IntLiteral", "COMMA", "IntLiteral", "COMMA", "IntLiteral", "RPAREN", "EOF"),
+                tokens(lexerForCode("(1, 2, 3)"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {

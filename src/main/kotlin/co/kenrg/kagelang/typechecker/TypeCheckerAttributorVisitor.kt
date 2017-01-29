@@ -335,6 +335,10 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
+    override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     // Statement visitors
 
     override fun visitPrint(print: KGTree.KGPrint, data: TCScope) {

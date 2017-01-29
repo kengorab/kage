@@ -122,6 +122,10 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         target = toTree(expression.target),
                         prop = expression.prop.text
                 )
+            is KageParser.TupleLiteralContext ->
+                KGTree.KGTuple(
+                        items = expression.items.expression().map { toTree(it) }
+                )
             else -> throw UnsupportedOperationException("toTree(Expression) not yet implemented for ${expression.javaClass.canonicalName}...")
         }
 

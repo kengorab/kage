@@ -52,7 +52,7 @@ fnParams
     : fnParam (',' fnParam)*
     ;
 
-arguments
+expressions
     : expression (',' expression)*
     ;
 
@@ -72,7 +72,7 @@ expression
 
     | target=expression '.' prop=Identifier                                             #dotExpression
 
-    | invokee=expression '(' params=arguments? ')'                                      #invocation
+    | invokee=expression '(' params=expressions? ')'                                    #invocation
 
     | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression            #letInExpression
 
@@ -93,5 +93,7 @@ expression
     | IntLiteral                                                                        #intLiteral
     | DecimalLiteral                                                                    #decLiteral
     | BooleanLiteral                                                                    #boolLiteral
+
+    | '(' items=expressions ')'                                                         #tupleLiteral
     ;
 

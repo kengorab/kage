@@ -18,8 +18,21 @@ data class KGType(
         val DEC = KGType(name = "Dec", jvmDescriptor = "D", isNumeric = true, isComparable = true, size = 2)
         val BOOL = KGType(name = "Bool", jvmDescriptor = "Z")
         val STRING = KGType(name = "String", jvmDescriptor = "Ljava/lang/String;", className = "java/lang/String", isComparable = true)
-
         val UNIT = KGType(name = "Unit", jvmDescriptor = "V")
+
+        fun fromClass(className: String): KGType {
+            val clazz = Class.forName(className)
+            val slashedClassName = clazz.name.replace(".", "/")
+
+            return KGType(
+                    name = clazz.simpleName,
+                    jvmDescriptor = "L$slashedClassName;",
+                    className = slashedClassName,
+
+                    // TODO - Replace with declaredFields that have public getters
+                    props = mapOf()
+            )
+        }
     }
 
     fun getLiteralKind(): Tree.Kind<LiteralTree> {

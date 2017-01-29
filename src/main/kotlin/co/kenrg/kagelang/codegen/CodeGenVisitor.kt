@@ -533,6 +533,10 @@ class CodeGenVisitor(
         }
     }
 
+    override fun visitTuple(tuple: KGTree.KGTuple, data: CGScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     /*****************************
      *
      *     Statement Visitors
