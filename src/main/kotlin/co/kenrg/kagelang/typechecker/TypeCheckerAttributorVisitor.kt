@@ -8,6 +8,7 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.StdLibT
 import co.kenrg.kagelang.tree.types.asKGType
 import java.util.*
 
@@ -336,7 +337,20 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {
-        val itemTypes = tuple.items.map { attribExpr(it, data) }
+        if (tuple.items.size > 2)
+            throw UnsupportedOperationException("Tuples larger than 2 items not currently supported")
+
+        val itemTypes = tuple.items.mapIndexed { i, item ->
+            val type = attribExpr(item, data)
+            if (type == null)
+                handleError(Error("Could not determine type for tuple item at position $i", tuple.position.start))
+            type!!
+        }
+
+        val tupleType = KGType.stdLibType(StdLibT.Pair)//fromClass("kage/lang/tuple/Pair")
+                .copy(typeParams = itemTypes)
+        tuple.type = tupleType
+        result = tupleType
     }
 
     // Statement visitors

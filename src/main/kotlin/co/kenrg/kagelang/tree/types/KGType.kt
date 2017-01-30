@@ -20,13 +20,11 @@ data class KGType(
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit")
 
-        fun fromClass(className: String): KGType {
-            val clazz = Class.forName(className)
-            val slashedClassName = clazz.name.replace(".", "/")
-
+        fun stdLibType(stdLibType: StdLibT): KGType {
+            val clazz = stdLibType.getTypeClass()
             return KGType(
                     name = clazz.simpleName,
-                    className = slashedClassName,
+                    className = stdLibType.className,
 
                     // TODO - Replace with declaredFields that have public getters
                     props = mapOf()
@@ -42,6 +40,16 @@ data class KGType(
         else ->
             if (className != null) "L$className;"
             else null
+    }
+
+    fun genericSignature(): String? {
+        return if (typeParams == null) {
+            null
+        } else if (className == null) {
+            null
+        } else {
+            "${jvmDescriptor()?.trimEnd(';')}<${typeParams.map(KGType::jvmDescriptor)}>;"
+        }
     }
 
     fun getLiteralKind(): Tree.Kind<LiteralTree> {
