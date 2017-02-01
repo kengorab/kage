@@ -5,7 +5,6 @@ import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.asKGType
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -636,7 +635,7 @@ class CodeGenVisitor(
         // then place the local variables at their indices, starting at 0.
         fnDecl.params.forEach {
             val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
-            val paramType = data.getType(it.type) ?: it.type.asKGType()
+            val paramType = it.type.hydrate(data) { throw IllegalStateException("Unknown type $it") }
                     ?: throw IllegalStateException("Unknown type ${it.name}")
 
             fnScope.vals.put(it.name, ValBinding.Local(it.name, paramType, paramType.size, index))
@@ -675,8 +674,7 @@ class CodeGenVisitor(
                 className = innerClassName,
                 props = typeDecl.props
                         .map {
-                            val type = data.getType(it.type)
-                                    ?: it.type.asKGType()
+                            val type = it.type.hydrate(data) { throw IllegalStateException("Unknown type $it") }
                                     ?: throw IllegalStateException("Unknown type ${it.type}")
                             it.name to type
                         }

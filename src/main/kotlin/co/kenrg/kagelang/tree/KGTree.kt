@@ -1,9 +1,6 @@
 package co.kenrg.kagelang.tree
 
-import co.kenrg.kagelang.model.FnParameter
-import co.kenrg.kagelang.model.Position
-import co.kenrg.kagelang.model.Signature
-import co.kenrg.kagelang.model.TypedName
+import co.kenrg.kagelang.model.*
 import co.kenrg.kagelang.tree.iface.*
 import co.kenrg.kagelang.tree.iface.base.ExpressionTree
 import co.kenrg.kagelang.tree.iface.base.StatementTree
@@ -187,7 +184,7 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitPrint(this, data)
     }
 
-    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: String? = null) : KGStatement(), ValDeclarationTree {
+    class KGValDeclaration(val identifier: String, val expression: KGExpression, val typeAnnotation: TypeIdentifier? = null) : KGStatement(), ValDeclarationTree {
         override fun expression(): ExpressionTree = expression
         override fun identifier() = identifier
         override fun typeAnnotation() = typeAnnotation
@@ -201,7 +198,7 @@ abstract class KGTree : Tree {
             val name: String,
             val body: KGTree,
             val params: List<FnParameter> = listOf(),
-            val retTypeAnnotation: String? = null
+            val retTypeAnnotation: TypeIdentifier? = null
     ) : KGStatement(), FnDeclarationTree {
         override fun params() = params
         override fun body() = body

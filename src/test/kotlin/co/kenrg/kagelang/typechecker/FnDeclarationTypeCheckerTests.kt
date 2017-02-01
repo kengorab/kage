@@ -4,9 +4,11 @@ import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.trueLiteral
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -46,10 +48,23 @@ class FnDeclarationTypeCheckerTests {
                 val (fnBody, repr) = fnBodyAndReprForType(type)
 
                 dynamicTest("$repr should pass typechecking, since its body's type is $type") {
-                    val statement = KGFnDeclaration("abc", fnBody, listOf(), type.name)
+                    val statement = KGFnDeclaration("abc", fnBody, listOf(), TypeIdentifier(type.name))
                     val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                     assertSucceedsAnd(result) { assertEquals(type, statement.body.type) }
                 }
+            }
+        }
+
+        @Test fun typecheckFnDeclaration_retTypeIsPair_bodyIsPairOfSameTypes_passesTypechecking() {
+            val statement = KGFnDeclaration(
+                    "abc",
+                    KGTuple(listOf(KGBindingReference("a"), KGBindingReference("a"))),
+                    listOf(FnParameter("a", TypeIdentifier("String"))),
+                    TypeIdentifier("Pair", listOf(TypeIdentifier("String"), TypeIdentifier("String")))
+            )
+            val result = TypeChecker.typeCheck(statement, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                assertEquals(KGType.stdLibType(StdLibTypes.Pair).copy(typeParams = listOf(KGType.STRING, KGType.STRING)), statement.body.type)
             }
         }
 
@@ -62,7 +77,7 @@ class FnDeclarationTypeCheckerTests {
                 val (fnBody, repr) = fnBodyAndReprForType(type, returnAnnotationType)
 
                 dynamicTest("$repr should fail typechecking, since its body's type is $type but the return annotation is $returnAnnotationType") {
-                    val statement = KGFnDeclaration("abc", fnBody, listOf(), returnAnnotationType.name)
+                    val statement = KGFnDeclaration("abc", fnBody, listOf(), TypeIdentifier(returnAnnotationType.name))
                     val result = TypeChecker.typeCheck(statement, randomTCNamespace())
                     assertFails(result)
                 }
@@ -75,7 +90,7 @@ class FnDeclarationTypeCheckerTests {
 
         @Test fun typecheckFnDeclaration_duplicateParamsSameType_typecheckingFails() {
             // fn abc(a: Int, a: Int) = 1
-            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", "Int"), FnParameter("a", "Int")))
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", TypeIdentifier("Int")), FnParameter("a", TypeIdentifier("Int"))))
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertFails(result)
         }
@@ -86,9 +101,9 @@ class FnDeclarationTypeCheckerTests {
                     "abc",
                     intLiteral(1),
                     listOf(
-                            FnParameter("a", "Int"),
-                            FnParameter("b", "Bool"),
-                            FnParameter("a", "Int")
+                            FnParameter("a", TypeIdentifier("Int")),
+                            FnParameter("b", TypeIdentifier("Bool")),
+                            FnParameter("a", TypeIdentifier("Int"))
                     )
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
@@ -97,7 +112,7 @@ class FnDeclarationTypeCheckerTests {
 
         @Test fun typecheckFnDeclaration_oneParamWithTypeAnnotation_passesTypecheckingWithSignatureSet() {
             // fn abc(a: Int) = 1
-            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", "Int")))
+            val statement = KGFnDeclaration("abc", intLiteral(1), listOf(FnParameter("a", TypeIdentifier("Int"))))
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
                 val abc = it.namespace.rootScope.functions["abc"]
@@ -115,8 +130,8 @@ class FnDeclarationTypeCheckerTests {
                     "abc",
                     intLiteral(1),
                     listOf(
-                            FnParameter("a", "Int"), FnParameter("a1", "Int"),
-                            FnParameter("b", "Bool"), FnParameter("c", "String")
+                            FnParameter("a", TypeIdentifier("Int")), FnParameter("a1", TypeIdentifier("Int")),
+                            FnParameter("b", TypeIdentifier("Bool")), FnParameter("c", TypeIdentifier("String"))
                     )
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
@@ -141,7 +156,7 @@ class FnDeclarationTypeCheckerTests {
             val statement = KGFnDeclaration(
                     "abc",
                     KGBinary(KGBindingReference("a"), "+", intLiteral(1)),
-                    listOf(FnParameter("a", "Int"))
+                    listOf(FnParameter("a", TypeIdentifier("Int")))
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
@@ -160,7 +175,7 @@ class FnDeclarationTypeCheckerTests {
             val statement = KGFnDeclaration(
                     "abc",
                     KGBinary(KGBindingReference("a"), "+", KGBindingReference("b")),
-                    listOf(FnParameter("a", "Int"), FnParameter("b", "String"))
+                    listOf(FnParameter("a", TypeIdentifier("Int")), FnParameter("b", TypeIdentifier("String")))
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertFails(result)
@@ -226,8 +241,8 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration(
                 "abc",
                 intLiteral(3),
-                listOf(FnParameter("b", "Bool")),
-                "Int"
+                listOf(FnParameter("b", TypeIdentifier("Bool"))),
+                TypeIdentifier("Int")
         )
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertSucceeds(result)
@@ -239,7 +254,7 @@ class FnDeclarationTypeCheckerTests {
         val ns = randomTCNamespace()
         ns.rootScope.functions.put("abc", abcFn)
 
-        val fnDecl = KGFnDeclaration("abc", trueLiteral(), listOf(), "Bool")
+        val fnDecl = KGFnDeclaration("abc", trueLiteral(), listOf(), TypeIdentifier("Bool"))
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
@@ -253,8 +268,8 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration(
                 "abc",
                 trueLiteral(),
-                listOf(FnParameter("b", "Bool")),
-                "Bool"
+                listOf(FnParameter("b", TypeIdentifier("Bool"))),
+                TypeIdentifier("Bool")
         )
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
@@ -267,10 +282,12 @@ class FnDeclarationTypeCheckerTests {
         val fnDecl = KGFnDeclaration(
                 "TypeName",
                 trueLiteral(),
-                listOf(FnParameter("b", "Bool")),
-                "Bool"
+                listOf(FnParameter("b", TypeIdentifier("Bool"))),
+                TypeIdentifier("Bool")
         )
         val result = TypeChecker.typeCheck(fnDecl, ns)
         assertFails(result)
     }
+
+
 }

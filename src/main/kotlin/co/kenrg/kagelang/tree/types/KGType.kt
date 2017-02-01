@@ -11,7 +11,8 @@ data class KGType(
         val isComparable: Boolean = false,
         val size: Int = 1,
         val props: Map<String, KGType> = hashMapOf(),
-        val typeParams: List<KGType>? = null
+        val typeParams: List<KGType>? = null,
+        val isGeneric: Boolean = false
 ) {
     companion object {
         val INT = KGType(name = "Int", isNumeric = true, isComparable = true)
@@ -20,14 +21,15 @@ data class KGType(
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit")
 
-        fun stdLibType(stdLibType: StdLibT): KGType {
+        fun stdLibType(stdLibType: StdLibTypes): KGType {
             val clazz = stdLibType.getTypeClass()
             return KGType(
                     name = clazz.simpleName,
                     className = stdLibType.className,
 
                     // TODO - Replace with declaredFields that have public getters
-                    props = mapOf()
+                    props = mapOf(),
+                    isGeneric = clazz.toGenericString().contains(Regex("<.*>"))
             )
         }
     }
@@ -81,4 +83,15 @@ data class KGType(
 private val defaultTypes = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT)
 
 // Convenience method for nullable-chaining
-fun String.asKGType(): KGType? = defaultTypes.find { it.name == this }
+fun String.asKGType(): KGType? {
+    val type = defaultTypes.find { it.name == this }
+    if (type != null)
+        return type
+
+    try {
+        val typeRegex = Regex("")
+        return KGType.stdLibType(StdLibTypes.valueOf(this))
+    } catch (e: IllegalArgumentException) {
+        throw UnsupportedOperationException("Cannot find stdlib class for type: $this")
+    }
+}

@@ -71,15 +71,13 @@ JavaLetterOrDigit
         [\uD800-\uDBFF] [\uDC00-\uDFFF]
     ;
 
-TypeAnnotation
-    : ':' WS* Identifier
-    ;
-
 // Separator
 LPAREN          : '(' ;
 RPAREN          : ')' ;
 LBRACE          : '{' ;
 RBRACE          : '}' ;
+LBRACK          : '[' ;
+RBRACK          : ']' ;
 COLON           : ':' ;
 COMMA           : ',' ;
 DOT             : '.' ;

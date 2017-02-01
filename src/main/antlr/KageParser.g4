@@ -21,8 +21,20 @@ statements
 
 // Statements
 
+typeIdentifier
+    : typeName=Identifier ('[' typeParams=typeIdentifiers']')?
+    ;
+
+typeIdentifiers
+    : typeIdentifier(',' typeIdentifier)*
+    ;
+
+typeAnnot
+    : ':' WS* type=typeIdentifier
+    ;
+
 typeProp
-    : prop=Identifier typeAnnotation=TypeAnnotation
+    : prop=Identifier typeAnnotation=typeAnnot
     ;
 
 typeProps
@@ -41,11 +53,11 @@ statement
     ;
 
 valDeclaration
-    : 'val' Identifier typeAnnotation=TypeAnnotation? '=' expression
+    : 'val' Identifier typeAnnotation=typeAnnot? '=' expression
     ;
 
 fnParam
-    : Identifier TypeAnnotation
+    : Identifier typeAnnot
     ;
 
 fnParams
@@ -57,7 +69,7 @@ expressions
     ;
 
 fnDeclaration
-    : 'fn' fnName=Identifier '(' params=fnParams? ')' typeAnnotation=TypeAnnotation? '=' NEWLINE* body=statementOrExpression
+    : 'fn' fnName=Identifier '(' params=fnParams? ')' typeAnnotation=typeAnnot? '=' NEWLINE* body=statementOrExpression
     ;
 
 print

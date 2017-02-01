@@ -4,6 +4,7 @@ import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.kageFileFromCode
 import co.kenrg.kagelang.kageFileFromLines
 import co.kenrg.kagelang.model.FnParameter
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree.KGBinary
 import co.kenrg.kagelang.tree.KGTree.KGFnDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,7 +26,7 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
 
     @Test fun testParseFnDeclaration_returnTypeAnnotation() {
         val kageFile = kageFileFromCode("fn returnSum(): Int = 1 + 2")
-        val expected = kageFileFromLines(KGFnDeclaration("returnSum", KGBinary(intLiteral(1), "+", intLiteral(2)), retTypeAnnotation = "Int"))
+        val expected = kageFileFromLines(KGFnDeclaration("returnSum", KGBinary(intLiteral(1), "+", intLiteral(2)), retTypeAnnotation = TypeIdentifier("Int")))
         assertEquals(expected, kageFile)
     }
 
@@ -35,8 +36,8 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                 KGFnDeclaration(
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
-                        listOf(FnParameter("a", "Int")),
-                        "Int"
+                        listOf(FnParameter("a", TypeIdentifier("Int"))),
+                        TypeIdentifier("Int")
                 )
         )
         assertEquals(expected, kageFile)
@@ -49,11 +50,11 @@ class TopLevelFunctionDeclarationStatementTreeMakerTests {
                         "returnSum",
                         KGBinary(intLiteral(1), "+", intLiteral(2)),
                         listOf(
-                                FnParameter("a", "Int"),
-                                FnParameter("b", "String"),
-                                FnParameter("c", "Bool")
+                                FnParameter("a", TypeIdentifier("Int")),
+                                FnParameter("b", TypeIdentifier("String")),
+                                FnParameter("c", TypeIdentifier("Bool"))
                         ),
-                        "Int"
+                        TypeIdentifier("Int")
                 )
         )
         assertEquals(expected, kageFile)

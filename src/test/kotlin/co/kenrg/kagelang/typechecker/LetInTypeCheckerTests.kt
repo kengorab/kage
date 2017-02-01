@@ -3,9 +3,11 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.model.FnParameter
 import co.kenrg.kagelang.model.Signature
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -163,8 +165,19 @@ class LetInTypeCheckerTests {
                 listOf(KGValDeclaration("a", intLiteral(1)), KGValDeclaration("a", intLiteral(2))),
                 KGPrint(KGBindingReference("a"))
         )
-        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", "String")))
+        val fnDecl = KGFnDeclaration("abc", letInExpr, listOf(FnParameter("a", TypeIdentifier("String"))))
         val result = TypeChecker.typeCheck(fnDecl, randomTCNamespace())
         assertFails(result)
+    }
+
+    @Test fun testLetInExpression_returnsPair_passesTypecheckWithPairType() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", intLiteral(1)), KGValDeclaration("b", stringLiteral("asdf"))),
+                KGTuple(listOf(KGBindingReference("a"), KGBindingReference("b")))
+        )
+        val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
+        assertSucceedsAnd(result) {
+            assertEquals(KGType.stdLibType(StdLibTypes.Pair).copy(typeParams = listOf(KGType.INT, KGType.STRING)), it.type)
+        }
     }
 }

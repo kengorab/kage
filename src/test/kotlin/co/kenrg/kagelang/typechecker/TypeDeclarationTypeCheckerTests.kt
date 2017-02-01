@@ -1,9 +1,11 @@
 package co.kenrg.kagelang.typechecker
 
 import co.kenrg.kagelang.codegen.stringLiteral
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -55,7 +57,7 @@ class TypeDeclarationTypeCheckerTests {
         val ns = randomTCNamespace()
 
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
-        val typeDecl = KGTypeDeclaration(typeName, listOf(TypedName("prop1", "String"), TypedName("prop2", "Int")))
+        val typeDecl = KGTypeDeclaration(typeName, listOf(TypedName("prop1", TypeIdentifier("String")), TypedName("prop2", TypeIdentifier("Int"))))
         val result = TypeChecker.typeCheck(typeDecl, ns)
         assertSucceedsAnd(result) {
             assertEquals(KGType.UNIT, typeDecl.type)
@@ -86,7 +88,7 @@ class TypeDeclarationTypeCheckerTests {
         ns.rootScope.types.put(otherTypeName, otherType)
 
         val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
-        val typeDecl = KGTypeDeclaration(typeName, listOf(TypedName("prop1", otherTypeName)))
+        val typeDecl = KGTypeDeclaration(typeName, listOf(TypedName("prop1", TypeIdentifier(otherTypeName))))
         val result = TypeChecker.typeCheck(typeDecl, ns)
         assertSucceedsAnd(result) {
             assertEquals(KGType.UNIT, typeDecl.type)
@@ -96,6 +98,26 @@ class TypeDeclarationTypeCheckerTests {
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
                             "prop1" to otherType
+                    )
+            )
+            assertEquals(expectedType, ns.rootScope.types[typeName])
+        }
+    }
+
+    @Test fun typecheckTypeDeclaration_typeHasPropOfParametrizedType_passesTypechecking() {
+        val ns = randomTCNamespace()
+        val typeName = RandomStringUtils.randomAlphabetic(16).capitalize()
+        val typeDecl = KGTypeDeclaration(typeName, listOf(TypedName("intStringPair", TypeIdentifier("Pair", listOf(TypeIdentifier("Int"), TypeIdentifier("String"))))))
+        val result = TypeChecker.typeCheck(typeDecl, ns)
+        assertSucceedsAnd(result) {
+            assertEquals(KGType.UNIT, typeDecl.type)
+
+            val expectedType = KGType(
+                    typeName,
+                    className = "${ns.name}\$$typeName",
+                    props = mapOf(
+                            "intStringPair" to KGType.stdLibType(StdLibTypes.Pair)
+                                .copy(typeParams = listOf(KGType.INT, KGType.STRING))
                     )
             )
             assertEquals(expectedType, ns.rootScope.types[typeName])

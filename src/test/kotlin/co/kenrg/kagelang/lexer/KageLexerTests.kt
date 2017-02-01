@@ -144,7 +144,7 @@ class KageLexerTests {
 
     @Test fun parseTypeAnnotation() {
         assertEquals(
-                listOf("VAL", "Identifier", "TypeAnnotation", "ASSIGN", "IntLiteral", "EOF"),
+                listOf("VAL", "Identifier", "COLON", "Identifier", "ASSIGN", "IntLiteral", "EOF"),
                 tokens(lexerForCode("val a: Int = 1"))
         )
     }
@@ -181,21 +181,21 @@ class KageLexerTests {
 
     @Test fun parseFunctionDeclaration_returnTypeAnnotation() {
         assertEquals(
-                listOf("FN", "Identifier", "LPAREN", "RPAREN", "TypeAnnotation", "ASSIGN", "IntLiteral", "EOF"),
+                listOf("FN", "Identifier", "LPAREN", "RPAREN", "COLON", "Identifier", "ASSIGN", "IntLiteral", "EOF"),
                 tokens(lexerForCode("fn abc(): Int = 3"))
         )
     }
 
     @Test fun parseFunctionDeclaration_oneParam() {
         assertEquals(
-                listOf("FN", "Identifier", "LPAREN", "Identifier", "TypeAnnotation", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
+                listOf("FN", "Identifier", "LPAREN", "Identifier", "COLON", "Identifier", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
                 tokens(lexerForCode("fn abc(x: Int) = 3"))
         )
     }
 
     @Test fun parseFunctionDeclaration_manyParams() {
         assertEquals(
-                listOf("FN", "Identifier", "LPAREN", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
+                listOf("FN", "Identifier", "LPAREN", "Identifier", "COLON", "Identifier", "COMMA", "Identifier", "COLON", "Identifier", "COMMA", "Identifier", "COLON", "Identifier", "RPAREN", "ASSIGN", "IntLiteral", "EOF"),
                 tokens(lexerForCode("fn abc(x: Int, y: Int, z: Int) = 3"))
         )
     }
@@ -400,21 +400,21 @@ class KageLexerTests {
 
     @Test fun parseTypeDeclaration_oneProp() {
         assertEquals(
-                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "COLON", "Identifier", "RBRACE", "EOF"),
                 tokens(lexerForCode("type OneProp { count: Int }"))
         )
     }
 
     @Test fun parseTypeDeclaration_twoPropsSameLine() {
         assertEquals(
-                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "COMMA", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "COLON", "Identifier", "COMMA", "Identifier", "COLON", "Identifier", "RBRACE", "EOF"),
                 tokens(lexerForCode("type TwoProps { count: Int, label: String }"))
         )
     }
 
     @Test fun parseTypeDeclaration_twoPropsWithNewlines() {
         assertEquals(
-                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "TypeAnnotation", "COMMA", "NEWLINE", "Identifier", "TypeAnnotation", "RBRACE", "EOF"),
+                listOf("TYPE", "Identifier", "LBRACE", "Identifier", "COLON", "Identifier", "COMMA", "NEWLINE", "Identifier", "COLON", "Identifier", "RBRACE", "EOF"),
                 tokens(lexerForCode("type TwoProps { count: Int,\nlabel: String }"))
         )
     }

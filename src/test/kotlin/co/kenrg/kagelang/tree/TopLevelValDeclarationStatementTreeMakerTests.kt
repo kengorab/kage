@@ -3,6 +3,7 @@ package co.kenrg.kagelang.tree
 import co.kenrg.kagelang.codegen.*
 import co.kenrg.kagelang.kageFileFromCode
 import co.kenrg.kagelang.kageFileFromLines
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
@@ -14,7 +15,7 @@ class TopLevelValDeclarationStatementTreeMakerTests {
 
     @Test fun testParseValDeclarationWithTypeAnnotation() {
         val kageFile = kageFileFromCode("val a: Int = 1")
-        val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), "Int"))
+        val expected = kageFileFromLines(KGValDeclaration("a", intLiteral(1), TypeIdentifier("Int")))
         assertEquals(expected, kageFile)
     }
 

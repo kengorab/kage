@@ -2,6 +2,7 @@ package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.kageFileFromCode
 import co.kenrg.kagelang.kageFileFromLines
+import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGTree.KGTypeDeclaration
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -17,19 +18,19 @@ class TypeDeclarationTreeMakerTests {
 
     @Test fun testParseTypeDeclaration_oneProp() {
         val kageFile = kageFileFromCode("type OneProp { count: Int }")
-        val expected = kageFileFromLines(KGTypeDeclaration("OneProp", listOf(TypedName("count", "Int"))))
+        val expected = kageFileFromLines(KGTypeDeclaration("OneProp", listOf(TypedName("count", TypeIdentifier("Int")))))
         assertEquals(expected, kageFile)
     }
 
     @Test fun testParseTypeDeclaration_twoPropsSameLine() {
         val kageFile = kageFileFromCode("type TwoProps { count: Int, label: String }")
-        val expected = kageFileFromLines(KGTypeDeclaration("TwoProps", listOf(TypedName("count", "Int"), TypedName("label", "String"))))
+        val expected = kageFileFromLines(KGTypeDeclaration("TwoProps", listOf(TypedName("count", TypeIdentifier("Int")), TypedName("label", TypeIdentifier("String")))))
         assertEquals(expected, kageFile)
     }
 
     @Test fun testParseTypeDeclaration_twoPropsWithNewline() {
         val kageFile = kageFileFromCode("type TwoProps { count: Int,\nlabel: String }")
-        val expected = kageFileFromLines(KGTypeDeclaration("TwoProps", listOf(TypedName("count", "Int"), TypedName("label", "String"))))
+        val expected = kageFileFromLines(KGTypeDeclaration("TwoProps", listOf(TypedName("count", TypeIdentifier("Int")), TypedName("label", TypeIdentifier("String")))))
         assertEquals(expected, kageFile)
     }
 }

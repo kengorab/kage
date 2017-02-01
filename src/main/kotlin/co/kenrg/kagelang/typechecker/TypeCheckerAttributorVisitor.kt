@@ -8,8 +8,7 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.StdLibT
-import co.kenrg.kagelang.tree.types.asKGType
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import java.util.*
 
 /**
@@ -347,7 +346,7 @@ class TypeCheckerAttributorVisitor(
             type!!
         }
 
-        val tupleType = KGType.stdLibType(StdLibT.Pair)//fromClass("kage/lang/tuple/Pair")
+        val tupleType = KGType.stdLibType(StdLibTypes.Pair)//fromClass("kage/lang/tuple/Pair")
                 .copy(typeParams = itemTypes)
         tuple.type = tupleType
         result = tupleType
@@ -362,11 +361,25 @@ class TypeCheckerAttributorVisitor(
         result = KGType.UNIT
     }
 
+//    private fun hydrateTypeIdentifier(typeAnnotation: TypeIdentifier, data: TCScope, position: Position): KGType? {
+//        val type = data.getType(typeAnnotation.name) ?: typeAnnotation.name.asKGType()
+//        val params = typeAnnotation.typeParams?.map {
+//            val t = hydrateTypeIdentifier(it, data, position)
+//            if (t == null)
+//                handleError(Error("Type with name ${it.name} not visible in this context", position.start))
+//            t!!
+//        }
+//
+//        return type?.copy(typeParams = params)
+//    }
+
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: TCScope) {
         attribExpr(valDecl.expression, data)
 
         if (valDecl.typeAnnotation != null) {
-            val annotatedType = data.getType(valDecl.typeAnnotation) ?: valDecl.typeAnnotation.asKGType()
+            val annotatedType = valDecl.typeAnnotation.hydrate(data) {
+                handleError(Error("Type with name $it not visible in this context", valDecl.position.start))
+            }
 
             if (annotatedType == null)
                 handleError(Error("Type with name ${valDecl.typeAnnotation} not visible in this context", valDecl.position.start))
@@ -396,7 +409,9 @@ class TypeCheckerAttributorVisitor(
 
         val vals = fnDecl.params
                 .map {
-                    val type = data.getType(it.type) ?: it.type.asKGType()
+                    val type = it.type.hydrate(data) {
+                        handleError(Error("Type with name $it not visible in this context", fnDecl.position.start))
+                    }
                     if (type == null)
                         handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", fnDecl.position.start))
 
@@ -415,14 +430,19 @@ class TypeCheckerAttributorVisitor(
 
         // TODO - Continue even after type annotation validation fails? Check in val decl above, too.
         if (fnDecl.retTypeAnnotation != null) {
-            val fnRetType = data.getType(fnDecl.retTypeAnnotation) ?: fnDecl.retTypeAnnotation.asKGType()
+            val fnRetType = fnDecl.retTypeAnnotation.hydrate(data) {
+                handleError(Error("Type with name $it not visible in this context", fnDecl.position.start))
+            }
 
             if (fnRetType != fnDecl.body.type)
                 handleError(Error("Expected return type of $fnRetType, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
+        // TODO - Don't duplicate mapping over the fn params (on line 412)
         val params = fnDecl.params.map {
-            val type = data.getType(it.type) ?: it.type.asKGType()
+            val type = it.type.hydrate(data) {
+                handleError(Error("Type with name $it not visible in this context", fnDecl.position.start))
+            }
             if (type == null)
                 handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", fnDecl.position.start))
             Pair(it.name, type!!)
@@ -462,9 +482,9 @@ class TypeCheckerAttributorVisitor(
 
         val typeProps = typeDecl.props
                 .map {
-                    val type = data.getType(it.type) ?: it.type.asKGType()
-                    if (type == null)
-                        handleError(Error("No type definition found for ${it.type}. Is it referenced before being declared?", typeDecl.position.start))
+                    val type = it.type.hydrate(data) {
+                        handleError(Error("No type definition found for $it. Is it referenced before being declared?", typeDecl.position.start))
+                    }
                     it.name to type!!
                 }
                 .toMap()

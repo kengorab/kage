@@ -5,7 +5,7 @@ import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.StdLibT
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -27,7 +27,7 @@ class TupleTypeCheckerTests {
                 val tupleExpr = KGTuple(expr)
                 val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
                 assertSucceedsAnd(result) {
-                    val tupleType = KGType.stdLibType(StdLibT.Pair)
+                    val tupleType = KGType.stdLibType(StdLibTypes.Pair)
                             .copy(typeParams = expectedTypeParams)
                     Assertions.assertEquals(tupleType, tupleExpr.type)
                 }
@@ -43,9 +43,9 @@ class TupleTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
         assertSucceedsAnd(result) {
-            val innerTupleType = KGType.stdLibType(StdLibT.Pair)
+            val innerTupleType = KGType.stdLibType(StdLibTypes.Pair)
                     .copy(typeParams = listOf(KGType.INT, KGType.INT))
-            val tupleType = KGType.stdLibType(StdLibT.Pair)
+            val tupleType = KGType.stdLibType(StdLibTypes.Pair)
                     .copy(typeParams = listOf(KGType.INT, innerTupleType))
             Assertions.assertEquals(tupleType, tupleExpr.type)
         }
@@ -71,7 +71,7 @@ class TupleTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(tupleExpr, ns)
         assertSucceedsAnd(result) {
-            val tupleType = KGType.stdLibType(StdLibT.Pair)
+            val tupleType = KGType.stdLibType(StdLibTypes.Pair)
                     .copy(typeParams = listOf(KGType.INT, type))
             Assertions.assertEquals(tupleType, tupleExpr.type)
         }

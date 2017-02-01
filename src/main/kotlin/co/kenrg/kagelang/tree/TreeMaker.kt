@@ -1,10 +1,7 @@
 package co.kenrg.kagelang.tree
 
 import co.kenrg.kagelang.KageParser
-import co.kenrg.kagelang.model.FnParameter
-import co.kenrg.kagelang.model.Point
-import co.kenrg.kagelang.model.Position
-import co.kenrg.kagelang.model.TypedName
+import co.kenrg.kagelang.model.*
 import co.kenrg.kagelang.tree.types.KGType
 import org.antlr.v4.runtime.ParserRuleContext
 
@@ -30,8 +27,6 @@ class TreeMaker(val considerPosition: Boolean = true) {
         return KGFile(statements, bindings = mapOf())
     }
 
-    private fun String.trimTypeAnnotation() = this.trimStart(':', ' ').trimEnd(' ')
-
     fun toTree(statement: KageParser.StatementContext): KGTree.KGStatement {
         val statementTree = when (statement) {
             is KageParser.PrintStatementContext ->
@@ -40,23 +35,23 @@ class TreeMaker(val considerPosition: Boolean = true) {
                 KGTree.KGValDeclaration(
                         identifier = statement.valDeclaration().Identifier().text,
                         expression = toTree(statement.valDeclaration().expression()),
-                        typeAnnotation = statement.valDeclaration().typeAnnotation?.text?.trimTypeAnnotation()
+                        typeAnnotation = statement.valDeclaration().typeAnnotation?.type?.toTypeIdentifier()
                 )
             is KageParser.FnDeclarationStatementContext ->
                 KGTree.KGFnDeclaration(
                         name = statement.fnDeclaration().fnName.text,
                         body = statementOrExpressionToTree(statement.fnDeclaration().statementOrExpression()),
                         params = statement.fnDeclaration().params?.fnParam()?.map {
-                            FnParameter(it.Identifier().text, it.TypeAnnotation().text.trimTypeAnnotation())
+                            FnParameter(it.Identifier().text, it.typeAnnot().type.toTypeIdentifier())
                         } ?: listOf(),
-                        retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.text?.trimTypeAnnotation()
+                        retTypeAnnotation = statement.fnDeclaration().typeAnnotation?.type?.toTypeIdentifier()
                 )
             is KageParser.TypeDeclarationStatementContext ->
                 KGTree.KGTypeDeclaration(
                         name = statement.name.text,
                         props = statement.props?.props?.typeProp()
                                 ?.map {
-                                    TypedName(it.prop.text, it.typeAnnotation.text.trimTypeAnnotation())
+                                    TypedName(it.prop.text, it.typeAnnotation.type.toTypeIdentifier())
                                 }
                                 ?: listOf()
                 )
