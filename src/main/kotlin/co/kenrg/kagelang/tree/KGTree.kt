@@ -61,7 +61,13 @@ abstract class KGTree : Tree {
     class KGLiteral(val litType: KGType, val value: Any) : KGExpression(), LiteralTree {
         override fun value() = value
 
-        override fun kind(): Tree.Kind<LiteralTree> = litType.getLiteralKind()
+        override fun kind(): Tree.Kind<LiteralTree> = when (litType) {
+            KGType.INT -> Tree.Kind.IntLiteral
+            KGType.DEC -> Tree.Kind.DecLiteral
+            KGType.BOOL -> Tree.Kind.BoolLiteral
+            KGType.STRING -> Tree.Kind.StringLiteral
+            else -> throw UnsupportedOperationException("$this is not a literal, and has no literal kind")
+        }
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitLiteral(this, data)
     }
