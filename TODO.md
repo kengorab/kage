@@ -31,10 +31,18 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
     - ~~Accessor methods for type props (class-level getters)~~
   - `hashCode` method
   - ~~Property accessors~~
-- Tuples (begin stdlib?)
+- Other primitives: Float, Long
+- Tuples
+  - ~~Pair~~
+  - Triple
+  - Tuple4 - Tuple 8
+  - ~~Begin stdlib?~~
+  - Syntactic sugar for Pair, Triple; e.g. (A, B) => Pair[A, B], (A, B, C) => Triple[A, B, C]
 - Method calls
 - Arrays
 - Loops
+- Lambdas
+- [Possibly] ?-Types (kind of like nullable, except under the hood it's just Optional)
 - Switch/match expression
 - Warnings/validations
   - No top-level expressions
