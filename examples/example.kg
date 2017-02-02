@@ -1,7 +1,6 @@
-type Person { name: String }
+type Person { info: Pair[Pair[String, String], Int] }
+
+val p = Person((("Meg", "Muccilli"), 24))
 
 fn main() =
-  let
-    val p = Person("Ken")
-  in
-    print(p.name)
+  print(p)

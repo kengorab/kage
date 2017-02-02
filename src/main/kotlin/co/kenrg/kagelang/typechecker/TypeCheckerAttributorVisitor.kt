@@ -361,18 +361,6 @@ class TypeCheckerAttributorVisitor(
         result = KGType.UNIT
     }
 
-//    private fun hydrateTypeIdentifier(typeAnnotation: TypeIdentifier, data: TCScope, position: Position): KGType? {
-//        val type = data.getType(typeAnnotation.name) ?: typeAnnotation.name.asKGType()
-//        val params = typeAnnotation.typeParams?.map {
-//            val t = hydrateTypeIdentifier(it, data, position)
-//            if (t == null)
-//                handleError(Error("Type with name ${it.name} not visible in this context", position.start))
-//            t!!
-//        }
-//
-//        return type?.copy(typeParams = params)
-//    }
-
     override fun visitValDeclaration(valDecl: KGTree.KGValDeclaration, data: TCScope) {
         attribExpr(valDecl.expression, data)
 

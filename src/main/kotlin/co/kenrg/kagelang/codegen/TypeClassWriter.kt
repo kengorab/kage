@@ -17,14 +17,22 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
     fun getResultingBytecode() = codeGenVisitor.results()
 
     fun writeConstructor() {
-        val constructorSignature = "(${type.props.values.map { it.jvmDescriptor() }.joinToString("")})V"
-
         typeProps.forEach {
             val (index, name, type) = it
-            codeGenVisitor.cw.visitField(ACC_PRIVATE, name, type.jvmDescriptor(), null, null)
+            val typeSignature = if (type.isGeneric) type.genericSignature() else null
+            codeGenVisitor.cw.visitField(ACC_PRIVATE, name, type.jvmDescriptor(), typeSignature, null)
         }
 
-        val initWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, "<init>", constructorSignature, null, null)
+        val constructorParams = type.props.values.map {
+            if (it.isGeneric) it.genericSignature()
+            else it.jvmDescriptor()
+        }
+        val constructorDesc = "(${type.props.values.map(KGType::jvmDescriptor).joinToString("")})V"
+        val constructorSignature =
+                if (type.props.values.any { it.isGeneric }) "(${constructorParams.joinToString("")})V"
+                else null
+
+        val initWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, "<init>", constructorDesc, constructorSignature, null)
         initWriter.visitCode()
         initWriter.visitVarInsn(ALOAD, 0)
         initWriter.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
@@ -154,8 +162,9 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
             val (index, name, type) = it
 
             val accessorName = "get${name.capitalize()}"
-            val accessorSignature = "()${type.jvmDescriptor()}"
-            val propAccessorWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, accessorName, accessorSignature, null, null)
+            val accessorDesc = "()${type.jvmDescriptor()}"
+            val accessorSignature = if (type.isGeneric) "()${type.genericSignature()}" else null
+            val propAccessorWriter = codeGenVisitor.cw.visitMethod(ACC_PUBLIC, accessorName, accessorDesc, accessorSignature, null)
 
             propAccessorWriter.visitVarInsn(ALOAD, 0)
             propAccessorWriter.visitFieldInsn(GETFIELD, innerClassName, name, type.jvmDescriptor())

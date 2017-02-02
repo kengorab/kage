@@ -50,7 +50,7 @@ data class KGType(
         } else if (className == null) {
             null
         } else {
-            "${jvmDescriptor()?.trimEnd(';')}<${typeParams.map(KGType::jvmDescriptor)}>;"
+            "${jvmDescriptor()?.trimEnd(';')}<${typeParams.map(KGType::jvmDescriptor).joinToString("")}>;"
         }
     }
 

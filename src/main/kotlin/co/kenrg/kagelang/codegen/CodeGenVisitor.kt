@@ -5,6 +5,7 @@ import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.StdLibTypes
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -533,7 +534,27 @@ class CodeGenVisitor(
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        if (tuple.items.size > 2)
+            throw IllegalStateException("Tuples larger than 2 items not currently supported")
+
+        val methodWriter = data.method?.writer
+                ?: throw IllegalStateException("Attempted to visit tuple with no methodVisitor active")
+
+        methodWriter.visitTypeInsn(NEW, StdLibTypes.Pair.className)
+        methodWriter.visitInsn(DUP)
+
+        tuple.items.forEach {
+            it.accept(this, data)
+            // Since INT, DEC, and BOOL are primitives, we need to convert them into objects
+            when (it.type!!) {
+                KGType.INT -> methodWriter.visitMethodInsn(INVOKESTATIC, "java/lang/Integer", "valueOf", "(I)Ljava/lang/Integer;", false)
+                KGType.DEC -> methodWriter.visitMethodInsn(INVOKESTATIC, "java/lang/Double", "valueOf", "(D)Ljava/lang/Double;", false)
+                KGType.BOOL -> methodWriter.visitMethodInsn(INVOKESTATIC, "java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;", false)
+            }
+        }
+
+        val constructorSignature = "(${tuple.items.map { "Ljava/lang/Object;" }.joinToString("")})V"
+        methodWriter.visitMethodInsn(INVOKESPECIAL, StdLibTypes.Pair.className, "<init>", constructorSignature, false)
     }
 
     /*****************************
