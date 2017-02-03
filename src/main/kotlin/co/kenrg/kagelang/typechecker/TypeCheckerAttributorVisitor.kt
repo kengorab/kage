@@ -336,8 +336,8 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {
-        if (tuple.items.size > 2)
-            throw UnsupportedOperationException("Tuples larger than 2 items not currently supported")
+        if (tuple.items.size > 3)
+            throw UnsupportedOperationException("Tuples larger than 3 items not currently supported")
 
         val itemTypes = tuple.items.mapIndexed { i, item ->
             val type = attribExpr(item, data)
@@ -346,7 +346,13 @@ class TypeCheckerAttributorVisitor(
             type!!
         }
 
-        val tupleType = KGType.stdLibType(StdLibTypes.Pair)//fromClass("kage/lang/tuple/Pair")
+        val tupleKind = when (tuple.items.size) {
+            2 -> StdLibTypes.Pair
+            3 -> StdLibTypes.Triple
+            else -> throw UnsupportedOperationException("Tuples larger than 3 items not currently supported")
+        }
+
+        val tupleType = KGType.stdLibType(tupleKind)
                 .copy(typeParams = itemTypes)
         tuple.type = tupleType
         result = tupleType

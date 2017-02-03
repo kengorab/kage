@@ -50,4 +50,45 @@ class TupleCodeGenTests {
             compileAndExecuteFileAnd(file) { output -> assertEquals("(1, OneProp(someStr: \"asdf\"))", output) }
         }
     }
+
+    @Nested
+    inner class Triple {
+
+        @TestFactory
+        fun testTupleExpression_basicPairs(): List<DynamicTest> {
+            return listOf(
+                    "(1, 2, 1)",
+                    "(1, 2.2, 0)",
+                    "(0.1, (2, 3), (4, 3, 0.1))"
+            ).map { testCase ->
+                dynamicTest("Triple `$testCase` should have proper type params") {
+                    val code = """
+                      fn main() = print($testCase)
+                    """
+
+                    val file = kageFileFromCode(code)
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(testCase, output) }
+                }
+            }
+        }
+
+        @Test fun testTupleExpression_strings() {
+            val code = """
+              fn main() = print(("asdf", "qwer", "zxcv"))
+            """
+
+            val file = kageFileFromCode(code)
+            compileAndExecuteFileAnd(file) { output -> assertEquals("(asdf, qwer, zxcv)", output) }
+        }
+
+        @Test fun testTupleExpression_customTypes() {
+            val code = """
+              type OneProp { someStr: String }
+              fn main() = print((1, OneProp("asdf"), "qwer")
+            """
+
+            val file = kageFileFromCode(code)
+            compileAndExecuteFileAnd(file) { output -> assertEquals("(1, OneProp(someStr: \"asdf\"), qwer)", output) }
+        }
+    }
 }

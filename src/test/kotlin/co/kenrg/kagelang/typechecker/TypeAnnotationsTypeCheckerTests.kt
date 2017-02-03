@@ -86,8 +86,14 @@ class TypeAnnotationsTypeCheckerTests {
         assertSucceeds(result)
     }
 
-    @Test fun typecheckTypeAnnotations_typeIsStdlibType_passesTypechecking() {
+    @Test fun typecheckTypeAnnotations_typeIsStdlibPairType_passesTypechecking() {
         val valDecl = KGValDeclaration("a", KGTuple(listOf(intLiteral(1), intLiteral(2))), TypeIdentifier("Pair", listOf(TypeIdentifier("Int"), TypeIdentifier("Int"))))
+        val result = TypeChecker.typeCheck(valDecl, randomTCNamespace())
+        assertSucceeds(result)
+    }
+
+    @Test fun typecheckTypeAnnotations_typeIsStdlibTripleType_passesTypechecking() {
+        val valDecl = KGValDeclaration("a", KGTuple(listOf(intLiteral(1), intLiteral(2), intLiteral(3))), TypeIdentifier("Triple", listOf(TypeIdentifier("Int"), TypeIdentifier("Int"), TypeIdentifier("Int"))))
         val result = TypeChecker.typeCheck(valDecl, randomTCNamespace())
         assertSucceeds(result)
     }
