@@ -35,7 +35,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - Tuples
   - ~~Pair~~
   - ~~Triple~~
-  - Tuple4 - Tuple 6
+  - ~~Tuple4 - Tuple 6~~
   - ~~Begin stdlib?~~
   - Syntactic sugar for Pair, Triple; e.g. (A, B) => Pair[A, B], (A, B, C) => Triple[A, B, C]
 - Method calls
