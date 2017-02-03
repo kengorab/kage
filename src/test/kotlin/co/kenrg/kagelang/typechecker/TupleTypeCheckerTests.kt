@@ -7,6 +7,7 @@ import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 
 class TupleTypeCheckerTests {
@@ -82,7 +83,7 @@ class TupleTypeCheckerTests {
     inner class Triple {
 
         @TestFactory
-        fun testTupleExpression_threeItems_passesTypecheckingWithTypePairAndTypeParamsSet(): List<DynamicTest> {
+        fun testTupleExpression_threeItems_passesTypecheckingWithTypeTripleAndTypeParamsSet(): List<DynamicTest> {
             return listOf(
                     Triple("(1, 2, 1)", listOf(intLiteral(1), intLiteral(2), intLiteral(1)), listOf(KGType.INT, KGType.INT, KGType.INT)),
                     Triple("(1, 2.2, 0)", listOf(intLiteral(1), decLiteral(2.2), intLiteral(0)), listOf(KGType.INT, KGType.DEC, KGType.INT)),
@@ -145,6 +146,61 @@ class TupleTypeCheckerTests {
                         .copy(typeParams = listOf(KGType.INT, type))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
+        }
+    }
+
+    @Nested
+    inner class Tuple4_Tuple5_Tuple6 {
+
+        @Test
+        fun testTuple_4Items_passesTypecheckingWithTypeAndTypeParamsSet() {
+            val tupleExpr = KGTuple(listOf(
+                    intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2)
+            ))
+            val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                val tupleType = KGType.stdLibType(StdLibTypes.Tuple4)
+                        .copy(typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                Assertions.assertEquals(tupleType, tupleExpr.type)
+            }
+        }
+
+        @Test
+        fun testTuple_5Items_passesTypecheckingWithTypeAndTypeParamsSet() {
+            val tupleExpr = KGTuple(listOf(
+                    intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2), intLiteral(1)
+            ))
+            val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                val tupleType = KGType.stdLibType(StdLibTypes.Tuple5)
+                        .copy(typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                Assertions.assertEquals(tupleType, tupleExpr.type)
+            }
+        }
+
+        @Test
+        fun testTuple_6Items_passesTypecheckingWithTypeAndTypeParamsSet() {
+            val tupleExpr = KGTuple(listOf(
+                    intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2)
+            ))
+            val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
+            assertSucceedsAnd(result) {
+                val tupleType = KGType.stdLibType(StdLibTypes.Tuple6)
+                        .copy(typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                Assertions.assertEquals(tupleType, tupleExpr.type)
+            }
+        }
+    }
+
+    @Test
+    fun testTuple_greaterThan6Items_failsTypechecking() {
+        val tupleExpr = KGTuple(listOf(
+                intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2), intLiteral(1), intLiteral(2), intLiteral(1)
+        ))
+
+        assertThrows<UnsupportedOperationException>(UnsupportedOperationException::class.java) {
+            val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
+            assertFails(result)
         }
     }
 }

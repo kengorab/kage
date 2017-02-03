@@ -534,8 +534,8 @@ class CodeGenVisitor(
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: CGScope) {
-        if (tuple.items.size > 3)
-            throw IllegalStateException("Tuples larger than 3 items not currently supported")
+        if (tuple.items.size > 6)
+            throw IllegalStateException("Tuples larger than 6 items not supported; you should consider creating a type instead")
 
         val methodWriter = data.method?.writer
                 ?: throw IllegalStateException("Attempted to visit tuple with no methodVisitor active")
@@ -544,7 +544,10 @@ class CodeGenVisitor(
         val tupleKind = when (tuple.items.size) {
             2 -> StdLibTypes.Pair
             3 -> StdLibTypes.Triple
-            else -> throw UnsupportedOperationException("Tuples larger than 3 items not currently supported")
+            4 -> StdLibTypes.Tuple4
+            5 -> StdLibTypes.Tuple5
+            6 -> StdLibTypes.Tuple6
+            else -> throw UnsupportedOperationException("Tuples larger than 6 items not supported; you should consider creating a type instead")
         }
         methodWriter.visitTypeInsn(NEW, tupleKind.className)
         methodWriter.visitInsn(DUP)

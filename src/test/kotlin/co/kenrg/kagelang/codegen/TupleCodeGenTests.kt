@@ -91,4 +91,38 @@ class TupleCodeGenTests {
             compileAndExecuteFileAnd(file) { output -> assertEquals("(1, OneProp(someStr: \"asdf\"), qwer)", output) }
         }
     }
+
+    @Nested
+    inner class Tuple4_Tuple5_Tuple6 {
+
+        @Test
+        fun testTuple_4Items() {
+            val code = """
+              fn main() = print((1, 2, 1, 2))
+            """
+
+            val file = kageFileFromCode(code)
+            compileAndExecuteFileAnd(file) { output -> assertEquals("(1, 2, 1, 2)", output) }
+        }
+
+        @Test
+        fun testTuple_5Items() {
+            val code = """
+              fn main() = print((1, 2, 1, 2, 1))
+            """
+
+            val file = kageFileFromCode(code)
+            compileAndExecuteFileAnd(file) { output -> assertEquals("(1, 2, 1, 2, 1)", output) }
+        }
+
+        @Test
+        fun testTuple_6Items() {
+            val code = """
+              fn main() = print((1, 2, 1, 2, 1, 2))
+            """
+
+            val file = kageFileFromCode(code)
+            compileAndExecuteFileAnd(file) { output -> assertEquals("(1, 2, 1, 2, 1, 2)", output) }
+        }
+    }
 }
