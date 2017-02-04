@@ -38,6 +38,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Tuple4 - Tuple 6~~
   - ~~Begin stdlib?~~
   - ~~Syntactic sugar for Pair, Triple~~
+- Props of stdlib types
 - Comments! (// and /* */)
 - Method calls
 - Arrays
