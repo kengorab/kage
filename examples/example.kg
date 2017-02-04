@@ -1,6 +1,4 @@
-type Person { info: Pair[Pair[String, String], Int] }
-
-val p = Person((("Meg", "Muccilli"), 24))
+val p: (String, String) = ("Hello", "World")
 
 fn main() =
   print(p)

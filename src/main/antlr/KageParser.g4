@@ -21,8 +21,13 @@ statements
 
 // Statements
 
+tupleTypeIdentifier
+    : '(' typeParams=typeIdentifiers ')'
+    ;
+
 typeIdentifier
     : typeName=Identifier ('[' typeParams=typeIdentifiers']')?
+    | tupleTypeIdentifier
     ;
 
 typeIdentifiers
