@@ -445,7 +445,8 @@ class CodeGenVisitor(
                         it.accept(this, data)
                     }
 
-                    val constructorSignature = "(${typeForName.props.values.map { it.jvmDescriptor() }.joinToString("")})V"
+                    // TODO - Handle generic type props
+                    val constructorSignature = "(${typeForName.props.values.map { it.type.jvmDescriptor() }.joinToString("")})V"
                     methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", constructorSignature, false)
                 } else {
                     // Grab the first function. At this point, it's already passed typechecking so there
@@ -526,8 +527,14 @@ class CodeGenVisitor(
             val propType = dotType.props[dot.prop]!!
 
             val accessorName = "get${dot.prop.capitalize()}"
-            val accessorSignature = "()${propType.jvmDescriptor()}"
-            methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
+            if (propType.isGeneric) {
+                val accessorSignature = "()Ljava/lang/Object;"
+                methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
+                methodWriter.visitTypeInsn(CHECKCAST, propType.type.className)
+            } else {
+                val accessorSignature = "()${propType.type.jvmDescriptor()}"
+                methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
+            }
         } else {
             throw IllegalStateException("Prop ${dot.prop} is not available on dot target")
         }
@@ -706,7 +713,8 @@ class CodeGenVisitor(
                         .map {
                             val type = it.type.hydrate(data) { throw IllegalStateException("Unknown type $it") }
                                     ?: throw IllegalStateException("Unknown type ${it.type}")
-                            it.name to type
+                            // TODO - Handle generic type props
+                            it.name to KGType.PropType(type, false)
                         }
                         .toMap()
         )

@@ -64,7 +64,7 @@ class FnDeclarationTypeCheckerTests {
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
-                assertEquals(KGType.stdLibType(StdLibTypes.Pair).copy(typeParams = listOf(KGType.STRING, KGType.STRING)), statement.body.type)
+                assertEquals(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.STRING, KGType.STRING)), statement.body.type)
             }
         }
 

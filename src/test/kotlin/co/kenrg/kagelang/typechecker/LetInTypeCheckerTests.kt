@@ -177,7 +177,7 @@ class LetInTypeCheckerTests {
         )
         val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
         assertSucceedsAnd(result) {
-            assertEquals(KGType.stdLibType(StdLibTypes.Pair).copy(typeParams = listOf(KGType.INT, KGType.STRING)), it.type)
+            assertEquals(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), it.type)
         }
     }
 }

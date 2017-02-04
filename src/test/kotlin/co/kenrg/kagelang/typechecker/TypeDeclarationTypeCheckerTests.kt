@@ -5,6 +5,7 @@ import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.KGType.PropType
 import co.kenrg.kagelang.tree.types.StdLibTypes
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -66,8 +67,8 @@ class TypeDeclarationTypeCheckerTests {
                     typeName,
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
-                            "prop1" to KGType.STRING,
-                            "prop2" to KGType.INT
+                            "prop1" to PropType(KGType.STRING, false),
+                            "prop2" to PropType(KGType.INT, false)
                     )
             )
             assertEquals(expectedType, ns.rootScope.types[typeName])
@@ -82,7 +83,7 @@ class TypeDeclarationTypeCheckerTests {
                 otherTypeName,
                 className = "${ns.name}\$$otherTypeName",
                 props = mapOf(
-                        "someStr" to KGType.STRING
+                        "someStr" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(otherTypeName, otherType)
@@ -97,7 +98,7 @@ class TypeDeclarationTypeCheckerTests {
                     typeName,
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
-                            "prop1" to otherType
+                            "prop1" to PropType(otherType, false)
                     )
             )
             assertEquals(expectedType, ns.rootScope.types[typeName])
@@ -116,8 +117,7 @@ class TypeDeclarationTypeCheckerTests {
                     typeName,
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
-                            "intStringPair" to KGType.stdLibType(StdLibTypes.Pair)
-                                .copy(typeParams = listOf(KGType.INT, KGType.STRING))
+                            "intStringPair" to PropType(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), false)
                     )
             )
             assertEquals(expectedType, ns.rootScope.types[typeName])

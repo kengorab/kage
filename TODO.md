@@ -39,12 +39,14 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Begin stdlib?~~
   - ~~Syntactic sugar for Pair, Triple~~
 - Props of stdlib types
+- Cleanup of KGType (maybe separate into a disjoint union type somehow?)
 - Comments! (// and /* */)
 - Method calls
 - Arrays
 - Loops
 - Lambdas
 - [Possibly] ?-Types (kind of like nullable, except under the hood it's just Optional)
+- Generic Types
 - Switch/match expression
 - Warnings/validations
   - No top-level expressions

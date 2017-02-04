@@ -8,6 +8,7 @@ import co.kenrg.kagelang.tree.KGTree.Visitor
 import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.KGType.PropType
 import co.kenrg.kagelang.tree.types.StdLibTypes
 import java.util.*
 
@@ -210,7 +211,7 @@ class TypeCheckerAttributorVisitor(
                         invocation.params.zip(typeForName.props.values).forEach { pair ->
                             val (param, requiredType) = pair
 
-                            if (param.type != requiredType)
+                            if (param.type != requiredType.type)
                                 handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                         }
                     } else {
@@ -329,9 +330,9 @@ class TypeCheckerAttributorVisitor(
             dot.type = null
             result = null
         } else {
-            val dotType = targetType.props[dot.prop]
-            dot.type = dotType
-            result = dotType
+            val dotType = targetType.props[dot.prop]!!
+            dot.type = dotType.type
+            result = dotType.type
         }
     }
 
@@ -355,8 +356,7 @@ class TypeCheckerAttributorVisitor(
             else -> throw UnsupportedOperationException("Tuples larger than 6 items not supported; you should consider creating a type instead")
         }
 
-        val tupleType = KGType.stdLibType(tupleKind)
-                .copy(typeParams = itemTypes)
+        val tupleType = KGType.stdLibType(tupleKind, typeParams = itemTypes)
         tuple.type = tupleType
         result = tupleType
     }
@@ -482,7 +482,7 @@ class TypeCheckerAttributorVisitor(
                     val type = it.type.hydrate(data) {
                         handleError(Error("No type definition found for $it. Is it referenced before being declared?", typeDecl.position.start))
                     }
-                    it.name to type!!
+                    it.name to PropType(type!!, false)
                 }
                 .toMap()
 

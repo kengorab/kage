@@ -9,6 +9,7 @@ import co.kenrg.kagelang.tree.types.KGType.Companion.BOOL
 import co.kenrg.kagelang.tree.types.KGType.Companion.DEC
 import co.kenrg.kagelang.tree.types.KGType.Companion.INT
 import co.kenrg.kagelang.tree.types.KGType.Companion.STRING
+import co.kenrg.kagelang.tree.types.KGType.PropType
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -249,7 +250,7 @@ class InvocationTypeCheckerTests {
                 typeName,
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
-                        "someStr" to KGType.STRING
+                        "someStr" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(typeName, type)
@@ -266,7 +267,7 @@ class InvocationTypeCheckerTests {
                 typeName,
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
-                        "someStr" to KGType.STRING
+                        "someStr" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(typeName, type)
@@ -283,7 +284,7 @@ class InvocationTypeCheckerTests {
                 typeName,
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
-                        "someStr" to KGType.STRING
+                        "someStr" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(typeName, type)

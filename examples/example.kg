@@ -1,4 +1,2 @@
-val p: (String, String) = ("Hello", "World")
-
 fn main() =
-  print(p)
+  print(("Hello", "World").first)

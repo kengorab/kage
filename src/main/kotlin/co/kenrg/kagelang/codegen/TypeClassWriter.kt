@@ -8,9 +8,10 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
     val typeProps: List<Triple<Int, String, KGType>>
 
     init {
+        // TODO - Handle generic type props
         typeProps = type.props.entries.mapIndexed { index, prop ->
             // The 0th param to the constructor method is `this`
-            Triple(index + 1, prop.key, prop.value)
+            Triple(index + 1, prop.key, prop.value.type)
         }
     }
 
@@ -24,10 +25,10 @@ class TypeClassWriter(val codeGenVisitor: CodeGenVisitor, val type: KGType, val 
         }
 
         val constructorParams = type.props.values.map {
-            if (it.isGeneric) it.genericSignature()
-            else it.jvmDescriptor()
+            if (it.isGeneric) it.type.genericSignature()
+            else it.type.jvmDescriptor()
         }
-        val constructorDesc = "(${type.props.values.map(KGType::jvmDescriptor).joinToString("")})V"
+        val constructorDesc = "(${type.props.values.map { it.type.jvmDescriptor() }.joinToString("")})V"
         val constructorSignature =
                 if (type.props.values.any { it.isGeneric }) "(${constructorParams.joinToString("")})V"
                 else null

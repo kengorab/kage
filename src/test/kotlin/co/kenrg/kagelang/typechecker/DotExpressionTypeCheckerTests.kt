@@ -3,6 +3,7 @@ package co.kenrg.kagelang.typechecker
 import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
+import co.kenrg.kagelang.tree.types.KGType.PropType
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -40,7 +41,7 @@ class DotExpressionTypeCheckerTests {
                 typeName,
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
-                        "someProp" to KGType.STRING
+                        "someProp" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(typeName, otherType)
@@ -63,7 +64,7 @@ class DotExpressionTypeCheckerTests {
                 typeName,
                 className = "${ns.name}\$$typeName",
                 props = mapOf(
-                        "someProp" to KGType.STRING
+                        "someProp" to PropType(KGType.STRING, false)
                 )
         )
         ns.rootScope.types.put(typeName, otherType)
@@ -79,5 +80,28 @@ class DotExpressionTypeCheckerTests {
             assertEquals(KGType.STRING, it.type)
             assertEquals(KGType.STRING, letInExpr.type)
         }
+    }
+
+    @Test fun testDotExpression_typeIsStdlibPair_accessPropFirst_passesTypecheckingWithDynamicTypeOfProp() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", KGTuple(listOf(stringLiteral("Hello"), stringLiteral("World"))))
+                ),
+                KGDot(KGBindingReference("a"), "first")
+        )
+        val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
+        assertSucceedsAnd(result) {
+            assertEquals(KGType.STRING, it.type)
+            assertEquals(KGType.STRING, letInExpr.type)
+        }
+    }
+
+    @Test fun testDotExpression_typeIsStdlibPair_accessNonExistentProp_failsTypechecking() {
+        val letInExpr = KGLetIn(
+                listOf(KGValDeclaration("a", KGTuple(listOf(stringLiteral("Hello"), stringLiteral("World"))))
+                ),
+                KGDot(KGBindingReference("a"), "fst")
+        )
+        val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
+        assertFails(result)
     }
 }

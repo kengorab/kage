@@ -97,4 +97,19 @@ class DotExpressionCodeGenTests : BaseTest() {
             }
         }
     }
+
+    @Test fun testDotExpression_typeIsStdlibPair_accessProps_FirstAndSecond() {
+        val code = """
+              fn main() =
+                let
+                  val a = ("Hello", "World")
+                in
+                  print(a.first ++ " " ++ a.second)
+            """
+        val file = kageFileFromCode(code)
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("Hello World", output)
+        }
+    }
 }
