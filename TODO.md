@@ -32,12 +32,12 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - `hashCode` method
   - ~~Property accessors~~
 - Other primitives: Float, Long
-- Tuples
+- ~~Tuples~~
   - ~~Pair~~
   - ~~Triple~~
   - ~~Tuple4 - Tuple 6~~
   - ~~Begin stdlib?~~
-  - Syntactic sugar for Pair, Triple; e.g. (A, B) => Pair[A, B], (A, B, C) => Triple[A, B, C]
+  - ~~Syntactic sugar for Pair, Triple~~
 - Comments! (// and /* */)
 - Method calls
 - Arrays
