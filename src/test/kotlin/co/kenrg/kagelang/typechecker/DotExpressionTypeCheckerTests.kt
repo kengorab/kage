@@ -71,8 +71,8 @@ class DotExpressionTypeCheckerTests {
 
         val letInExpr = KGLetIn(
                 listOf(KGValDeclaration("a",
-                        KGInvocation(KGBindingReference(typeName), listOf(stringLiteral("some string"))))
-                ),
+                        KGInvocation(KGBindingReference(typeName), listOf(stringLiteral("some string")))
+                )),
                 KGDot(KGBindingReference("a"), "someProp")
         )
         val result = TypeChecker.typeCheck(letInExpr, ns)
@@ -80,28 +80,5 @@ class DotExpressionTypeCheckerTests {
             assertEquals(KGType.STRING, it.type)
             assertEquals(KGType.STRING, letInExpr.type)
         }
-    }
-
-    @Test fun testDotExpression_typeIsStdlibPair_accessPropFirst_passesTypecheckingWithDynamicTypeOfProp() {
-        val letInExpr = KGLetIn(
-                listOf(KGValDeclaration("a", KGTuple(listOf(stringLiteral("Hello"), stringLiteral("World"))))
-                ),
-                KGDot(KGBindingReference("a"), "first")
-        )
-        val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
-        assertSucceedsAnd(result) {
-            assertEquals(KGType.STRING, it.type)
-            assertEquals(KGType.STRING, letInExpr.type)
-        }
-    }
-
-    @Test fun testDotExpression_typeIsStdlibPair_accessNonExistentProp_failsTypechecking() {
-        val letInExpr = KGLetIn(
-                listOf(KGValDeclaration("a", KGTuple(listOf(stringLiteral("Hello"), stringLiteral("World"))))
-                ),
-                KGDot(KGBindingReference("a"), "fst")
-        )
-        val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
-        assertFails(result)
     }
 }
