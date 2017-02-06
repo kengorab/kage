@@ -39,11 +39,11 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Begin stdlib?~~
   - ~~Syntactic sugar for Pair, Triple~~
 - ~~Props of stdlib types~~
+- Arrays
 - Cleanup of KGType (maybe separate into a disjoint union type somehow?)
 - Comments! (// and /* */)
 - Method calls
 - Method definitions on types
-- Arrays
 - Lists
 - HashMap
 - Loops
