@@ -26,6 +26,7 @@ abstract class KGTree : Tree {
         fun visitIfThenElse(ifElse: KGIfThenElse, data: D)
         fun visitDot(dot: KGDot, data: D)
         fun visitTuple(tuple: KGTuple, data: D)
+        fun visitArray(array: KGArray, data: D)
 
         // Statement visitors
 
@@ -167,6 +168,14 @@ abstract class KGTree : Tree {
         override fun kind() = Tree.Kind.Tuple
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitTuple(this, data)
+    }
+
+    class KGArray(val items: List<KGExpression>) : KGExpression(), TupleTree {
+        override fun items() = items
+
+        override fun kind() = Tree.Kind.Tuple
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitArray(this, data)
     }
 
     /*

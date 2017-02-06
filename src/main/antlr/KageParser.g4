@@ -112,5 +112,6 @@ expression
     | BooleanLiteral                                                                    #boolLiteral
 
     | '(' items=expressions ')'                                                         #tupleLiteral
+    | '[' items=expressions ']'                                                         #arrayLiteral
     ;
 

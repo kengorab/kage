@@ -45,6 +45,7 @@ interface Tree {
         object IfElse : Kind<IfThenElseTree>(IfThenElseTree::class.java)
         object Dot : Kind<DotTree>(DotTree::class.java)
         object Tuple : Kind<TupleTree>(TupleTree::class.java)
+        object Array : Kind<ArrayTree>(ArrayTree::class.java)
 
         // Statement Kinds
         object Print : Kind<PrintTree>(PrintTree::class.java)

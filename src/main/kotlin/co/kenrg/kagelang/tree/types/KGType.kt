@@ -24,6 +24,16 @@ data class KGType(
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit", className = "java/lang/Void")
 
+        fun arrayType(typeParam: KGType): KGType {
+            return KGType(
+                    name = "Array",
+                    className = "", // TODO - Provide className
+                    isGeneric = true,
+                    typeParams = listOf(typeParam),
+                    genericTypes = mapOf("T" to typeParam)
+            )
+        }
+
         fun stdLibType(stdLibType: StdLibTypes, typeParams: List<KGType> = listOf()): KGType {
             val clazz = stdLibType.getTypeClass()
             val genericTypeRegex = Regex(".*<(\\w(?:,\\s*\\w)*)>.*")

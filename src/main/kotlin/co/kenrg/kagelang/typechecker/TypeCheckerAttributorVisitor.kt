@@ -361,6 +361,26 @@ class TypeCheckerAttributorVisitor(
         result = tupleType
     }
 
+    override fun visitArray(array: KGTree.KGArray, data: TCScope) {
+        if (array.items.isEmpty())
+            throw UnsupportedOperationException("Array[Any] not yet implemented...")
+
+        val itemTypes = array.items.mapIndexed { i, item ->
+            val type = attribExpr(item, data)
+            if (type == null)
+                handleError(Error("Could not determine type for array item at position $i", array.position.start))
+            type!!
+        }
+
+        if (itemTypes.toSet().size != 1)
+            // TODO - If multiple types, use Any
+            handleError(Error("Array's items must be all the same type", array.position.start))
+
+        val arrayType = KGType.arrayType(itemTypes[0])
+        array.type = arrayType
+        result = arrayType
+    }
+
     // Statement visitors
 
     override fun visitPrint(print: KGTree.KGPrint, data: TCScope) {

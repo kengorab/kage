@@ -573,6 +573,10 @@ class CodeGenVisitor(
         methodWriter.visitMethodInsn(INVOKESPECIAL, tupleKind.className, "<init>", constructorSignature, false)
     }
 
+    override fun visitArray(array: KGTree.KGArray, data: CGScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     /*****************************
      *
      *     Statement Visitors

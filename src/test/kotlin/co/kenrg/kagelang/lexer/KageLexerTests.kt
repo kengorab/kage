@@ -461,6 +461,20 @@ class KageLexerTests {
         )
     }
 
+    @Test fun parseArray_singleElement() {
+        assertEquals(
+                listOf("LBRACK", "IntLiteral", "RBRACK", "EOF"),
+                tokens(lexerForCode("[1]"))
+        )
+    }
+
+    @Test fun parseArray_manyElements() {
+        assertEquals(
+                listOf("LBRACK", "IntLiteral", "COMMA", "IntLiteral", "COMMA", "IntLiteral", "COMMA", "IntLiteral", "RBRACK", "EOF"),
+                tokens(lexerForCode("[1, 2, 3, 4]"))
+        )
+    }
+
     private fun lexerForCode(code: String) = KageLexer(ANTLRInputStream(StringReader(code)))
 
     private fun tokens(lexer: KageLexer): List<String> {
