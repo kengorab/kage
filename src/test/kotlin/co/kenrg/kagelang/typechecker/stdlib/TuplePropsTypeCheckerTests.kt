@@ -1,4 +1,4 @@
-package co.kenrg.kagelang.typechecker.stdlib.tuple
+package co.kenrg.kagelang.typechecker.stdlib
 
 import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.stringLiteral

@@ -70,7 +70,7 @@ fnParams
     ;
 
 expressions
-    : expression (',' expression)*
+    : expression (',' NEWLINE* expression)*
     ;
 
 fnDeclaration
@@ -111,7 +111,7 @@ expression
     | DecimalLiteral                                                                    #decLiteral
     | BooleanLiteral                                                                    #boolLiteral
 
-    | '(' items=expressions ')'                                                         #tupleLiteral
-    | '[' items=expressions ']'                                                         #arrayLiteral
+    | '(' NEWLINE* items=expressions NEWLINE* ')'                                       #tupleLiteral
+    | '[' NEWLINE* items=expressions NEWLINE* ']'                                       #arrayLiteral
     ;
 

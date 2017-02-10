@@ -1,5 +1,6 @@
-package co.kenrg.kagelang.codegen
+package co.kenrg.kagelang.codegen.stdlib
 
+import co.kenrg.kagelang.codegen.compileAndExecuteFileAnd
 import co.kenrg.kagelang.kageFileFromCode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
@@ -43,7 +44,7 @@ class TupleCodeGenTests {
         @Test fun testTupleExpression_customTypes() {
             val code = """
               type OneProp { someStr: String }
-              fn main() = print((1, OneProp("asdf"))
+              fn main() = print((1, OneProp("asdf")))
             """
 
             val file = kageFileFromCode(code)

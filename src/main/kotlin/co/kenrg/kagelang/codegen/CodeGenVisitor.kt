@@ -536,7 +536,7 @@ class CodeGenVisitor(
                 methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
             }
         } else {
-            throw IllegalStateException("Prop ${dot.prop} is not available on dot target")
+            throw IllegalStateException("Prop ${dot.prop} is not available on target ${dotType.className}")
         }
     }
 
@@ -574,7 +574,37 @@ class CodeGenVisitor(
     }
 
     override fun visitArray(array: KGTree.KGArray, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        val methodWriter = data.method?.writer
+                ?: throw IllegalStateException("Attempted to visit array with no methodVisitor active")
+
+        methodWriter.visitTypeInsn(NEW, StdLibTypes.Array.className)
+        methodWriter.visitInsn(DUP)
+
+        val size = array.items.size
+        methodWriter.visitLdcInsn(size)
+
+        val itemType = getTypeAssertNotNull(array.items[0].type) // All array items should be the same type
+        val itemTypeClass = itemType.className
+
+        methodWriter.visitTypeInsn(ANEWARRAY, itemType.className)
+        methodWriter.visitInsn(DUP)
+        array.items.forEachIndexed { i, item ->
+            methodWriter.visitLdcInsn(i)
+            item.accept(this, data)
+
+            if (itemType.isPrimitive) {
+                val valueOfSignature = "(${itemType.jvmDescriptor()})L$itemTypeClass;"
+                methodWriter.visitMethodInsn(INVOKESTATIC, itemTypeClass, "valueOf", valueOfSignature, false)
+            }
+
+            methodWriter.visitInsn(AASTORE)
+            if (i < size - 1) {
+                methodWriter.visitInsn(DUP)
+            }
+        }
+
+        val constructorSignature = "([Ljava/lang/Object;)V"
+        methodWriter.visitMethodInsn(INVOKESPECIAL, StdLibTypes.Array.className, "<init>", constructorSignature, false)
     }
 
     /*****************************

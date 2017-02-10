@@ -24,14 +24,11 @@ data class KGType(
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit", className = "java/lang/Void")
 
-        fun arrayType(typeParam: KGType): KGType {
-            return KGType(
-                    name = "Array",
-                    className = "", // TODO - Provide className
-                    isGeneric = true,
-                    typeParams = listOf(typeParam),
-                    genericTypes = mapOf("T" to typeParam)
-            )
+        fun fromPrimitive(primitive: String): KGType {
+            return when (primitive) {
+                "int" -> INT
+                else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
+            }
         }
 
         fun stdLibType(stdLibType: StdLibTypes, typeParams: List<KGType> = listOf()): KGType {
@@ -59,10 +56,7 @@ data class KGType(
                     .map { field ->
                         val fieldAnnotatedType = field.annotatedType.type
                         val fieldType = when (fieldAnnotatedType) {
-                            is Class<*> -> {
-                                // TODO - Handle Type props whose type is non-generic (i.e. int)
-                                throw UnsupportedOperationException("Accessing non-generic prop '${field.name}' of a stdlib type")
-                            }
+                            is Class<*> -> PropType(KGType.fromPrimitive(fieldAnnotatedType.name), false)
                             is TypeVariableImpl<*> -> {
                                 if (genericTypes == null)
                                     throw IllegalStateException("Cannot evaluate generic type of prop '${field.name}'")

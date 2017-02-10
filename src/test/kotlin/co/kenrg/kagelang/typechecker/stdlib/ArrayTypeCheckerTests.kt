@@ -1,4 +1,4 @@
-package co.kenrg.kagelang.typechecker
+package co.kenrg.kagelang.typechecker.stdlib
 
 import co.kenrg.kagelang.codegen.decLiteral
 import co.kenrg.kagelang.codegen.intLiteral
@@ -6,6 +6,11 @@ import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.KGType.PropType
+import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.typechecker.TypeChecker
+import co.kenrg.kagelang.typechecker.assertFails
+import co.kenrg.kagelang.typechecker.assertSucceedsAnd
+import co.kenrg.kagelang.typechecker.randomTCNamespace
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -27,14 +32,14 @@ class ArrayTypeCheckerTests {
                 val arrayExpr = KGArray(expr)
                 val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
                 assertSucceedsAnd(result) {
-                    val arrayType = KGType.arrayType(expectedInnerType)
+                    val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(expectedInnerType))
                     Assertions.assertEquals(arrayType, arrayExpr.type)
                 }
             }
         }
     }
 
-    @Test fun testArrayExpression_nestedArrays() {
+    @Test fun testArrayExpression_nestedArrays_matchingTypes_passesTypechecking() {
         // [[1, 2], [3, 4]]
         val arrayExpr = KGArray(listOf(
                 KGArray(listOf(intLiteral(1), intLiteral(2))),
@@ -42,10 +47,20 @@ class ArrayTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
         assertSucceedsAnd(result) {
-            val innerArrayType = KGType.arrayType(KGType.INT)
-            val arrayType = KGType.arrayType(innerArrayType)
+            val innerArrayType = KGType.stdLibType(StdLibTypes.Array, listOf(KGType.INT))
+            val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(innerArrayType))
             Assertions.assertEquals(arrayType, arrayExpr.type)
         }
+    }
+
+    @Test fun testArrayExpression_nestedArrays_differentTypes_failsTypechecking() {
+        // [[1, 2], ["3", "4"]]
+        val arrayExpr = KGArray(listOf(
+                KGArray(listOf(intLiteral(1), intLiteral(2))),
+                KGArray(listOf(stringLiteral("3"), stringLiteral("4")))
+        ))
+        val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
+        assertFails(result)
     }
 
     @Test fun testArrayExpression_customTypes() {
@@ -68,7 +83,7 @@ class ArrayTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(arrayExpr, ns)
         assertSucceedsAnd(result) {
-            val arrayType = KGType.arrayType(type)
+            val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(type))
             Assertions.assertEquals(arrayType, arrayExpr.type)
         }
     }
