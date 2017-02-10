@@ -685,16 +685,59 @@ class CodeGenVisitor(
         }
     }
 
+    private fun visitMainMethod(fnDecl: KGTree.KGFnDeclaration, data: CGScope) {
+        val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, "([Ljava/lang/String;)V", null, null)
+        val fnStart = Label()
+        val fnEnd = Label()
+        fnWriter.visitCode()
+        fnWriter.visitLabel(fnStart)
+
+        val fnScope = data.createChildScope(method = FocusedMethod(fnWriter, fnStart, fnEnd))
+        val argsType = KGType.stdLibType(StdLibTypes.Array, listOf(KGType.STRING))
+
+        if (fnDecl.params.isNotEmpty()) {
+            // If this is the main method, and a parameter was defined, create that local variable as a Array[String],
+            // using whatever name was given...
+            val argsName = fnDecl.params[0].name
+            fnScope.vals.put(argsName, ValBinding.Local(argsName, argsType, 1, 0))
+            fnWriter.visitLocalVariable(argsName, argsType.jvmDescriptor(), null, fnStart, fnEnd, 0)
+
+            // ...by passing the 0th local variable into the constructor for Array[String] & store it back in the 0th spot.
+            // Doing it this way means that the main method doesn't need to specify an args param if it doesn't need it.
+            fnWriter.visitTypeInsn(NEW, StdLibTypes.Array.className)
+            fnWriter.visitInsn(DUP)
+            fnWriter.visitVarInsn(ALOAD, 0)
+            val constructorSignature = "([Ljava/lang/Object;)V"
+            fnWriter.visitMethodInsn(INVOKESPECIAL, StdLibTypes.Array.className, "<init>", constructorSignature, false)
+            fnWriter.visitVarInsn(ASTORE, 0)
+        }
+
+        fnDecl.body.accept(this, fnScope)
+        if (fnDecl.body.type != KGType.UNIT)
+            throw IllegalStateException("Main method requires return type of Unit, actual: ${fnDecl.body.type}")
+
+        fnWriter.visitInsn(RETURN)
+        fnWriter.visitMaxs(-1, -1)
+        fnWriter.visitEnd()
+
+        data.functions.put(fnDecl.name, FunctionBinding(fnDecl.name, fnDecl.signature))
+
+        fnWriter.visitLabel(fnEnd)
+    }
+
     override fun visitFnDeclaration(fnDecl: KGTree.KGFnDeclaration, data: CGScope) {
         // If fn declared at root, encode it as a static method of the class. Otherwise, it needs to be created
         // dynamically as an anonymous inner subclass of the yet-existent kageruntime.jvm.function.Function.
         if (!data.isRoot())
             throw UnsupportedOperationException("Non-top-level fns not yet implemented")
 
-        val isMain = fnDecl.name == "main"
+        // There are special things that should happen if this is the main method
+        if (fnDecl.name == "main") {
+            visitMainMethod(fnDecl, data)
+            return
+        }
 
-        val signature = if (isMain) "([Ljava/lang/String;)V" else fnDecl.signature.jvmTypeDescriptor()
-        val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, signature, null, null)
+        val fnWriter = cw.visitMethod(ACC_PUBLIC or ACC_STATIC, fnDecl.name, fnDecl.signature.jvmTypeDescriptor(), null, null)
         val fnStart = Label()
         val fnEnd = Label()
         fnWriter.visitCode()
@@ -702,8 +745,7 @@ class CodeGenVisitor(
 
         val fnScope = data.createChildScope(method = FocusedMethod(fnWriter, fnStart, fnEnd))
 
-        // Since we can make the assumption that this is a static method (all functions are static methods at the moment)
-        // then place the local variables at their indices, starting at 0.
+        // Since all functions at the moment are static methods, their local variable index should start at 0.
         fnDecl.params.forEach {
             val index = getIndexForNextLocalVariable(fnScope, startIndex = 0)
             val paramType = it.type.hydrate(data) { throw IllegalStateException("Unknown type $it") }
@@ -715,15 +757,7 @@ class CodeGenVisitor(
 
         fnDecl.body.accept(this, fnScope)
 
-        if (isMain) {
-            if (fnDecl.body.type != KGType.UNIT)
-                throw IllegalStateException("Main method requires return type of Unit, actual: ${fnDecl.body.type}")
-
-            fnWriter.visitInsn(RETURN)
-        } else {
-            fnWriter.visitInsn(fnDecl.signature.returnType.getReturnInsn())
-        }
-
+        fnWriter.visitInsn(fnDecl.signature.returnType.getReturnInsn())
         fnWriter.visitMaxs(-1, -1)
         fnWriter.visitEnd()
 

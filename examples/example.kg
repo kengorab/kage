@@ -1,2 +1,4 @@
-fn main() =
-  print(["asdf", "qwer"].size)
+val args = ["abcdefg"]
+
+fn main(args: Array[String]) =
+  print(args)
