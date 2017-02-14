@@ -8,7 +8,7 @@ import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -64,7 +64,7 @@ class FnDeclarationTypeCheckerTests {
             )
             val result = TypeChecker.typeCheck(statement, randomTCNamespace())
             assertSucceedsAnd(result) {
-                assertEquals(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.STRING, KGType.STRING)), statement.body.type)
+                assertEquals(KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.STRING, KGType.STRING)), statement.body.type)
             }
         }
 

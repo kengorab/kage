@@ -6,7 +6,7 @@ import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.KGType.PropType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -29,7 +29,7 @@ class TupleTypeCheckerTests {
                     val tupleExpr = KGTuple(expr)
                     val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
                     assertSucceedsAnd(result) {
-                        val tupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = expectedTypeParams)
+                        val tupleType = KGType.stdLibType(StdLibType.Pair, typeParams = expectedTypeParams)
                         Assertions.assertEquals(tupleType, tupleExpr.type)
                     }
                 }
@@ -44,8 +44,8 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
             assertSucceedsAnd(result) {
-                val innerTupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.INT))
-                val tupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, innerTupleType))
+                val innerTupleType = KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, KGType.INT))
+                val tupleType = KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, innerTupleType))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -70,7 +70,7 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, ns)
             assertSucceedsAnd(result) {
-                val tupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, type))
+                val tupleType = KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, type))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -92,7 +92,7 @@ class TupleTypeCheckerTests {
                     val tupleExpr = KGTuple(expr)
                     val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
                     assertSucceedsAnd(result) {
-                        val tupleType = KGType.stdLibType(StdLibTypes.Triple, typeParams = expectedTypeParams)
+                        val tupleType = KGType.stdLibType(StdLibType.Triple, typeParams = expectedTypeParams)
                         Assertions.assertEquals(tupleType, tupleExpr.type)
                     }
                 }
@@ -108,9 +108,9 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
             assertSucceedsAnd(result) {
-                val innerTupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.INT))
-                val innerTripleType = KGType.stdLibType(StdLibTypes.Triple, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT))
-                val tupleType = KGType.stdLibType(StdLibTypes.Triple, typeParams = listOf(KGType.INT, innerTupleType, innerTripleType))
+                val innerTupleType = KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, KGType.INT))
+                val innerTripleType = KGType.stdLibType(StdLibType.Triple, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT))
+                val tupleType = KGType.stdLibType(StdLibType.Triple, typeParams = listOf(KGType.INT, innerTupleType, innerTripleType))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -135,7 +135,7 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, ns)
             assertSucceedsAnd(result) {
-                val tupleType = KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, type))
+                val tupleType = KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, type))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -151,7 +151,7 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
             assertSucceedsAnd(result) {
-                val tupleType = KGType.stdLibType(StdLibTypes.Tuple4, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                val tupleType = KGType.stdLibType(StdLibType.Tuple4, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -163,7 +163,7 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
             assertSucceedsAnd(result) {
-                val tupleType = KGType.stdLibType(StdLibTypes.Tuple5, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                val tupleType = KGType.stdLibType(StdLibType.Tuple5, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }
@@ -175,7 +175,7 @@ class TupleTypeCheckerTests {
             ))
             val result = TypeChecker.typeCheck(tupleExpr, randomTCNamespace())
             assertSucceedsAnd(result) {
-                val tupleType = KGType.stdLibType(StdLibTypes.Tuple6, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
+                val tupleType = KGType.stdLibType(StdLibType.Tuple6, typeParams = listOf(KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT, KGType.INT))
                 Assertions.assertEquals(tupleType, tupleExpr.type)
             }
         }

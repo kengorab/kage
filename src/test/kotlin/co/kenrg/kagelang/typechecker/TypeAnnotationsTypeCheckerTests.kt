@@ -97,4 +97,16 @@ class TypeAnnotationsTypeCheckerTests {
         val result = TypeChecker.typeCheck(valDecl, randomTCNamespace())
         assertSucceeds(result)
     }
+
+    @Test fun typecheckTypeAnnotations_typeIsStdlibSomeType_passesTypechecking() {
+        val valDecl = KGValDeclaration("a", KGInvocation(KGBindingReference("Some"), listOf(intLiteral(1))), TypeIdentifier("Some", listOf(TypeIdentifier("Int"))))
+        val result = TypeChecker.typeCheck(valDecl, randomTCNamespace())
+        assertSucceeds(result)
+    }
+
+    @Test fun typecheckTypeAnnotations_typeIsStdlibNoneType_passesTypechecking() {
+        val valDecl = KGValDeclaration("a", KGInvocation(KGBindingReference("None")), TypeIdentifier("None"))
+        val result = TypeChecker.typeCheck(valDecl, randomTCNamespace())
+        assertSucceeds(result)
+    }
 }

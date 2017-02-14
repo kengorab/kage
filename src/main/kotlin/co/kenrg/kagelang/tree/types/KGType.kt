@@ -23,21 +23,40 @@ data class KGType(
         val BOOL = KGType(name = "Bool", isPrimitive = true, className = "java/lang/Boolean")
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit", className = "java/lang/Void")
+        val ANY = KGType(name = "Any", className = "java/lang/Object")
 
-        fun stdLibType(stdLibType: StdLibTypes, typeParams: List<KGType> = listOf()): KGType {
-            val clazz = stdLibType.getTypeClass()
+        fun fromPrimitive(primitive: String): KGType {
+            return when (primitive) {
+                "int" -> INT
+                else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
+            }
+        }
+
+        private fun Class<*>.genericTypeNames(): List<String>? {
+            val classGenericStr = this.toGenericString()
             val genericTypeRegex = Regex(".*<(\\w(?:,\\s*\\w)*)>.*")
-            val classGenericStr = clazz.toGenericString()
+            return genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
+        }
+
+        fun stdLibType(stdLibType: StdLibType, typeParams: List<KGType> = listOf()): KGType {
+            val clazz = stdLibType.getTypeClass()
 
             val genericTypes = if (typeParams.isNotEmpty()) {
-                val genericTypeNames = genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
+                val genericTypeNames = clazz.genericTypeNames()
                         ?: throw IllegalStateException("Type params passed to non-generic type")
 
                 if (typeParams.size != genericTypeNames.size)
                     throw IllegalStateException("Number of type params provided to generic type is incorrect")
 
                 genericTypeNames.zip(typeParams).toMap()
-            } else null
+            } else mapOf()
+
+            return stdLibType(stdLibType, genericTypes)
+        }
+
+        fun stdLibType(stdLibType: StdLibType, genericTypes: Map<String, KGType> = mapOf()): KGType {
+            val clazz = stdLibType.getTypeClass()
+            val classGenericStr = clazz.toGenericString()
 
             val classFields = clazz.declaredFields
             val classMethods = clazz.declaredMethods
@@ -54,13 +73,12 @@ data class KGType(
                                 throw UnsupportedOperationException("Accessing non-generic prop '${field.name}' of a stdlib type")
                             }
                             is TypeVariableImpl<*> -> {
-                                if (genericTypes == null)
-                                    throw IllegalStateException("Cannot evaluate generic type of prop '${field.name}'")
-
-                                if (!genericTypes.containsKey(fieldAnnotatedType.name))
+                                if (genericTypes.isEmpty())
+                                    PropType(KGType.ANY, true)
+                                else if (!genericTypes.containsKey(fieldAnnotatedType.name))
                                     throw IllegalStateException("Type has no type parameter '${fieldAnnotatedType.name}'")
-
-                                PropType(genericTypes[fieldAnnotatedType.name]!!, true)
+                                else
+                                    PropType(genericTypes[fieldAnnotatedType.name]!!, true)
                             }
                             else -> throw UnsupportedOperationException("Unknown kind of type for field '${field.name}': '${fieldAnnotatedType.javaClass.canonicalName}'")
                         }
@@ -75,7 +93,7 @@ data class KGType(
                     props = props,
                     isGeneric = classGenericStr.contains(Regex("<.*>")),
                     genericTypes = genericTypes,
-                    typeParams = typeParams
+                    typeParams = clazz.genericTypeNames()?.map { genericTypes[it] ?: KGType.ANY } ?: listOf()
             )
         }
     }
@@ -113,7 +131,7 @@ fun String.asKGType(typeParams: List<KGType> = listOf()): KGType? {
         return type
 
     try {
-        return KGType.stdLibType(StdLibTypes.valueOf(this), typeParams)
+        return KGType.stdLibType(StdLibType.valueOf(this), typeParams)
     } catch (e: IllegalArgumentException) {
         throw UnsupportedOperationException("Cannot find stdlib class for type: $this")
     }

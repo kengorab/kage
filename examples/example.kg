@@ -1,2 +1,5 @@
 fn main() =
-  print(("Hello", "World").first)
+  let
+    val s = None()
+  in
+    print(s)
