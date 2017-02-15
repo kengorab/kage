@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
-class TupleCodeGenTests {
+class TupleCodeGenTests : BaseTest() {
 
     @Nested
     inner class Pair {

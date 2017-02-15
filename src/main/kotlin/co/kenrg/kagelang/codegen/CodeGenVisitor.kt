@@ -443,7 +443,7 @@ class CodeGenVisitor(
                         it.accept(this, data)
                         val paramType = it.type
                                 ?: throw IllegalStateException("Type of invocation arguments cannot be null")
-                        if (paramType.isPrimitive) {
+                        if (type.isGeneric && paramType.isPrimitive) {
                             val signature = "(${paramType.jvmDescriptor()})L${paramType.className};"
                             methodWriter.visitMethodInsn(INVOKESTATIC, paramType.className, "valueOf", signature, false)
                         }
@@ -549,6 +549,12 @@ class CodeGenVisitor(
                 val accessorSignature = "()Ljava/lang/Object;"
                 methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
                 methodWriter.visitTypeInsn(CHECKCAST, propType.type.className)
+
+                // If the type was a boxed primitive, unbox it.
+                if (propType.type.isPrimitive) {
+                    val unboxDesc = "(L${propType.type.className};)${propType.type.jvmDescriptor()}"
+                    methodWriter.visitMethodInsn(INVOKESTATIC, "kage/lang/util/Primitives", "unbox", unboxDesc, false)
+                }
             } else {
                 val accessorSignature = "()${propType.type.jvmDescriptor()}"
                 methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)

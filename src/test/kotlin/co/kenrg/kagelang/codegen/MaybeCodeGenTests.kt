@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
-class MaybeCodeGenTests {
+class MaybeCodeGenTests : BaseTest() {
 
     @Nested
     inner class None {

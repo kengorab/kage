@@ -1,28 +1,28 @@
 package kage.lang.util;
 
 public abstract class Maybe<T> {
-    protected abstract T getValue();
+    public abstract T getValue();
 
-    protected abstract boolean isSet();
+    public abstract boolean isSet();
 
-    protected abstract T orElse(T other);
+    public abstract T orElse(T other);
 
     public static class None<T> extends Maybe<T> {
         public None() {
         }
 
         @Override
-        protected T getValue() {
+        public T getValue() {
             return null;
         }
 
         @Override
-        protected boolean isSet() {
+        public boolean isSet() {
             return false;
         }
 
         @Override
-        protected T orElse(T other) {
+        public T orElse(T other) {
             return other;
         }
 
@@ -50,17 +50,17 @@ public abstract class Maybe<T> {
         }
 
         @Override
-        protected T getValue() {
+        public T getValue() {
             return this.value;
         }
 
         @Override
-        protected boolean isSet() {
+        public boolean isSet() {
             return true;
         }
 
         @Override
-        protected T orElse(T other) {
+        public T orElse(T other) {
             return this.value;
         }
 
