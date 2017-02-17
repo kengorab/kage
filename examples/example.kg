@@ -1,5 +1,5 @@
 fn main() =
   let
-    val s = None()
+    val s: Maybe[Int] = None[Int]()
   in
     print(s)

@@ -190,13 +190,16 @@ class TypeCheckerAttributorVisitor(
                     bindingReference.type = binding.signature.returnType
                     result = binding.signature.returnType
                 }
-                is KGType -> {
-                    bindingReference.type = binding
-                    result = binding
-                }
+                // Since (currently) nothing can be done with a reference to a KGType or StdLibType
+                // (i.e. it can't be assigned to a binding, or have any operations performed on them)
+                // don't bother to return any type for this. Change when other things can be done with
+                // types aside from invocation. Keep the logging for now.
+//                is KGType -> println("visitBindingReference: KGType")
+//                is StdLibType -> println("visitBindingReference: StdLibType")
+                is KGType,
                 is StdLibType -> {
-                    bindingReference.type = KGType.stdLibType(binding, listOf())
-                    result = bindingReference.type
+                    bindingReference.type = KGType.ANY
+                    result = KGType.ANY
                 }
             }
         }
@@ -221,7 +224,7 @@ class TypeCheckerAttributorVisitor(
                                 handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                         }
                     } else {
-                        handleError(Error("Not enough arguments provided to constructor for $invokeeName", invocation.position.start))
+                        handleError(Error("Incorrect number of arguments provided to constructor for $invokeeName", invocation.position.start))
                     }
 
                     invocation.type = typeForName
@@ -232,10 +235,17 @@ class TypeCheckerAttributorVisitor(
                 val stdlibType = StdLibType.values().find { it.name == invokeeName }
                 if (stdlibType != null) {
                     val stdlibTypeConstructors = stdlibType.getTypeClass().constructors
+                    if (stdlibTypeConstructors.isEmpty()) {
+                        handleError(Error("No constructor exists for $invokeeName", invocation.position.start))
+                        invocation.type = null
+                        result = null
+                        return
+                    }
+
                     val constructor = stdlibTypeConstructors
                             .find { it.annotatedParameterTypes.size == invocation.params.size }
                     if (constructor == null) {
-                        handleError(Error("Not enough arguments provided to constructor for $invokeeName", invocation.position.start))
+                        handleError(Error("Incorrect number of arguments provided to constructor for $invokeeName", invocation.position.start))
                         val defaultType = KGType.stdLibType(stdlibType, mapOf())
                         invocation.type = defaultType
                         result = defaultType
@@ -432,7 +442,7 @@ class TypeCheckerAttributorVisitor(
             if (annotatedType == null)
                 handleError(Error("Type with name ${valDecl.typeAnnotation} not visible in this context", valDecl.position.start))
 
-            if (valDecl.expression.type != annotatedType)
+            if (!valDecl.expression.type!!.isAssignableToType(annotatedType!!))
                 handleError(Error("Expression not assignable to type $annotatedType", valDecl.position.start))
         }
 

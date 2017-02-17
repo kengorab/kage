@@ -16,6 +16,12 @@ data class TypeIdentifier(val name: String, val typeParams: List<TypeIdentifier>
 
         return type
     }
+
+    override fun toString(): String {
+        val typeParams = this.typeParams?.map { it.toString() }?.joinToString(", ")
+        val paramsStr = if (typeParams == null) "" else "[$typeParams]"
+        return "$name${if (typeParams == null) "" else paramsStr}"
+    }
 }
 
 // Convenience function, for null-chaining

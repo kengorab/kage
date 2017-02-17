@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.tree.types
 
 import jdk.internal.org.objectweb.asm.Opcodes
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 import sun.reflect.generics.reflectiveObjects.TypeVariableImpl
 
 data class KGType(
@@ -13,7 +14,8 @@ data class KGType(
         val props: Map<String, PropType> = hashMapOf(),
         val typeParams: List<KGType>? = null,
         val isGeneric: Boolean = false,
-        val genericTypes: Map<String, KGType>? = null
+        val genericTypes: Map<String, KGType>? = null,
+        val superType: KGType? = KGType.ANY
 ) {
     data class PropType(val type: KGType, val isGeneric: Boolean)
 
@@ -24,6 +26,7 @@ data class KGType(
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit", className = "java/lang/Void")
         val ANY = KGType(name = "Any", className = "java/lang/Object")
+        val NOTHING = KGType(name = "Nothing", className = "java/lang/Object")
 
         fun fromPrimitive(primitive: String): KGType {
             return when (primitive) {
@@ -36,6 +39,14 @@ data class KGType(
             val classGenericStr = this.toGenericString()
             val genericTypeRegex = Regex(".*<(\\w(?:,\\s*\\w)*)>.*")
             return genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
+        }
+
+        private fun ParameterizedTypeImpl.typeInfo(): Pair<String, List<String>?> {
+            val genericTypeRegex = Regex("(.*)<(\\w(?:,\\s*\\w)*)>.*")
+            val groupValues = genericTypeRegex.matchEntire(this.typeName)?.groupValues
+            val typeName = groupValues?.get(1)!!
+            val typeParameters = groupValues?.get(2)?.split(',')?.map(String::trim)
+            return Pair(typeName, typeParameters)
         }
 
         fun stdLibType(stdLibType: StdLibType, typeParams: List<KGType> = listOf()): KGType {
@@ -86,6 +97,23 @@ data class KGType(
                     }
                     .toMap()
 
+            val genericSuperclass = clazz.genericSuperclass
+            val superType = when (genericSuperclass) {
+                is Class<*> -> KGType.ANY // TODO - Handle proper sub/superTypes
+                is ParameterizedTypeImpl -> {
+                    val (typeClassName, typeParams) = genericSuperclass.typeInfo()
+                    val stdLibTypeForName = StdLibType.forClassName(typeClassName)
+                            ?: throw UnsupportedOperationException("Superclasses that aren't stdlib are not yet supported")
+
+                    val typeParamTypes = typeParams?.map {
+                        genericTypes[it] ?: KGType.NOTHING
+                    } ?: listOf()
+
+                    KGType.stdLibType(stdLibTypeForName, typeParamTypes)
+                }
+                else -> throw UnsupportedOperationException("")
+            }
+
             return KGType(
                     name = clazz.simpleName,
                     className = stdLibType.className,
@@ -93,7 +121,8 @@ data class KGType(
                     props = props,
                     isGeneric = classGenericStr.contains(Regex("<.*>")),
                     genericTypes = genericTypes,
-                    typeParams = clazz.genericTypeNames()?.map { genericTypes[it] ?: KGType.ANY } ?: listOf()
+                    typeParams = clazz.genericTypeNames()?.map { genericTypes[it] ?: KGType.ANY } ?: listOf(),
+                    superType = superType
             )
         }
     }
@@ -110,6 +139,14 @@ data class KGType(
             if (typeParams == null) null
             else "${jvmDescriptor().trimEnd(';')}<${typeParams.map { "L${it.className};" }.joinToString("")}>;"
 
+    fun isAssignableToType(other: KGType): Boolean {
+        return this == other || other == KGType.ANY || this == KGType.NOTHING
+                || (
+                if (this.typeParams == null || other.typeParams == null) false
+                else this.typeParams.zip(other.typeParams).fold(true) { acc, pair -> acc && pair.first.isAssignableToType(pair.second) }
+                )
+                || this.superType?.isAssignableToType(other) ?: false
+    }
 
     fun getReturnInsn(): Int {
         return when (this) {
@@ -122,7 +159,7 @@ data class KGType(
     }
 }
 
-private val defaultTypes = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT)
+private val defaultTypes = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT, KGType.ANY)
 
 // Convenience method for nullable-chaining
 fun String.asKGType(typeParams: List<KGType> = listOf()): KGType? {
