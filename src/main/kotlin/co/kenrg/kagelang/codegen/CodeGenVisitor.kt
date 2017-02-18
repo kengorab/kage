@@ -572,6 +572,10 @@ class CodeGenVisitor(
         }
     }
 
+    override fun visitIndex(index: KGTree.KGIndex, data: CGScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     override fun visitTuple(tuple: KGTree.KGTuple, data: CGScope) {
         if (tuple.items.size > 6)
             throw IllegalStateException("Tuples larger than 6 items not supported; you should consider creating a type instead")

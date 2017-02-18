@@ -25,6 +25,7 @@ abstract class KGTree : Tree {
         fun visitLetIn(letIn: KGLetIn, data: D)
         fun visitIfThenElse(ifElse: KGIfThenElse, data: D)
         fun visitDot(dot: KGDot, data: D)
+        fun visitIndex(index: KGIndex, data: D)
         fun visitTuple(tuple: KGTuple, data: D)
         fun visitArray(array: KGArray, data: D)
 
@@ -162,6 +163,15 @@ abstract class KGTree : Tree {
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitDot(this, data)
     }
 
+    class KGIndex(val target: KGExpression, val index: KGExpression) : KGExpression(), IndexTree {
+        override fun target() = target
+        override fun index() = index
+
+        override fun kind() = Tree.Kind.Index
+
+        override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitIndex(this, data)
+    }
+
     class KGTuple(val items: List<KGExpression>) : KGExpression(), TupleTree {
         override fun items() = items
 
@@ -173,7 +183,7 @@ abstract class KGTree : Tree {
     class KGArray(val items: List<KGExpression>) : KGExpression(), TupleTree {
         override fun items() = items
 
-        override fun kind() = Tree.Kind.Tuple
+        override fun kind() = Tree.Kind.Array
 
         override fun <D> accept(visitor: Visitor<D>, data: D) = visitor.visitArray(this, data)
     }

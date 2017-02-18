@@ -44,6 +44,7 @@ interface Tree {
         object LetIn : Kind<LetInTree>(LetInTree::class.java)
         object IfElse : Kind<IfThenElseTree>(IfThenElseTree::class.java)
         object Dot : Kind<DotTree>(DotTree::class.java)
+        object Index : Kind<IndexTree>(IndexTree::class.java)
         object Tuple : Kind<TupleTree>(TupleTree::class.java)
         object Array : Kind<ArrayTree>(ArrayTree::class.java)
 

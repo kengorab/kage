@@ -1,4 +1,4 @@
 val args = ["abcdefg"]
 
 fn main(args: Array[String]) =
-  print(args)
+  print(args[0])

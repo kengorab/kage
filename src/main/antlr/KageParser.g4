@@ -93,6 +93,8 @@ expression
 
     | 'let' NEWLINE+ statements NEWLINE+ 'in' NEWLINE+ statementOrExpression            #letInExpression
 
+    | target=expression '[' index=expression ']'                                        #indexExpression
+
     | operator=('-'|'!') expression                                                     #unaryOperation
 
     | left=expression operator=('/'|'*') right=expression                               #binaryOperation

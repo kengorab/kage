@@ -395,6 +395,10 @@ class TypeCheckerAttributorVisitor(
         }
     }
 
+    override fun visitIndex(index: KGTree.KGIndex, data: TCScope) {
+        throw UnsupportedOperationException("not implemented")
+    }
+
     override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {
         if (tuple.items.size > 6)
             handleError(Error("Tuples larger than 6 items not supported; you should consider creating a type instead", tuple.position.start))

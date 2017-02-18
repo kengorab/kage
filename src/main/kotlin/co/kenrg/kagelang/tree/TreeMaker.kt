@@ -117,6 +117,11 @@ class TreeMaker(val considerPosition: Boolean = true) {
                         target = toTree(expression.target),
                         prop = expression.prop.text
                 )
+            is KageParser.IndexExpressionContext ->
+                KGTree.KGIndex(
+                        target = toTree(expression.target),
+                        index = toTree(expression.index)
+                )
             is KageParser.TupleLiteralContext ->
                 KGTree.KGTuple(
                         items = expression.items.expression().map { toTree(it) }
