@@ -470,7 +470,15 @@ class CodeGenVisitor(
                     // Grab the first function. At this point, it's already passed typechecking so there
                     // should definitely be a function matching the necessary param signature.
                     val fnForName = data.getFnsForName(invocation.invokee.binding)
-                            ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.second } }
+                            ?.filter {
+                                val invocationParamTypes = invocation.params.map { it.type }
+                                val signatureParamTypes = it.signature.params.map { it.second }
+
+                                invocationParamTypes.size == signatureParamTypes.size &&
+                                        invocationParamTypes.zip(signatureParamTypes).fold(true) { acc, pair ->
+                                            acc && pair.first?.isAssignableToType(pair.second) ?: false
+                                        }
+                            }
                             ?.elementAtOrNull(0)
                             ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
 

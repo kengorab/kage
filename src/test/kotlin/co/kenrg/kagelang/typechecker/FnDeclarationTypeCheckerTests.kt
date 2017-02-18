@@ -83,6 +83,35 @@ class FnDeclarationTypeCheckerTests {
                 }
             }
         }
+
+        @Test fun testFunctionWithSupertypeReturnType_exprReturnsSubtype_passesTypechecking() {
+            val fnDecl = KGFnDeclaration(
+                    "optify",
+                    KGInvocation(KGBindingReference("Some"), listOf(KGBindingReference("i"))),
+                    listOf(FnParameter("i", TypeIdentifier("Int"))),
+                    TypeIdentifier("Maybe", listOf(TypeIdentifier("Int")))
+            )
+            val result = TypeChecker.typeCheck(fnDecl, randomTCNamespace())
+            assertSucceeds(result)
+        }
+
+        @Test fun testFunctionWithSupertypeParamTypes_passedSubtypes_passesTypechecking() {
+            val ns = randomTCNamespace()
+            val maybeInt = KGType.stdLibType(StdLibType.Maybe, typeParams = listOf(KGType.INT))
+            ns.rootScope.functions.put(
+                    "pairify",
+                    TCBinding.FunctionBinding(
+                            "pairify",
+                            Signature(
+                                    listOf(Pair("a", maybeInt), Pair("b", maybeInt)),
+                                    KGType.stdLibType(StdLibType.Pair, listOf(maybeInt, maybeInt))
+                            )
+                    )
+            )
+            val invocation = KGInvocation(KGBindingReference("pairify"), listOf(KGInvocation(KGBindingReference("Some"), listOf(intLiteral(3))), KGInvocation(KGBindingReference("None"), listOf())))
+            val result = TypeChecker.typeCheck(invocation, ns)
+            assertSucceeds(result)
+        }
     }
 
     @Nested

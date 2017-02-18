@@ -1,5 +1,5 @@
+fn optInt(i: Int): Maybe[Int] = Some(i)
+fn pairify(i1: Maybe[Int], i2: Maybe[Int]): Pair[Maybe[Int], Maybe[Int]] = (i1, i2)
+
 fn main() =
-  let
-    val s: Maybe[Int] = None[Int]()
-  in
-    print(s)
+  print(pairify(optInt(12), optInt(24)))

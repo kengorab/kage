@@ -139,13 +139,13 @@ data class KGType(
             if (typeParams == null) null
             else "${jvmDescriptor().trimEnd(';')}<${typeParams.map { "L${it.className};" }.joinToString("")}>;"
 
-    fun isAssignableToType(other: KGType): Boolean {
-        return this == other || other == KGType.ANY || this == KGType.NOTHING
+    fun isAssignableToType(superType: KGType): Boolean {
+        return this == superType || superType == KGType.ANY || this == KGType.NOTHING
                 || (
-                if (this.typeParams == null || other.typeParams == null) false
-                else this.typeParams.zip(other.typeParams).fold(true) { acc, pair -> acc && pair.first.isAssignableToType(pair.second) }
+                if (this.typeParams == null || superType.typeParams == null) false
+                else this.typeParams.zip(superType.typeParams).fold(true) { acc, pair -> acc && pair.first.isAssignableToType(pair.second) }
                 )
-                || this.superType?.isAssignableToType(other) ?: false
+                || this.superType?.isAssignableToType(superType) ?: false
     }
 
     fun getReturnInsn(): Int {
@@ -156,6 +156,12 @@ data class KGType(
             KGType.UNIT -> Opcodes.RETURN
             else -> Opcodes.ARETURN // Includes KGType.STRING
         }
+    }
+
+    override fun toString(): String {
+        val typeParams = this.typeParams?.map(KGType::toString)?.joinToString(", ")
+        val paramsStr = if (typeParams == null) "" else "[$typeParams]"
+        return "$name${if (typeParams == null) "" else paramsStr}"
     }
 }
 

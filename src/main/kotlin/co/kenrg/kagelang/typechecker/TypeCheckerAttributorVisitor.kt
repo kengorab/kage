@@ -190,14 +190,12 @@ class TypeCheckerAttributorVisitor(
                     bindingReference.type = binding.signature.returnType
                     result = binding.signature.returnType
                 }
-                // Since (currently) nothing can be done with a reference to a KGType or StdLibType
-                // (i.e. it can't be assigned to a binding, or have any operations performed on them)
-                // don't bother to return any type for this. Change when other things can be done with
-                // types aside from invocation. Keep the logging for now.
-//                is KGType -> println("visitBindingReference: KGType")
-//                is StdLibType -> println("visitBindingReference: StdLibType")
                 is KGType,
                 is StdLibType -> {
+                    // Since (currently) nothing can be done with a reference to a KGType or StdLibType
+                    // (i.e. it can't be assigned to a binding, or have any operations performed on them)
+                    // don't bother to return a type for this. Change when other things can be done with
+                    // types aside from invocation. For now, just return Any.
                     bindingReference.type = KGType.ANY
                     result = KGType.ANY
                 }
@@ -220,7 +218,7 @@ class TypeCheckerAttributorVisitor(
                         invocation.params.zip(typeForName.props.values).forEach { pair ->
                             val (param, requiredType) = pair
 
-                            if (param.type != requiredType.type)
+                            if (!param.type!!.isAssignableToType(requiredType.type))
                                 handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                         }
                     } else {
@@ -265,7 +263,7 @@ class TypeCheckerAttributorVisitor(
                         val requiredType = required.type
                         when (requiredType) {
                             is Class<*> ->
-                                if (param.type != KGType.fromPrimitive(requiredType.name))
+                                if (!param.type!!.isAssignableToType(KGType.fromPrimitive(requiredType.name)))
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
 
                             is TypeVariableImpl<*> -> {
@@ -304,7 +302,7 @@ class TypeCheckerAttributorVisitor(
                                 val (param, required) = pair
                                 val (name, requiredType) = required
 
-                                if (param.type != requiredType)
+                                if (!param.type!!.isAssignableToType(requiredType))
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                             }
                         } else {
@@ -492,7 +490,7 @@ class TypeCheckerAttributorVisitor(
                 handleError(Error("Type with name $it not visible in this context", fnDecl.position.start))
             }
 
-            if (fnRetType != fnDecl.body.type)
+            if (!fnRetType!!.isAssignableToType(fnDecl.body.type!!))
                 handleError(Error("Expected return type of $fnRetType, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 
