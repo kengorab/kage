@@ -6,7 +6,7 @@ import co.kenrg.kagelang.codegen.stringLiteral
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.KGType.PropType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import co.kenrg.kagelang.typechecker.TypeChecker
 import co.kenrg.kagelang.typechecker.assertFails
 import co.kenrg.kagelang.typechecker.assertSucceedsAnd
@@ -32,7 +32,7 @@ class ArrayTypeCheckerTests {
                 val arrayExpr = KGArray(expr)
                 val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
                 assertSucceedsAnd(result) {
-                    val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(expectedInnerType))
+                    val arrayType = KGType.stdLibType(StdLibType.Array, listOf(expectedInnerType))
                     Assertions.assertEquals(arrayType, arrayExpr.type)
                 }
             }
@@ -47,8 +47,8 @@ class ArrayTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
         assertSucceedsAnd(result) {
-            val innerArrayType = KGType.stdLibType(StdLibTypes.Array, listOf(KGType.INT))
-            val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(innerArrayType))
+            val innerArrayType = KGType.stdLibType(StdLibType.Array, listOf(KGType.INT))
+            val arrayType = KGType.stdLibType(StdLibType.Array, listOf(innerArrayType))
             Assertions.assertEquals(arrayType, arrayExpr.type)
         }
     }
@@ -83,7 +83,7 @@ class ArrayTypeCheckerTests {
         ))
         val result = TypeChecker.typeCheck(arrayExpr, ns)
         assertSucceedsAnd(result) {
-            val arrayType = KGType.stdLibType(StdLibTypes.Array, listOf(type))
+            val arrayType = KGType.stdLibType(StdLibType.Array, listOf(type))
             Assertions.assertEquals(arrayType, arrayExpr.type)
         }
     }

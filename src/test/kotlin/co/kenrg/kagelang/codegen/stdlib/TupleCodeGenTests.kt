@@ -1,5 +1,6 @@
 package co.kenrg.kagelang.codegen.stdlib
 
+import co.kenrg.kagelang.codegen.BaseTest
 import co.kenrg.kagelang.codegen.compileAndExecuteFileAnd
 import co.kenrg.kagelang.kageFileFromCode
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestFactory
 
-class TupleCodeGenTests {
+class TupleCodeGenTests : BaseTest() {
 
     @Nested
     inner class Pair {
@@ -17,28 +18,21 @@ class TupleCodeGenTests {
         @TestFactory
         fun testTupleExpression_basicPairs(): List<DynamicTest> {
             return listOf(
-                    "(1, 2)",
-                    "(1, 2.2)",
-                    "(0.1, (2, 3))"
+                    Pair("(1, 2)", "(1, 2)"),
+                    Pair("(1, 2.2)", "(1, 2.2)"),
+                    Pair("(0.1, (2, 3))", "(0.1, (2, 3))"),
+                    Pair("(\"asdf\", \"qwer\")", "(asdf, qwer)")
             ).map { testCase ->
-                dynamicTest("Tuple `$testCase` should have proper type params") {
+                val (expr, result) = testCase
+                dynamicTest("Tuple `$expr` should print contents") {
                     val code = """
-                      fn main() = print($testCase)
+                      fn main() = print($expr)
                     """
 
                     val file = kageFileFromCode(code)
-                    compileAndExecuteFileAnd(file) { output -> assertEquals(testCase, output) }
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(result, output) }
                 }
             }
-        }
-
-        @Test fun testTupleExpression_strings() {
-            val code = """
-              fn main() = print(("asdf", "qwer"))
-            """
-
-            val file = kageFileFromCode(code)
-            compileAndExecuteFileAnd(file) { output -> assertEquals("(asdf, qwer)", output) }
         }
 
         @Test fun testTupleExpression_customTypes() {
@@ -50,6 +44,28 @@ class TupleCodeGenTests {
             val file = kageFileFromCode(code)
             compileAndExecuteFileAnd(file) { output -> assertEquals("(1, OneProp(someStr: \"asdf\"))", output) }
         }
+
+        @TestFactory
+        fun testTupleExpression_printFirstAndSecondProps(): List<DynamicTest> {
+            return listOf(
+                    Pair("(1, 2)", listOf("1", "2")),
+                    Pair("(1, 2.2)", listOf("1", "2.2")),
+                    Pair("(0.1, (2, 3))", listOf("0.1", "(2, 3)")),
+                    Pair("(\"asdf\", \"qwer\")", listOf("asdf", "qwer"))
+            ).flatMap { testCase ->
+                val (expr, results) = testCase
+                listOf("first", "second").mapIndexed { i, prop ->
+                    dynamicTest("Printing `$expr.$prop` should print ${results[i]}") {
+                        val code = """
+                          fn main() = print($expr.$prop)
+                        """
+
+                        val file = kageFileFromCode(code)
+                        compileAndExecuteFileAnd(file) { output -> assertEquals(results[i], output) }
+                    }
+                }
+            }
+        }
     }
 
     @Nested
@@ -58,28 +74,43 @@ class TupleCodeGenTests {
         @TestFactory
         fun testTupleExpression_basicPairs(): List<DynamicTest> {
             return listOf(
-                    "(1, 2, 1)",
-                    "(1, 2.2, 0)",
-                    "(0.1, (2, 3), (4, 3, 0.1))"
+                    Pair("(1, 2, 1)", "(1, 2, 1)"),
+                    Pair("(1, 2.2, 0)", "(1, 2.2, 0)"),
+                    Pair("(0.1, (2, 3), (4, 3, 0.1))", "(0.1, (2, 3), (4, 3, 0.1))"),
+                    Pair("(\"asdf\", \"qwer\", \"zxcv\")", "(asdf, qwer, zxcv)")
             ).map { testCase ->
-                dynamicTest("Triple `$testCase` should have proper type params") {
+                val (expr, result) = testCase
+                dynamicTest("Triple `$expr` should print contents") {
                     val code = """
-                      fn main() = print($testCase)
+                      fn main() = print($expr)
                     """
 
                     val file = kageFileFromCode(code)
-                    compileAndExecuteFileAnd(file) { output -> assertEquals(testCase, output) }
+                    compileAndExecuteFileAnd(file) { output -> assertEquals(result, output) }
                 }
             }
         }
 
-        @Test fun testTupleExpression_strings() {
-            val code = """
-              fn main() = print(("asdf", "qwer", "zxcv"))
-            """
+        @TestFactory
+        fun testTupleExpression_printFirstSecondAndThirdProps(): List<DynamicTest> {
+            return listOf(
+                    Pair("(1, 2, 1)", listOf("1", "2", "1")),
+                    Pair("(1, 2.2, 0)", listOf("1", "2.2", "0")),
+                    Pair("(0.1, (2, 3), (4, 3, 0.1))", listOf("0.1", "(2, 3)", "(4, 3, 0.1)")),
+                    Pair("(\"asdf\", \"qwer\", \"zxcv\")", listOf("asdf", "qwer", "zxcv"))
+            ).flatMap { testCase ->
+                val (expr, results) = testCase
+                listOf("first", "second", "third").mapIndexed { i, prop ->
+                    dynamicTest("Printing `$expr.$prop` should print ${results[i]}") {
+                        val code = """
+                          fn main() = print($expr.$prop)
+                        """
 
-            val file = kageFileFromCode(code)
-            compileAndExecuteFileAnd(file) { output -> assertEquals("(asdf, qwer, zxcv)", output) }
+                        val file = kageFileFromCode(code)
+                        compileAndExecuteFileAnd(file) { output -> assertEquals(results[i], output) }
+                    }
+                }
+            }
         }
 
         @Test fun testTupleExpression_customTypes() {
