@@ -1,4 +1,4 @@
-package co.kenrg.kagelang.typechecker.stdlib.tuple
+package co.kenrg.kagelang.typechecker.stdlib
 
 import co.kenrg.kagelang.codegen.intLiteral
 import co.kenrg.kagelang.codegen.stringLiteral
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.TestFactory
 
-class TuplePropsTypeCheckerTests {
+class TupleTypeCheckerTests {
 
     private fun testCases(cases: List<Pair<String, KGType?>>, tuple: KGTuple, tupleSig: String): List<DynamicTest> {
         return cases.map { testCase ->

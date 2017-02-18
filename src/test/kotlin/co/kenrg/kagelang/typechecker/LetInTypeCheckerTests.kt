@@ -7,7 +7,7 @@ import co.kenrg.kagelang.model.TypeIdentifier
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -177,7 +177,7 @@ class LetInTypeCheckerTests {
         )
         val result = TypeChecker.typeCheck(letInExpr, randomTCNamespace())
         assertSucceedsAnd(result) {
-            assertEquals(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), it.type)
+            assertEquals(KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), it.type)
         }
     }
 }

@@ -9,7 +9,8 @@ import co.kenrg.kagelang.tree.KGTree.VisitorErrorHandler
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.KGType.PropType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
+import sun.reflect.generics.reflectiveObjects.TypeVariableImpl
 import java.util.*
 
 /**
@@ -171,6 +172,7 @@ class TypeCheckerAttributorVisitor(
         val binding = data.getVal(bindingReference.binding)
                 ?: data.getFnsForName(bindingReference.binding)
                 ?: data.getType(bindingReference.binding)
+                ?: StdLibType.values().find { it.name == bindingReference.binding }
 
         if (binding == null) {
             handleError(Error("Binding with name ${bindingReference.binding} not visible in current context", bindingReference.position.start))
@@ -188,9 +190,14 @@ class TypeCheckerAttributorVisitor(
                     bindingReference.type = binding.signature.returnType
                     result = binding.signature.returnType
                 }
-                is KGType -> {
-                    bindingReference.type = binding
-                    result = binding
+                is KGType,
+                is StdLibType -> {
+                    // Since (currently) nothing can be done with a reference to a KGType or StdLibType
+                    // (i.e. it can't be assigned to a binding, or have any operations performed on them)
+                    // don't bother to return a type for this. Change when other things can be done with
+                    // types aside from invocation. For now, just return Any.
+                    bindingReference.type = KGType.ANY
+                    result = KGType.ANY
                 }
             }
         }
@@ -211,15 +218,67 @@ class TypeCheckerAttributorVisitor(
                         invocation.params.zip(typeForName.props.values).forEach { pair ->
                             val (param, requiredType) = pair
 
-                            if (param.type != requiredType.type)
+                            if (!param.type!!.isAssignableToType(requiredType.type))
                                 handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                         }
                     } else {
-                        handleError(Error("Not enough arguments provided to constructor for $invokeeName", invocation.position.start))
+                        handleError(Error("Incorrect number of arguments provided to constructor for $invokeeName", invocation.position.start))
                     }
 
                     invocation.type = typeForName
                     result = typeForName
+                    return
+                }
+
+                val stdlibType = StdLibType.values().find { it.name == invokeeName }
+                if (stdlibType != null) {
+                    val stdlibTypeConstructors = stdlibType.getTypeClass().constructors
+                    if (stdlibTypeConstructors.isEmpty()) {
+                        handleError(Error("No constructor exists for $invokeeName", invocation.position.start))
+                        invocation.type = null
+                        result = null
+                        return
+                    }
+
+                    val constructor = stdlibTypeConstructors
+                            .find { it.annotatedParameterTypes.size == invocation.params.size }
+                    if (constructor == null) {
+                        handleError(Error("Incorrect number of arguments provided to constructor for $invokeeName", invocation.position.start))
+                        val defaultType = KGType.stdLibType(stdlibType, mapOf())
+                        invocation.type = defaultType
+                        result = defaultType
+                        return
+                    }
+
+                    val typeParamGuesses = hashMapOf<String, KGType>()
+                    constructor.genericParameterTypes.forEach {
+                        when (it) {
+                            is TypeVariableImpl<*> -> typeParamGuesses.put(it.name, KGType.ANY)
+                            else -> throw UnsupportedOperationException("Unknown kind of type for constructor param: ${it.javaClass.canonicalName}")
+                        }
+                    }
+
+                    invocation.params.zip(constructor.annotatedParameterTypes).forEach { pair ->
+                        val (param, required) = pair
+                        val requiredType = required.type
+                        when (requiredType) {
+                            is Class<*> ->
+                                if (!param.type!!.isAssignableToType(KGType.fromPrimitive(requiredType.name)))
+                                    handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
+
+                            is TypeVariableImpl<*> -> {
+                                if (typeParamGuesses[requiredType.name] == KGType.ANY)
+                                    typeParamGuesses.put(requiredType.name, param.type!!)
+                                if (typeParamGuesses[requiredType.name] != param.type)
+                                    handleError(Error("Generic type mismatch. Required: ${typeParamGuesses[requiredType.name]}, Actual: ${param.type}", invocation.position.start))
+                            }
+                            else -> throw UnsupportedOperationException("Unknown kind of type")
+                        }
+                    }
+
+                    val resultType = KGType.stdLibType(stdlibType, typeParamGuesses)
+                    invocation.type = resultType
+                    result = resultType
                     return
                 }
 
@@ -243,7 +302,7 @@ class TypeCheckerAttributorVisitor(
                                 val (param, required) = pair
                                 val (name, requiredType) = required
 
-                                if (param.type != requiredType)
+                                if (!param.type!!.isAssignableToType(requiredType))
                                     handleError(Error("Type mismatch. Required: $requiredType, Actual: ${param.type}", invocation.position.start))
                             }
                         } else {
@@ -348,11 +407,11 @@ class TypeCheckerAttributorVisitor(
         }
 
         val tupleKind = when (tuple.items.size) {
-            2 -> StdLibTypes.Pair
-            3 -> StdLibTypes.Triple
-            4 -> StdLibTypes.Tuple4
-            5 -> StdLibTypes.Tuple5
-            6 -> StdLibTypes.Tuple6
+            2 -> StdLibType.Pair
+            3 -> StdLibType.Triple
+            4 -> StdLibType.Tuple4
+            5 -> StdLibType.Tuple5
+            6 -> StdLibType.Tuple6
             else -> throw UnsupportedOperationException("Tuples larger than 6 items not supported; you should consider creating a type instead")
         }
 
@@ -381,7 +440,7 @@ class TypeCheckerAttributorVisitor(
             if (annotatedType == null)
                 handleError(Error("Type with name ${valDecl.typeAnnotation} not visible in this context", valDecl.position.start))
 
-            if (valDecl.expression.type != annotatedType)
+            if (!valDecl.expression.type!!.isAssignableToType(annotatedType!!))
                 handleError(Error("Expression not assignable to type $annotatedType", valDecl.position.start))
         }
 
@@ -431,7 +490,7 @@ class TypeCheckerAttributorVisitor(
                 handleError(Error("Type with name $it not visible in this context", fnDecl.position.start))
             }
 
-            if (fnRetType != fnDecl.body.type)
+            if (!fnRetType!!.isAssignableToType(fnDecl.body.type!!))
                 handleError(Error("Expected return type of $fnRetType, saw ${fnDecl.body.type}", fnDecl.body.position.start))
         }
 

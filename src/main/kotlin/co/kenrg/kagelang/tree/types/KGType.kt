@@ -1,6 +1,7 @@
 package co.kenrg.kagelang.tree.types
 
 import jdk.internal.org.objectweb.asm.Opcodes
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 import sun.reflect.generics.reflectiveObjects.TypeVariableImpl
 
 data class KGType(
@@ -13,7 +14,8 @@ data class KGType(
         val props: Map<String, PropType> = hashMapOf(),
         val typeParams: List<KGType>? = null,
         val isGeneric: Boolean = false,
-        val genericTypes: Map<String, KGType>? = null
+        val genericTypes: Map<String, KGType>? = null,
+        val superType: KGType? = KGType.ANY
 ) {
     data class PropType(val type: KGType, val isGeneric: Boolean)
 
@@ -23,21 +25,49 @@ data class KGType(
         val BOOL = KGType(name = "Bool", isPrimitive = true, className = "java/lang/Boolean")
         val STRING = KGType(name = "String", className = "java/lang/String", isComparable = true)
         val UNIT = KGType(name = "Unit", className = "java/lang/Void")
+        val ANY = KGType(name = "Any", className = "java/lang/Object")
+        val NOTHING = KGType(name = "Nothing", className = "java/lang/Object")
 
-        fun stdLibType(stdLibType: StdLibTypes, typeParams: List<KGType> = listOf()): KGType {
-            val clazz = stdLibType.getTypeClass()
+        fun fromPrimitive(primitive: String): KGType {
+            return when (primitive) {
+                "int" -> INT
+                else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
+            }
+        }
+
+        private fun Class<*>.genericTypeNames(): List<String>? {
+            val classGenericStr = this.toGenericString()
             val genericTypeRegex = Regex(".*<(\\w(?:,\\s*\\w)*)>.*")
-            val classGenericStr = clazz.toGenericString()
+            return genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
+        }
+
+        private fun ParameterizedTypeImpl.typeInfo(): Pair<String, List<String>?> {
+            val genericTypeRegex = Regex("(.*)<(\\w(?:,\\s*\\w)*)>.*")
+            val groupValues = genericTypeRegex.matchEntire(this.typeName)?.groupValues
+            val typeName = groupValues?.get(1)!!
+            val typeParameters = groupValues?.get(2)?.split(',')?.map(String::trim)
+            return Pair(typeName, typeParameters)
+        }
+
+        fun stdLibType(stdLibType: StdLibType, typeParams: List<KGType> = listOf()): KGType {
+            val clazz = stdLibType.getTypeClass()
 
             val genericTypes = if (typeParams.isNotEmpty()) {
-                val genericTypeNames = genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
+                val genericTypeNames = clazz.genericTypeNames()
                         ?: throw IllegalStateException("Type params passed to non-generic type")
 
                 if (typeParams.size != genericTypeNames.size)
                     throw IllegalStateException("Number of type params provided to generic type is incorrect")
 
                 genericTypeNames.zip(typeParams).toMap()
-            } else null
+            } else mapOf()
+
+            return stdLibType(stdLibType, genericTypes)
+        }
+
+        fun stdLibType(stdLibType: StdLibType, genericTypes: Map<String, KGType> = mapOf()): KGType {
+            val clazz = stdLibType.getTypeClass()
+            val classGenericStr = clazz.toGenericString()
 
             val classFields = clazz.declaredFields
             val classMethods = clazz.declaredMethods
@@ -54,19 +84,35 @@ data class KGType(
                                 throw UnsupportedOperationException("Accessing non-generic prop '${field.name}' of a stdlib type")
                             }
                             is TypeVariableImpl<*> -> {
-                                if (genericTypes == null)
-                                    throw IllegalStateException("Cannot evaluate generic type of prop '${field.name}'")
-
-                                if (!genericTypes.containsKey(fieldAnnotatedType.name))
+                                if (genericTypes.isEmpty())
+                                    PropType(KGType.ANY, true)
+                                else if (!genericTypes.containsKey(fieldAnnotatedType.name))
                                     throw IllegalStateException("Type has no type parameter '${fieldAnnotatedType.name}'")
-
-                                PropType(genericTypes[fieldAnnotatedType.name]!!, true)
+                                else
+                                    PropType(genericTypes[fieldAnnotatedType.name]!!, true)
                             }
                             else -> throw UnsupportedOperationException("Unknown kind of type for field '${field.name}': '${fieldAnnotatedType.javaClass.canonicalName}'")
                         }
                         field.name to fieldType
                     }
                     .toMap()
+
+            val genericSuperclass = clazz.genericSuperclass
+            val superType = when (genericSuperclass) {
+                is Class<*> -> KGType.ANY // TODO - Handle proper sub/superTypes
+                is ParameterizedTypeImpl -> {
+                    val (typeClassName, typeParams) = genericSuperclass.typeInfo()
+                    val stdLibTypeForName = StdLibType.forClassName(typeClassName)
+                            ?: throw UnsupportedOperationException("Superclasses that aren't stdlib are not yet supported")
+
+                    val typeParamTypes = typeParams?.map {
+                        genericTypes[it] ?: KGType.NOTHING
+                    } ?: listOf()
+
+                    KGType.stdLibType(stdLibTypeForName, typeParamTypes)
+                }
+                else -> throw UnsupportedOperationException("")
+            }
 
             return KGType(
                     name = clazz.simpleName,
@@ -75,7 +121,8 @@ data class KGType(
                     props = props,
                     isGeneric = classGenericStr.contains(Regex("<.*>")),
                     genericTypes = genericTypes,
-                    typeParams = typeParams
+                    typeParams = clazz.genericTypeNames()?.map { genericTypes[it] ?: KGType.ANY } ?: listOf(),
+                    superType = superType
             )
         }
     }
@@ -92,6 +139,14 @@ data class KGType(
             if (typeParams == null) null
             else "${jvmDescriptor().trimEnd(';')}<${typeParams.map { "L${it.className};" }.joinToString("")}>;"
 
+    fun isAssignableToType(superType: KGType): Boolean {
+        return this == superType || superType == KGType.ANY || this == KGType.NOTHING
+                || (
+                if (this.typeParams == null || superType.typeParams == null) false
+                else this.typeParams.zip(superType.typeParams).fold(true) { acc, pair -> acc && pair.first.isAssignableToType(pair.second) }
+                )
+                || this.superType?.isAssignableToType(superType) ?: false
+    }
 
     fun getReturnInsn(): Int {
         return when (this) {
@@ -102,9 +157,15 @@ data class KGType(
             else -> Opcodes.ARETURN // Includes KGType.STRING
         }
     }
+
+    override fun toString(): String {
+        val typeParams = this.typeParams?.map(KGType::toString)?.joinToString(", ")
+        val paramsStr = if (typeParams == null) "" else "[$typeParams]"
+        return "$name${if (typeParams == null) "" else paramsStr}"
+    }
 }
 
-private val defaultTypes = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT)
+private val defaultTypes = listOf(KGType.INT, KGType.DEC, KGType.BOOL, KGType.STRING, KGType.UNIT, KGType.ANY)
 
 // Convenience method for nullable-chaining
 fun String.asKGType(typeParams: List<KGType> = listOf()): KGType? {
@@ -113,7 +174,7 @@ fun String.asKGType(typeParams: List<KGType> = listOf()): KGType? {
         return type
 
     try {
-        return KGType.stdLibType(StdLibTypes.valueOf(this), typeParams)
+        return KGType.stdLibType(StdLibType.valueOf(this), typeParams)
     } catch (e: IllegalArgumentException) {
         throw UnsupportedOperationException("Cannot find stdlib class for type: $this")
     }

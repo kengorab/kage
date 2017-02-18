@@ -5,7 +5,7 @@ import co.kenrg.kagelang.tree.KGFile
 import co.kenrg.kagelang.tree.KGTree
 import co.kenrg.kagelang.tree.iface.base.Tree
 import co.kenrg.kagelang.tree.types.KGType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import jdk.internal.org.objectweb.asm.ClassWriter
 import jdk.internal.org.objectweb.asm.Label
 import jdk.internal.org.objectweb.asm.MethodVisitor
@@ -435,24 +435,50 @@ class CodeGenVisitor(
                 val methodWriter = data.method?.writer
                         ?: throw IllegalStateException("Attempted to visit invocation with no methodVisitor active")
 
-                // If the invocation target is a type name, invoke the constructor for that type. Otherwise, invoke the function.
-                val typeForName = data.getType(invocation.invokee.binding)
-                if (typeForName != null) {
-                    methodWriter.visitTypeInsn(NEW, typeForName.className)
+                fun invokeConstructor(type: KGType) {
+                    methodWriter.visitTypeInsn(NEW, type.className)
                     methodWriter.visitInsn(DUP)
 
                     invocation.params.forEach {
                         it.accept(this, data)
+                        val paramType = it.type
+                                ?: throw IllegalStateException("Type of invocation arguments cannot be null")
+                        if (type.isGeneric && paramType.isPrimitive) {
+                            val signature = "(${paramType.jvmDescriptor()})L${paramType.className};"
+                            methodWriter.visitMethodInsn(INVOKESTATIC, paramType.className, "valueOf", signature, false)
+                        }
                     }
 
-                    // TODO - Handle generic type props
-                    val constructorSignature = "(${typeForName.props.values.map { it.type.jvmDescriptor() }.joinToString("")})V"
-                    methodWriter.visitMethodInsn(INVOKESPECIAL, typeForName.className, "<init>", constructorSignature, false)
+                    val paramsSignature = type.props.values.map {
+                        if (it.isGeneric) "Ljava/lang/Object;"
+                        else it.type.jvmDescriptor()
+                    }
+                    val constructorSignature = "(${paramsSignature.joinToString("")})V"
+                    methodWriter.visitMethodInsn(INVOKESPECIAL, type.className, "<init>", constructorSignature, false)
+                }
+
+                // If the invocation target is a type name, invoke the constructor for that type.
+                // Otherwise, if the target is a built-in standard type, invoke that constructor;
+                // otherwise, invoke the function with the target's name.
+                val typeForName = data.getType(invocation.invokee.binding)
+                val stdLibTypeForName = StdLibType.values().find { it.name == invocation.invokee.binding }
+                if (typeForName != null) {
+                    invokeConstructor(typeForName)
+                } else if (stdLibTypeForName != null) {
+                    invokeConstructor(KGType.stdLibType(stdLibTypeForName, listOf()))
                 } else {
                     // Grab the first function. At this point, it's already passed typechecking so there
                     // should definitely be a function matching the necessary param signature.
                     val fnForName = data.getFnsForName(invocation.invokee.binding)
-                            ?.filter { invocation.params.map { it.type } == it.signature.params.map { it.second } }
+                            ?.filter {
+                                val invocationParamTypes = invocation.params.map { it.type }
+                                val signatureParamTypes = it.signature.params.map { it.second }
+
+                                invocationParamTypes.size == signatureParamTypes.size &&
+                                        invocationParamTypes.zip(signatureParamTypes).fold(true) { acc, pair ->
+                                            acc && pair.first?.isAssignableToType(pair.second) ?: false
+                                        }
+                            }
                             ?.elementAtOrNull(0)
                             ?: throw IllegalStateException("No function available with name ${invocation.invokee.binding} accepting ${invocation.params.map { it.type }}")
 
@@ -531,6 +557,12 @@ class CodeGenVisitor(
                 val accessorSignature = "()Ljava/lang/Object;"
                 methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
                 methodWriter.visitTypeInsn(CHECKCAST, propType.type.className)
+
+                // If the type was a boxed primitive, unbox it.
+                if (propType.type.isPrimitive) {
+                    val unboxDesc = "(L${propType.type.className};)${propType.type.jvmDescriptor()}"
+                    methodWriter.visitMethodInsn(INVOKESTATIC, "kage/lang/util/Primitives", "unbox", unboxDesc, false)
+                }
             } else {
                 val accessorSignature = "()${propType.type.jvmDescriptor()}"
                 methodWriter.visitMethodInsn(INVOKEVIRTUAL, dotType.className, accessorName, accessorSignature, false)
@@ -549,11 +581,11 @@ class CodeGenVisitor(
 
 
         val tupleKind = when (tuple.items.size) {
-            2 -> StdLibTypes.Pair
-            3 -> StdLibTypes.Triple
-            4 -> StdLibTypes.Tuple4
-            5 -> StdLibTypes.Tuple5
-            6 -> StdLibTypes.Tuple6
+            2 -> StdLibType.Pair
+            3 -> StdLibType.Triple
+            4 -> StdLibType.Tuple4
+            5 -> StdLibType.Tuple5
+            6 -> StdLibType.Tuple6
             else -> throw UnsupportedOperationException("Tuples larger than 6 items not supported; you should consider creating a type instead")
         }
         methodWriter.visitTypeInsn(NEW, tupleKind.className)

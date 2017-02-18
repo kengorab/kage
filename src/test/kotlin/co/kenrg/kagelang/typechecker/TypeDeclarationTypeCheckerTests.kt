@@ -6,7 +6,7 @@ import co.kenrg.kagelang.model.TypedName
 import co.kenrg.kagelang.tree.KGTree.*
 import co.kenrg.kagelang.tree.types.KGType
 import co.kenrg.kagelang.tree.types.KGType.PropType
-import co.kenrg.kagelang.tree.types.StdLibTypes
+import co.kenrg.kagelang.tree.types.StdLibType
 import org.apache.commons.lang3.RandomStringUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -117,7 +117,7 @@ class TypeDeclarationTypeCheckerTests {
                     typeName,
                     className = "${ns.name}\$$typeName",
                     props = mapOf(
-                            "intStringPair" to PropType(KGType.stdLibType(StdLibTypes.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), false)
+                            "intStringPair" to PropType(KGType.stdLibType(StdLibType.Pair, typeParams = listOf(KGType.INT, KGType.STRING)), false)
                     )
             )
             assertEquals(expectedType, ns.rootScope.types[typeName])
