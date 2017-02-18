@@ -62,3 +62,10 @@ typedef NetworkMonitorController {
 #RequestMapping(value: "/monitors/{monitorId}/metrics", method: GET, produces: "application/json")
 fn (NetworkMonitorController c) getAllMetricsForMonitor(monitorId: String): List[Metric] =
   c.metricDao.getMetricsForMonitor(monitorId)
+
+val a = [[1, 2], [3]]
+val n: Int? = Some(0)
+val b: Int = n ?: 1
+
+val i: Int = a[0]?.size ?: n ?: 1
+val x: Int? = (n ?: 0) + 1

@@ -174,4 +174,16 @@ class FnDeclarationAndInvocationCodeGenTests : BaseTest() {
             }
         }
     }
+
+    @Test fun testFunctionWithSupertypeReturnType_exprReturnsSubtype() {
+        val code = """
+          fn optify(i: Int): Maybe[Int] = Some(i)
+          fn main() = print(optify(1))
+        """
+        val file = kageFileFromCode(code)
+
+        compileAndExecuteFileAnd(file) { output ->
+            assertEquals("Some(1)", output)
+        }
+    }
 }
