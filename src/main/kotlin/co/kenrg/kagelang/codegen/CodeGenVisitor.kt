@@ -573,7 +573,23 @@ class CodeGenVisitor(
     }
 
     override fun visitIndex(index: KGTree.KGIndex, data: CGScope) {
-        throw UnsupportedOperationException("not implemented")
+        val methodWriter = data.method?.writer
+                ?: throw IllegalStateException("Attempted to visit indexExpression with no methodVisitor active")
+
+        index.target.accept(this, data)
+        val targetType = getTypeAssertNotNull(index.target.type)
+
+        index.index.accept(this, data)
+        val indexType = getTypeAssertNotNull(index.index.type)
+
+        val indexTypeClass = indexType.className
+        if (indexType.isPrimitive) {
+            val valueOfSignature = "(${indexType.jvmDescriptor()})L$indexTypeClass;"
+            methodWriter.visitMethodInsn(INVOKESTATIC, indexTypeClass, "valueOf", valueOfSignature, false)
+        }
+
+        val getAtDesc = "(Ljava/lang/Object;)L${StdLibType.Maybe.className};"
+        methodWriter.visitMethodInsn(INVOKEVIRTUAL, targetType.className, "getAt", getAtDesc, false)
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: CGScope) {
