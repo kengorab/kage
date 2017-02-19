@@ -11,7 +11,7 @@ import co.kenrg.kagelang.typechecker.TypeChecker
 import co.kenrg.kagelang.typechecker.assertFails
 import co.kenrg.kagelang.typechecker.assertSucceedsAnd
 import co.kenrg.kagelang.typechecker.randomTCNamespace
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import org.junit.jupiter.api.Test
@@ -33,7 +33,7 @@ class ArrayTypeCheckerTests {
                 val result = TypeChecker.typeCheck(arrayExpr, randomTCNamespace())
                 assertSucceedsAnd(result) {
                     val arrayType = KGType.stdLibType(StdLibType.Array, listOf(expectedInnerType))
-                    Assertions.assertEquals(arrayType, arrayExpr.type)
+                    assertEquals(arrayType, arrayExpr.type)
                 }
             }
         }
@@ -49,7 +49,7 @@ class ArrayTypeCheckerTests {
         assertSucceedsAnd(result) {
             val innerArrayType = KGType.stdLibType(StdLibType.Array, listOf(KGType.INT))
             val arrayType = KGType.stdLibType(StdLibType.Array, listOf(innerArrayType))
-            Assertions.assertEquals(arrayType, arrayExpr.type)
+            assertEquals(arrayType, arrayExpr.type)
         }
     }
 
@@ -84,7 +84,7 @@ class ArrayTypeCheckerTests {
         val result = TypeChecker.typeCheck(arrayExpr, ns)
         assertSucceedsAnd(result) {
             val arrayType = KGType.stdLibType(StdLibType.Array, listOf(type))
-            Assertions.assertEquals(arrayType, arrayExpr.type)
+            assertEquals(arrayType, arrayExpr.type)
         }
     }
 }

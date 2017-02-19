@@ -2,7 +2,9 @@ package kage.lang.collection;
 
 import java.util.Arrays;
 
-public class Array<T> {
+import kage.lang.util.Maybe;
+
+public class Array<T> implements Indexable<Integer, T> {
     public T[] items;
     private int size;
 
@@ -13,6 +15,13 @@ public class Array<T> {
 
     public int getSize() {
         return size;
+    }
+
+    public Maybe<T> getAt(Integer index) {
+        if (index >=0 && index < this.items.length)
+            return new Maybe.Some<T>(this.items[index]);
+        else
+            return new Maybe.None<T>();
     }
 
     @Override

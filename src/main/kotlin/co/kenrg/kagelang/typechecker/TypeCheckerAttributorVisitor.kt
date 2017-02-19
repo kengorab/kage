@@ -396,7 +396,42 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitIndex(index: KGTree.KGIndex, data: TCScope) {
-        throw UnsupportedOperationException("not implemented")
+        val targetType = attribExpr(index.target, data)
+        if (targetType == null) {
+            handleError(Error("Could not determine type for index target", index.target.position.start))
+            index.type = null
+            result = null
+            return
+        }
+
+        val indexableTypeDef = targetType.interfaces.find { it.name == "Indexable" }
+        if (indexableTypeDef == null) {
+            handleError(Error("Type $targetType is not indexable", index.target.position.start))
+            index.type = null
+            result = null
+            return
+        }
+
+        val indexType = attribExpr(index.index, data)
+        if (indexType == null) {
+            handleError(Error("Could not determine type for index value", index.index.position.start))
+            index.type = null
+            result = null
+            return
+        }
+
+        val indexableIndexType = indexableTypeDef.typeParams!![0]
+        if (!indexType.isAssignableToType(indexableIndexType)) {
+            handleError(Error("Type $targetType is indexable by $indexableIndexType, not by $indexType", index.index.position.start))
+            index.type = null
+            result = null
+            return
+        }
+
+        // TODO - This is a bit hacky, assuming the return type of the Indexable interface's method is a Maybe<T>...
+        val resultType = KGType.stdLibType(StdLibType.Maybe, listOf(indexableTypeDef.typeParams[1]))
+        index.type = resultType
+        result = resultType
     }
 
     override fun visitTuple(tuple: KGTree.KGTuple, data: TCScope) {

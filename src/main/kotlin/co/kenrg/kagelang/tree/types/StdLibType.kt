@@ -11,6 +11,7 @@ enum class StdLibType(val className: String) {
     Some("kage/lang/util/Maybe\$Some"),
     None("kage/lang/util/Maybe\$None"),
 
+    Indexable("kage/lang/collection/Indexable"),
     Array("kage/lang/collection/Array");
 
     fun getTypeClass() = Class.forName(this.className.replace('/', '.'))!!

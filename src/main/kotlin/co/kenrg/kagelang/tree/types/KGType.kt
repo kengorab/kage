@@ -15,7 +15,8 @@ data class KGType(
         val typeParams: List<KGType>? = null,
         val isGeneric: Boolean = false,
         val genericTypes: Map<String, KGType>? = null,
-        val superType: KGType? = KGType.ANY
+        val superType: KGType? = KGType.ANY,
+        val interfaces: List<KGType> = listOf()
 ) {
     data class PropType(val type: KGType, val isGeneric: Boolean)
 
@@ -28,33 +29,31 @@ data class KGType(
         val ANY = KGType(name = "Any", className = "java/lang/Object")
         val NOTHING = KGType(name = "Nothing", className = "java/lang/Object")
 
-        fun fromPrimitive(primitive: String): KGType {
-            return when (primitive) {
-                "int" -> INT
-                else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
-            }
-        }
+        fun fromPrimitive(primitive: String): KGType =
+                when (primitive) {
+                    "int" -> INT
+                    else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
+                }
 
-//<<<<<<< HEAD
-//        fun fromPrimitive(primitive: String): KGType {
-//            return when (primitive) {
-//                "int" -> INT
-//                else -> throw UnsupportedOperationException("Transformation of primitive $primitive is not handled")
-//            }
-//        }
-//
-//        fun stdLibType(stdLibType: StdLibTypes, typeParams: List<KGType> = listOf()): KGType {
-//            val clazz = stdLibType.getTypeClass()
-//=======
+        fun byClassName(className: String): KGType? =
+                when (className.replace('.', '/')) {
+                    INT.className -> INT
+                    DEC.className -> DEC
+                    BOOL.className -> BOOL
+                    STRING.className -> STRING
+                    UNIT.className -> UNIT
+                    ANY.className -> ANY
+                    else -> null
+                }
+
         private fun Class<*>.genericTypeNames(): List<String>? {
             val classGenericStr = this.toGenericString()
-//>>>>>>> 3e39d4071e16d60c23093d021bf43a5fda80093f
-            val genericTypeRegex = Regex(".*<(\\w(?:,\\s*\\w)*)>.*")
+            val genericTypeRegex = Regex(".*<([\\w.]+(?:,\\s*[\\w.]+)*)>.*")
             return genericTypeRegex.matchEntire(classGenericStr)?.groupValues?.get(1)?.split(',')
         }
 
         private fun ParameterizedTypeImpl.typeInfo(): Pair<String, List<String>?> {
-            val genericTypeRegex = Regex("(.*)<(\\w(?:,\\s*\\w)*)>.*")
+            val genericTypeRegex = Regex("([\\w.]+)<([\\w.]+(?:,\\s*[\\w.]+)*)>.*")
             val groupValues = genericTypeRegex.matchEntire(this.typeName)?.groupValues
             val typeName = groupValues?.get(1)!!
             val typeParameters = groupValues?.get(2)?.split(',')?.map(String::trim)
@@ -107,20 +106,40 @@ data class KGType(
                     .toMap()
 
             val genericSuperclass = clazz.genericSuperclass
-            val superType = when (genericSuperclass) {
-                is Class<*> -> KGType.ANY // TODO - Handle proper sub/superTypes
-                is ParameterizedTypeImpl -> {
-                    val (typeClassName, typeParams) = genericSuperclass.typeInfo()
-                    val stdLibTypeForName = StdLibType.forClassName(typeClassName)
-                            ?: throw UnsupportedOperationException("Superclasses that aren't stdlib are not yet supported")
+            val superType =
+                    if (genericSuperclass == null) KGType.ANY
+                    else when (genericSuperclass) {
+                        is Class<*> -> KGType.ANY // TODO - Handle proper sub/superTypes
+                        is ParameterizedTypeImpl -> {
+                            val (typeClassName, typeParams) = genericSuperclass.typeInfo()
+                            val stdLibTypeForName = StdLibType.forClassName(typeClassName)
+                                    ?: throw UnsupportedOperationException("Superclasses that aren't stdlib are not yet supported")
 
-                    val typeParamTypes = typeParams?.map {
-                        genericTypes[it] ?: KGType.NOTHING
-                    } ?: listOf()
+                            val typeParamTypes = typeParams?.map {
+                                genericTypes[it] ?: KGType.NOTHING
+                            } ?: listOf()
 
-                    KGType.stdLibType(stdLibTypeForName, typeParamTypes)
+                            KGType.stdLibType(stdLibTypeForName, typeParamTypes)
+                        }
+                        else -> throw UnsupportedOperationException("Generic superclass of type ${genericSuperclass.javaClass.canonicalName} not supported")
+                    }
+
+            val genericInterfaces = clazz.genericInterfaces
+            val interfaces = genericInterfaces.map {
+                when (it) {
+                    is ParameterizedTypeImpl -> {
+                        val (typeClassName, typeParams) = it.typeInfo()
+                        val stdLibTypeForName = StdLibType.forClassName(typeClassName)
+                                ?: throw UnsupportedOperationException("Superclasses that aren't stdlib are not yet supported")
+
+                        val typeParamTypes = typeParams?.map {
+                            KGType.byClassName(it) ?: genericTypes[it] ?: KGType.NOTHING
+                        } ?: listOf()
+
+                        KGType.stdLibType(stdLibTypeForName, typeParams = typeParamTypes)
+                    }
+                    else -> throw UnsupportedOperationException("")
                 }
-                else -> throw UnsupportedOperationException("")
             }
 
             return KGType(
@@ -131,7 +150,8 @@ data class KGType(
                     isGeneric = classGenericStr.contains(Regex("<.*>")),
                     genericTypes = genericTypes,
                     typeParams = clazz.genericTypeNames()?.map { genericTypes[it] ?: KGType.ANY } ?: listOf(),
-                    superType = superType
+                    superType = superType,
+                    interfaces = interfaces
             )
         }
     }

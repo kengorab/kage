@@ -1,4 +1,7 @@
 val args = ["abcdefg"]
 
 fn main(args: Array[String]) =
-  print(args[0])
+  let
+    val a: Maybe[String] = args[0]
+  in
+    print(a)
