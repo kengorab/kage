@@ -114,6 +114,6 @@ expression
     | BooleanLiteral                                                                    #boolLiteral
 
     | '(' NEWLINE* items=expressions NEWLINE* ')'                                       #tupleLiteral
-    | '[' NEWLINE* items=expressions NEWLINE* ']'                                       #arrayLiteral
+    | '[' NEWLINE* items=expressions? NEWLINE* ']'                                      #arrayLiteral
     ;
 

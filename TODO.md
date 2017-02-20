@@ -40,6 +40,11 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
   - ~~Syntactic sugar for Pair, Triple~~
 - ~~Props of stdlib types~~
 - Arrays
+  - ~~Basic creation of array literal~~
+  - ~~Get size~~
+  - ~~Indexing into array~~
+  - Concatenation
+- "is"-props (boolean getter methods -> props)
 - Cleanup of KGType (maybe separate into a disjoint union type somehow?)
 - Comments! (// and /* */)
 - Method calls
@@ -48,7 +53,7 @@ Listed here are things that _need_ to or that I'd like to accomplish in this pro
 - HashMap
 - Loops
 - Lambdas
-- [Possibly] ?-Types (kind of like nullable, except under the hood it's just Optional)
+- [Possibly] ?-Types (kind of like nullable, except under the hood it's just Maybe)
 - Generic Types
 - Modules/Namespaces
 - Switch/match expression

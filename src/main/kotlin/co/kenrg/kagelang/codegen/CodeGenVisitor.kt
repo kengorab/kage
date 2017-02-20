@@ -635,12 +635,12 @@ class CodeGenVisitor(
         val size = array.items.size
         methodWriter.visitLdcInsn(size)
 
-        val itemType = getTypeAssertNotNull(array.items[0].type) // All array items should be the same type
+        val itemType = getTypeAssertNotNull(array.type?.typeParams?.get(0)) // All array items should be the same type
         val itemTypeClass = itemType.className
 
         methodWriter.visitTypeInsn(ANEWARRAY, itemType.className)
-        methodWriter.visitInsn(DUP)
         array.items.forEachIndexed { i, item ->
+            methodWriter.visitInsn(DUP)
             methodWriter.visitLdcInsn(i)
             item.accept(this, data)
 
@@ -650,9 +650,6 @@ class CodeGenVisitor(
             }
 
             methodWriter.visitInsn(AASTORE)
-            if (i < size - 1) {
-                methodWriter.visitInsn(DUP)
-            }
         }
 
         val constructorSignature = "([Ljava/lang/Object;)V"

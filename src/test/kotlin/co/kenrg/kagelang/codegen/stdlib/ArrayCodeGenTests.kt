@@ -29,15 +29,14 @@ class ArrayCodeGenTests {
         }
     }
 
-    // TODO - When Array[Any] is supported, this test should pass
-//    @Test fun testArrayExpression_emptyArray_sizeShouldBeZero() {
-//        val code = """
-//          fn main() = print([].size)
-//        """
-//
-//        val file = kageFileFromCode(code)
-//        compileAndExecuteFileAnd(file) { output -> assertEquals("0", output) }
-//    }
+    @Test fun testArrayExpression_emptyArray_sizeShouldBeZero() {
+        val code = """
+          fn main() = print([].size)
+        """
+
+        val file = kageFileFromCode(code)
+        compileAndExecuteFileAnd(file) { output -> assertEquals("0", output) }
+    }
 
     @Test fun testArrayExpression_nonEmptyArray_sizeShouldBeNumberOfItems() {
         val code = """

@@ -1,7 +1,5 @@
-val args = ["abcdefg"]
-
-fn main(args: Array[String]) =
+fn main() =
   let
-    val a: Maybe[String] = args[0]
+    val a = []
   in
-    print(a)
+    print(a.size == 0)

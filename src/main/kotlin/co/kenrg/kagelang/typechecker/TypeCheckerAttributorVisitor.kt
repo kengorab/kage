@@ -460,8 +460,12 @@ class TypeCheckerAttributorVisitor(
     }
 
     override fun visitArray(array: KGTree.KGArray, data: TCScope) {
-        if (array.items.isEmpty())
-            throw UnsupportedOperationException("Array[Any] not yet implemented/what is the type of an empty array?")
+        if (array.items.isEmpty()) {
+            val arrayType = KGType.stdLibType(StdLibType.Array, listOf(KGType.NOTHING))
+            array.type = arrayType
+            result = arrayType
+            return
+        }
 
         val itemTypes = array.items.mapIndexed { i, item ->
             val type = attribExpr(item, data)
@@ -471,7 +475,6 @@ class TypeCheckerAttributorVisitor(
         }
 
         if (itemTypes.toSet().size != 1)
-            // TODO - If multiple types, use Any
             handleError(Error("Array's items must be all the same type", array.position.start))
 
         val arrayType = KGType.stdLibType(StdLibType.Array, listOf(itemTypes[0]))
